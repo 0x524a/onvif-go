@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/xml"
 	"fmt"
-	"time"
 )
 
 // Media service SOAP message types
@@ -373,10 +372,4 @@ func unmarshalBody(body interface{}, target interface{}) error {
 		return err
 	}
 	return xml.Unmarshal(bodyXML, target)
-}
-
-// Helper to format duration as ISO 8601
-func formatDuration(d time.Duration) string {
-	seconds := int(d.Seconds())
-	return fmt.Sprintf("PT%dS", seconds)
 }

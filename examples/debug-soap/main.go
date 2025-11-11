@@ -60,7 +60,7 @@ type GetDeviceInformation struct {
 
 func createSecurityHeader(username, password string) *Security {
 	nonceBytes := make([]byte, 16)
-	rand.Read(nonceBytes)
+	_, _ = rand.Read(nonceBytes)
 	nonce := base64.StdEncoding.EncodeToString(nonceBytes)
 
 	created := time.Now().UTC().Format(time.RFC3339)
@@ -134,7 +134,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to send request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read response
 	respBody, err := io.ReadAll(resp.Body)

@@ -52,7 +52,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.sendFault(w, "Receiver", "Failed to read request body", err.Error())
 		return
 	}
-	defer r.Body.Close()
+	_ = r.Body.Close()
 
 	// Extract action from raw XML first (before parsing)
 	action := h.extractAction(body)
@@ -177,7 +177,7 @@ func (h *Handler) sendResponse(w http.ResponseWriter, response interface{}) {
 	// Send response
 	w.Header().Set("Content-Type", "application/soap+xml; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write(xmlBody)
+	_, _ = w.Write(xmlBody)
 }
 
 // sendFault sends a SOAP fault response
@@ -207,7 +207,7 @@ func (h *Handler) sendFault(w http.ResponseWriter, code, reason, detail string) 
 	// Send fault response
 	w.Header().Set("Content-Type", "application/soap+xml; charset=utf-8")
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write(xmlBody)
+	_, _ = w.Write(xmlBody)
 }
 
 // RequestWrapper wraps incoming SOAP request structures

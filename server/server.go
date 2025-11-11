@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
-	"sync"
 	"time"
 
 	"github.com/0x524A/go-onvif/server/soap"
@@ -305,8 +303,8 @@ func (s *Server) GetImagingState(videoSourceToken string) (*ImagingState, bool) 
 // ServerInfo returns human-readable server information
 func (s *Server) ServerInfo() string {
 	var info string
-	info += fmt.Sprintf("ONVIF Server Configuration\n")
-	info += fmt.Sprintf("==========================\n")
+	info += "ONVIF Server Configuration\n"
+	info += "==========================\n"
 	info += fmt.Sprintf("Device: %s %s\n", s.config.DeviceInfo.Manufacturer, s.config.DeviceInfo.Model)
 	info += fmt.Sprintf("Firmware: %s\n", s.config.DeviceInfo.FirmwareVersion)
 	info += fmt.Sprintf("Serial: %s\n", s.config.DeviceInfo.SerialNumber)
@@ -324,19 +322,12 @@ func (s *Server) ServerInfo() string {
 			info += fmt.Sprintf("      RTSP: %s\n", stream.StreamURI)
 		}
 		if profile.PTZ != nil {
-			info += fmt.Sprintf("      PTZ: Enabled\n")
+			info += "      PTZ: Enabled\n"
 		}
 	}
-	info += fmt.Sprintf("\nCapabilities:\n")
+	info += "\nCapabilities:\n"
 	info += fmt.Sprintf("  PTZ: %v\n", s.config.SupportPTZ)
 	info += fmt.Sprintf("  Imaging: %v\n", s.config.SupportImaging)
 	info += fmt.Sprintf("  Events: %v\n", s.config.SupportEvents)
 	return info
 }
-
-// Helper to convert int to string (since strconv is imported but not fmt in types.go)
-func intToStr(i int) string {
-	return strconv.Itoa(i)
-}
-
-var _ sync.Locker = (*sync.Mutex)(nil) // Ensure sync is used

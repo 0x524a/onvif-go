@@ -156,12 +156,11 @@ type StreamConfig struct {
 
 // Server represents the ONVIF server
 type Server struct {
-	config        *Config
-	streams       map[string]*StreamConfig // Profile token -> stream config
-	ptzState      map[string]*PTZState     // Profile token -> PTZ state
-	imagingState  map[string]*ImagingState // Video source token -> imaging state
-	systemTime    time.Time
-	authenticated bool
+	config       *Config
+	streams      map[string]*StreamConfig // Profile token -> stream config
+	ptzState     map[string]*PTZState     // Profile token -> PTZ state
+	imagingState map[string]*ImagingState // Video source token -> imaging state
+	systemTime   time.Time
 }
 
 // PTZState represents the current PTZ state
