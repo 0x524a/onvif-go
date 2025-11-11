@@ -53,8 +53,8 @@ func (c *Client) GetImagingSettings(ctx context.Context, videoSourceToken string
 				NearLimit     float64 `xml:"NearLimit"`
 				FarLimit      float64 `xml:"FarLimit"`
 			} `xml:"Focus"`
-			IrCutFilter *string `xml:"IrCutFilter"`
-			Sharpness   *float64 `xml:"Sharpness"`
+			IrCutFilter      *string  `xml:"IrCutFilter"`
+			Sharpness        *float64 `xml:"Sharpness"`
 			WideDynamicRange *struct {
 				Mode  string  `xml:"Mode"`
 				Level float64 `xml:"Level"`
@@ -76,7 +76,7 @@ func (c *Client) GetImagingSettings(ctx context.Context, videoSourceToken string
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
-	
+
 	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
 		return nil, fmt.Errorf("GetImagingSettings failed: %w", err)
 	}
@@ -177,8 +177,8 @@ func (c *Client) SetImagingSettings(ctx context.Context, videoSourceToken string
 				NearLimit     float64 `xml:"NearLimit,omitempty"`
 				FarLimit      float64 `xml:"FarLimit,omitempty"`
 			} `xml:"Focus,omitempty"`
-			IrCutFilter *string `xml:"IrCutFilter,omitempty"`
-			Sharpness   *float64 `xml:"Sharpness,omitempty"`
+			IrCutFilter      *string  `xml:"IrCutFilter,omitempty"`
+			Sharpness        *float64 `xml:"Sharpness,omitempty"`
 			WideDynamicRange *struct {
 				Mode  string  `xml:"Mode"`
 				Level float64 `xml:"Level,omitempty"`
@@ -281,7 +281,7 @@ func (c *Client) SetImagingSettings(ctx context.Context, videoSourceToken string
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
-	
+
 	if err := soapClient.Call(ctx, endpoint, "", req, nil); err != nil {
 		return fmt.Errorf("SetImagingSettings failed: %w", err)
 	}
@@ -339,7 +339,7 @@ func (c *Client) Move(ctx context.Context, videoSourceToken string, focus *Focus
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
-	
+
 	if err := soapClient.Call(ctx, endpoint, "", req, nil); err != nil {
 		return fmt.Errorf("Move failed: %w", err)
 	}
@@ -350,4 +350,275 @@ func (c *Client) Move(ctx context.Context, videoSourceToken string, focus *Focus
 // FocusMove represents a focus move operation (placeholder for focus move types)
 type FocusMove struct {
 	// Can be extended with Absolute, Relative, Continuous move types
+}
+
+// GetOptions retrieves imaging options for a video source
+func (c *Client) GetOptions(ctx context.Context, videoSourceToken string) (*ImagingOptions, error) {
+	endpoint := c.imagingEndpoint
+	if endpoint == "" {
+		return nil, ErrServiceNotSupported
+	}
+
+	type GetOptions struct {
+		XMLName          xml.Name `xml:"timg:GetOptions"`
+		Xmlns            string   `xml:"xmlns:timg,attr"`
+		VideoSourceToken string   `xml:"timg:VideoSourceToken"`
+	}
+
+	type GetOptionsResponse struct {
+		XMLName        xml.Name `xml:"GetOptionsResponse"`
+		ImagingOptions struct {
+			BacklightCompensation *struct {
+				Mode  []string `xml:"Mode"`
+				Level struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"Level"`
+			} `xml:"BacklightCompensation"`
+			Brightness *struct {
+				Min float64 `xml:"Min"`
+				Max float64 `xml:"Max"`
+			} `xml:"Brightness"`
+			ColorSaturation *struct {
+				Min float64 `xml:"Min"`
+				Max float64 `xml:"Max"`
+			} `xml:"ColorSaturation"`
+			Contrast *struct {
+				Min float64 `xml:"Min"`
+				Max float64 `xml:"Max"`
+			} `xml:"Contrast"`
+			Exposure *struct {
+				Mode            []string `xml:"Mode"`
+				Priority        []string `xml:"Priority"`
+				MinExposureTime struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"MinExposureTime"`
+				MaxExposureTime struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"MaxExposureTime"`
+			} `xml:"Exposure"`
+			Focus *struct {
+				AutoFocusModes []string `xml:"AutoFocusModes"`
+				DefaultSpeed   struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"DefaultSpeed"`
+			} `xml:"Focus"`
+		} `xml:"ImagingOptions"`
+	}
+
+	req := GetOptions{
+		Xmlns:            imagingNamespace,
+		VideoSourceToken: videoSourceToken,
+	}
+
+	var resp GetOptionsResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetOptions failed: %w", err)
+	}
+
+	options := &ImagingOptions{}
+
+	if resp.ImagingOptions.Brightness != nil {
+		options.Brightness = &FloatRange{
+			Min: resp.ImagingOptions.Brightness.Min,
+			Max: resp.ImagingOptions.Brightness.Max,
+		}
+	}
+
+	if resp.ImagingOptions.ColorSaturation != nil {
+		options.ColorSaturation = &FloatRange{
+			Min: resp.ImagingOptions.ColorSaturation.Min,
+			Max: resp.ImagingOptions.ColorSaturation.Max,
+		}
+	}
+
+	if resp.ImagingOptions.Contrast != nil {
+		options.Contrast = &FloatRange{
+			Min: resp.ImagingOptions.Contrast.Min,
+			Max: resp.ImagingOptions.Contrast.Max,
+		}
+	}
+
+	return options, nil
+}
+
+// GetMoveOptions retrieves imaging move options for focus
+func (c *Client) GetMoveOptions(ctx context.Context, videoSourceToken string) (*MoveOptions, error) {
+	endpoint := c.imagingEndpoint
+	if endpoint == "" {
+		return nil, ErrServiceNotSupported
+	}
+
+	type GetMoveOptions struct {
+		XMLName          xml.Name `xml:"timg:GetMoveOptions"`
+		Xmlns            string   `xml:"xmlns:timg,attr"`
+		VideoSourceToken string   `xml:"timg:VideoSourceToken"`
+	}
+
+	type GetMoveOptionsResponse struct {
+		XMLName     xml.Name `xml:"GetMoveOptionsResponse"`
+		MoveOptions struct {
+			Absolute *struct {
+				Position struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"Position"`
+				Speed struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"Speed"`
+			} `xml:"Absolute"`
+			Relative *struct {
+				Distance struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"Distance"`
+				Speed struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"Speed"`
+			} `xml:"Relative"`
+			Continuous *struct {
+				Speed struct {
+					Min float64 `xml:"Min"`
+					Max float64 `xml:"Max"`
+				} `xml:"Speed"`
+			} `xml:"Continuous"`
+		} `xml:"MoveOptions"`
+	}
+
+	req := GetMoveOptions{
+		Xmlns:            imagingNamespace,
+		VideoSourceToken: videoSourceToken,
+	}
+
+	var resp GetMoveOptionsResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetMoveOptions failed: %w", err)
+	}
+
+	options := &MoveOptions{}
+
+	if resp.MoveOptions.Absolute != nil {
+		options.Absolute = &AbsoluteFocusOptions{
+			Position: FloatRange{
+				Min: resp.MoveOptions.Absolute.Position.Min,
+				Max: resp.MoveOptions.Absolute.Position.Max,
+			},
+			Speed: FloatRange{
+				Min: resp.MoveOptions.Absolute.Speed.Min,
+				Max: resp.MoveOptions.Absolute.Speed.Max,
+			},
+		}
+	}
+
+	if resp.MoveOptions.Relative != nil {
+		options.Relative = &RelativeFocusOptions{
+			Distance: FloatRange{
+				Min: resp.MoveOptions.Relative.Distance.Min,
+				Max: resp.MoveOptions.Relative.Distance.Max,
+			},
+			Speed: FloatRange{
+				Min: resp.MoveOptions.Relative.Speed.Min,
+				Max: resp.MoveOptions.Relative.Speed.Max,
+			},
+		}
+	}
+
+	if resp.MoveOptions.Continuous != nil {
+		options.Continuous = &ContinuousFocusOptions{
+			Speed: FloatRange{
+				Min: resp.MoveOptions.Continuous.Speed.Min,
+				Max: resp.MoveOptions.Continuous.Speed.Max,
+			},
+		}
+	}
+
+	return options, nil
+}
+
+// StopFocus stops focus movement
+func (c *Client) StopFocus(ctx context.Context, videoSourceToken string) error {
+	endpoint := c.imagingEndpoint
+	if endpoint == "" {
+		return ErrServiceNotSupported
+	}
+
+	type Stop struct {
+		XMLName          xml.Name `xml:"timg:Stop"`
+		Xmlns            string   `xml:"xmlns:timg,attr"`
+		VideoSourceToken string   `xml:"timg:VideoSourceToken"`
+	}
+
+	req := Stop{
+		Xmlns:            imagingNamespace,
+		VideoSourceToken: videoSourceToken,
+	}
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, endpoint, "", req, nil); err != nil {
+		return fmt.Errorf("Stop failed: %w", err)
+	}
+
+	return nil
+}
+
+// GetImagingStatus retrieves imaging status
+func (c *Client) GetImagingStatus(ctx context.Context, videoSourceToken string) (*ImagingStatus, error) {
+	endpoint := c.imagingEndpoint
+	if endpoint == "" {
+		return nil, ErrServiceNotSupported
+	}
+
+	type GetStatus struct {
+		XMLName          xml.Name `xml:"timg:GetStatus"`
+		Xmlns            string   `xml:"xmlns:timg,attr"`
+		VideoSourceToken string   `xml:"timg:VideoSourceToken"`
+	}
+
+	type GetStatusResponse struct {
+		XMLName       xml.Name `xml:"GetStatusResponse"`
+		ImagingStatus struct {
+			FocusStatus struct {
+				Position   float64 `xml:"Position"`
+				MoveStatus string  `xml:"MoveStatus"`
+				Error      string  `xml:"Error"`
+			} `xml:"FocusStatus"`
+		} `xml:"Status"`
+	}
+
+	req := GetStatus{
+		Xmlns:            imagingNamespace,
+		VideoSourceToken: videoSourceToken,
+	}
+
+	var resp GetStatusResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetStatus failed: %w", err)
+	}
+
+	return &ImagingStatus{
+		FocusStatus: &FocusStatus{
+			Position:   resp.ImagingStatus.FocusStatus.Position,
+			MoveStatus: resp.ImagingStatus.FocusStatus.MoveStatus,
+			Error:      resp.ImagingStatus.FocusStatus.Error,
+		},
+	}, nil
 }

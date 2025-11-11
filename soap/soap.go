@@ -41,18 +41,18 @@ type Fault struct {
 
 // Security represents WS-Security header
 type Security struct {
-	XMLName   xml.Name       `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd Security"`
-	MustUnderstand string    `xml:"http://www.w3.org/2003/05/soap-envelope mustUnderstand,attr,omitempty"`
-	UsernameToken *UsernameToken `xml:"UsernameToken,omitempty"`
+	XMLName        xml.Name       `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd Security"`
+	MustUnderstand string         `xml:"http://www.w3.org/2003/05/soap-envelope mustUnderstand,attr,omitempty"`
+	UsernameToken  *UsernameToken `xml:"UsernameToken,omitempty"`
 }
 
 // UsernameToken represents a WS-Security username token
 type UsernameToken struct {
-	XMLName   xml.Name `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd UsernameToken"`
-	Username  string   `xml:"Username"`
-	Password  Password `xml:"Password"`
-	Nonce     Nonce    `xml:"Nonce"`
-	Created   string   `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd Created"`
+	XMLName  xml.Name `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd UsernameToken"`
+	Username string   `xml:"Username"`
+	Password Password `xml:"Password"`
+	Nonce    Nonce    `xml:"Nonce"`
+	Created  string   `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd Created"`
 }
 
 // Password represents a WS-Security password
@@ -72,6 +72,8 @@ type Client struct {
 	httpClient *http.Client
 	username   string
 	password   string
+	debug      bool
+	logger     func(format string, args ...interface{})
 }
 
 // NewClient creates a new SOAP client
@@ -80,6 +82,21 @@ func NewClient(httpClient *http.Client, username, password string) *Client {
 		httpClient: httpClient,
 		username:   username,
 		password:   password,
+		debug:      false,
+		logger:     nil,
+	}
+}
+
+// SetDebug enables debug logging with a custom logger
+func (c *Client) SetDebug(enabled bool, logger func(format string, args ...interface{})) {
+	c.debug = enabled
+	c.logger = logger
+}
+
+// logDebug logs debug information if debug mode is enabled
+func (c *Client) logDebug(format string, args ...interface{}) {
+	if c.debug && c.logger != nil {
+		c.logger(format, args...)
 	}
 }
 
@@ -108,6 +125,9 @@ func (c *Client) Call(ctx context.Context, endpoint string, action string, reque
 	// Add XML declaration
 	xmlBody := append([]byte(xml.Header), body...)
 
+	// Log request if debug is enabled
+	c.logDebug("=== SOAP Request ===\nEndpoint: %s\nAction: %s\n%s\n", endpoint, action, string(xmlBody))
+
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(xmlBody))
 	if err != nil {
@@ -133,33 +153,34 @@ func (c *Client) Call(ctx context.Context, endpoint string, action string, reque
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
+	// Log response if debug is enabled
+	c.logDebug("=== SOAP Response ===\nStatus: %d\n%s\n", resp.StatusCode, string(respBody))
+
 	// Check HTTP status
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("HTTP request failed with status %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	// Parse response
-	var respEnvelope Envelope
-	if err := xml.Unmarshal(respBody, &respEnvelope); err != nil {
-		return fmt.Errorf("failed to unmarshal SOAP response: %w", err)
+	// If response is empty, return immediately
+	if len(respBody) == 0 {
+		return fmt.Errorf("received empty response body")
 	}
 
-	// Check for SOAP fault
-	if respEnvelope.Body.Fault != nil {
-		return fmt.Errorf("SOAP fault: [%s] %s - %s",
-			respEnvelope.Body.Fault.Code,
-			respEnvelope.Body.Fault.Reason,
-			respEnvelope.Body.Fault.Detail)
-	}
-
-	// Unmarshal response content
+	// Unmarshal response content if response is provided
 	if response != nil {
-		// Re-marshal the body content and unmarshal into the response struct
-		bodyXML, err := xml.Marshal(respEnvelope.Body.Content)
-		if err != nil {
-			return fmt.Errorf("failed to marshal response body: %w", err)
+		// Create a flexible envelope structure for parsing responses
+		var envelope struct {
+			Body struct {
+				Content []byte `xml:",innerxml"`
+			} `xml:"Body"`
 		}
-		if err := xml.Unmarshal(bodyXML, response); err != nil {
+
+		if err := xml.Unmarshal(respBody, &envelope); err != nil {
+			return fmt.Errorf("failed to unmarshal SOAP envelope: %w", err)
+		}
+
+		// Unmarshal the body content into the response
+		if err := xml.Unmarshal(envelope.Body.Content, response); err != nil {
 			return fmt.Errorf("failed to unmarshal response: %w", err)
 		}
 	}

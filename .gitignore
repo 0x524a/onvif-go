@@ -29,11 +29,24 @@ go.work
 # Binaries
 bin/
 dist/
+onvif-diagnostics
+onvif-server
+onvif-server-example
+generate-tests
 
 # Temporary files
 tmp/
 temp/
 *.tmp
+
+# Camera logs and captures (keep directory structure but ignore content)
+camera-logs/*.json
+camera-logs/*.tar.gz
+xml-captures/
+
+# Extracted test captures
+capture_*.xml
+capture_*.json
 
 # Environment files
 .env

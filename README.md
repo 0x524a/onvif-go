@@ -206,6 +206,16 @@ client, err := onvif.NewClient(
 | `GetSystemDateAndTime()` | Get device system time |
 | `SystemReboot()` | Reboot the device |
 | `Initialize()` | Discover and cache service endpoints |
+| `GetHostname()` | Get device hostname configuration |
+| `SetHostname()` | Set device hostname |
+| `GetDNS()` | Get DNS configuration |
+| `GetNTP()` | Get NTP configuration |
+| `GetNetworkInterfaces()` | Get network interface configuration |
+| `GetScopes()` | Get configured discovery scopes |
+| `GetUsers()` | Get list of user accounts |
+| `CreateUsers()` | Create new user accounts |
+| `DeleteUsers()` | Delete user accounts |
+| `SetUser()` | Modify existing user account |
 
 ### Media Service
 
@@ -215,6 +225,12 @@ client, err := onvif.NewClient(
 | `GetStreamURI()` | Get RTSP/HTTP stream URI |
 | `GetSnapshotURI()` | Get snapshot image URI |
 | `GetVideoEncoderConfiguration()` | Get video encoder settings |
+| `GetVideoSources()` | Get all video sources |
+| `GetAudioSources()` | Get all audio sources |
+| `GetAudioOutputs()` | Get all audio outputs |
+| `CreateProfile()` | Create new media profile |
+| `DeleteProfile()` | Delete media profile |
+| `SetVideoEncoderConfiguration()` | Set video encoder configuration |
 
 ### PTZ Service
 
@@ -227,6 +243,12 @@ client, err := onvif.NewClient(
 | `GetStatus()` | Get current PTZ status and position |
 | `GetPresets()` | Get list of PTZ presets |
 | `GotoPreset()` | Move to a preset position |
+| `SetPreset()` | Save current position as preset |
+| `RemovePreset()` | Delete a preset |
+| `GotoHomePosition()` | Move to home position |
+| `SetHomePosition()` | Set current position as home |
+| `GetConfiguration()` | Get PTZ configuration |
+| `GetConfigurations()` | Get all PTZ configurations |
 
 ### Imaging Service
 
@@ -235,6 +257,10 @@ client, err := onvif.NewClient(
 | `GetImagingSettings()` | Get imaging settings (brightness, contrast, etc.) |
 | `SetImagingSettings()` | Set imaging settings |
 | `Move()` | Perform focus move operations |
+| `GetOptions()` | Get available imaging options and ranges |
+| `GetMoveOptions()` | Get available focus move options |
+| `StopFocus()` | Stop focus movement |
+| `GetImagingStatus()` | Get current imaging/focus status |
 
 ### Discovery Service
 
@@ -414,6 +440,62 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 - [ ] Comprehensive test suite with mock cameras
 - [ ] Performance benchmarks
 - [ ] CLI tool for camera management
+
+## Debugging Tools
+
+### 🔍 Diagnostic Utility
+
+Comprehensive camera testing and analysis with optional XML capture:
+
+```bash
+go build -o onvif-diagnostics ./cmd/onvif-diagnostics/
+
+# Standard diagnostic report
+./onvif-diagnostics \
+  -endpoint "http://camera-ip/onvif/device_service" \
+  -username "admin" \
+  -password "pass" \
+  -verbose
+
+# With raw SOAP XML capture for debugging
+./onvif-diagnostics \
+  -endpoint "http://camera-ip/onvif/device_service" \
+  -username "admin" \
+  -password "pass" \
+  -capture-xml \
+  -verbose
+```
+
+**Generates**:
+- `camera-logs/Manufacturer_Model_Firmware_timestamp.json` - Diagnostic report
+- `camera-logs/Manufacturer_Model_Firmware_xmlcapture_timestamp.tar.gz` - Raw XML (with `-capture-xml`)
+
+**See**: `XML_DEBUGGING_SOLUTION.md` for complete debugging workflow
+
+### 🧪 Camera Test Framework
+
+Automated regression testing using captured camera responses:
+
+```bash
+# 1. Capture from camera
+./onvif-diagnostics -endpoint "http://camera/onvif/device_service" \
+  -username "user" -password "pass" -capture-xml
+
+# 2. Generate test
+go build -o generate-tests ./cmd/generate-tests/
+./generate-tests -capture camera-logs/*_xmlcapture_*.tar.gz -output testdata/captures/
+
+# 3. Run tests
+go test -v ./testdata/captures/
+```
+
+**Benefits**:
+- Test without physical cameras
+- Prevent regressions across camera models
+- Fast CI/CD integration
+- Real camera response validation
+
+**See**: `testdata/captures/README.md` for complete testing guide
 
 ## License
 

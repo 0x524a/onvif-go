@@ -24,25 +24,25 @@ type Capabilities struct {
 
 // AnalyticsCapabilities represents analytics service capabilities
 type AnalyticsCapabilities struct {
-	XAddr                string
-	RuleSupport          bool
+	XAddr                  string
+	RuleSupport            bool
 	AnalyticsModuleSupport bool
 }
 
 // DeviceCapabilities represents device service capabilities
 type DeviceCapabilities struct {
-	XAddr   string
-	Network *NetworkCapabilities
-	System  *SystemCapabilities
-	IO      *IOCapabilities
+	XAddr    string
+	Network  *NetworkCapabilities
+	System   *SystemCapabilities
+	IO       *IOCapabilities
 	Security *SecurityCapabilities
 }
 
 // EventCapabilities represents event service capabilities
 type EventCapabilities struct {
-	XAddr                        string
-	WSSubscriptionPolicySupport  bool
-	WSPullPointSupport           bool
+	XAddr                         string
+	WSSubscriptionPolicySupport   bool
+	WSPullPointSupport            bool
 	WSPausableSubscriptionSupport bool
 }
 
@@ -53,7 +53,7 @@ type ImagingCapabilities struct {
 
 // MediaCapabilities represents media service capabilities
 type MediaCapabilities struct {
-	XAddr            string
+	XAddr                 string
 	StreamingCapabilities *StreamingCapabilities
 }
 
@@ -64,51 +64,51 @@ type PTZCapabilities struct {
 
 // NetworkCapabilities represents network capabilities
 type NetworkCapabilities struct {
-	IPFilter            bool
-	ZeroConfiguration   bool
-	IPVersion6          bool
-	DynDNS              bool
-	Extension           *NetworkCapabilitiesExtension
+	IPFilter          bool
+	ZeroConfiguration bool
+	IPVersion6        bool
+	DynDNS            bool
+	Extension         *NetworkCapabilitiesExtension
 }
 
 // SystemCapabilities represents system capabilities
 type SystemCapabilities struct {
-	DiscoveryResolve    bool
-	DiscoveryBye        bool
-	RemoteDiscovery     bool
-	SystemBackup        bool
-	SystemLogging       bool
-	FirmwareUpgrade     bool
-	SupportedVersions   []string
-	Extension           *SystemCapabilitiesExtension
+	DiscoveryResolve  bool
+	DiscoveryBye      bool
+	RemoteDiscovery   bool
+	SystemBackup      bool
+	SystemLogging     bool
+	FirmwareUpgrade   bool
+	SupportedVersions []string
+	Extension         *SystemCapabilitiesExtension
 }
 
 // IOCapabilities represents I/O capabilities
 type IOCapabilities struct {
-	InputConnectors  int
-	RelayOutputs     int
-	Extension        *IOCapabilitiesExtension
+	InputConnectors int
+	RelayOutputs    int
+	Extension       *IOCapabilitiesExtension
 }
 
 // SecurityCapabilities represents security capabilities
 type SecurityCapabilities struct {
-	TLS11            bool
-	TLS12            bool
+	TLS11                bool
+	TLS12                bool
 	OnboardKeyGeneration bool
 	AccessPolicyConfig   bool
-	X509Token        bool
-	SAMLToken        bool
-	KerberosToken    bool
-	RELToken         bool
-	Extension        *SecurityCapabilitiesExtension
+	X509Token            bool
+	SAMLToken            bool
+	KerberosToken        bool
+	RELToken             bool
+	Extension            *SecurityCapabilitiesExtension
 }
 
 // StreamingCapabilities represents streaming capabilities
 type StreamingCapabilities struct {
-	RTPMulticast    bool
-	RTP_TCP         bool
-	RTP_RTSP_TCP    bool
-	Extension       *StreamingCapabilitiesExtension
+	RTPMulticast bool
+	RTP_TCP      bool
+	RTP_RTSP_TCP bool
+	Extension    *StreamingCapabilitiesExtension
 }
 
 // Extension types
@@ -121,15 +121,15 @@ type StreamingCapabilitiesExtension struct{}
 
 // Profile represents a media profile
 type Profile struct {
-	Token             string
-	Name              string
-	VideoSourceConfiguration    *VideoSourceConfiguration
-	AudioSourceConfiguration    *AudioSourceConfiguration
-	VideoEncoderConfiguration   *VideoEncoderConfiguration
-	AudioEncoderConfiguration   *AudioEncoderConfiguration
-	PTZConfiguration            *PTZConfiguration
-	MetadataConfiguration       *MetadataConfiguration
-	Extension         *ProfileExtension
+	Token                     string
+	Name                      string
+	VideoSourceConfiguration  *VideoSourceConfiguration
+	AudioSourceConfiguration  *AudioSourceConfiguration
+	VideoEncoderConfiguration *VideoEncoderConfiguration
+	AudioEncoderConfiguration *AudioEncoderConfiguration
+	PTZConfiguration          *PTZConfiguration
+	MetadataConfiguration     *MetadataConfiguration
+	Extension                 *ProfileExtension
 }
 
 // VideoSourceConfiguration represents video source configuration
@@ -151,17 +151,17 @@ type AudioSourceConfiguration struct {
 
 // VideoEncoderConfiguration represents video encoder configuration
 type VideoEncoderConfiguration struct {
-	Token           string
-	Name            string
-	UseCount        int
-	Encoding        string // JPEG, MPEG4, H264
-	Resolution      *VideoResolution
-	Quality         float64
-	RateControl     *VideoRateControl
-	MPEG4           *MPEG4Configuration
-	H264            *H264Configuration
-	Multicast       *MulticastConfiguration
-	SessionTimeout  time.Duration
+	Token          string
+	Name           string
+	UseCount       int
+	Encoding       string // JPEG, MPEG4, H264
+	Resolution     *VideoResolution
+	Quality        float64
+	RateControl    *VideoRateControl
+	MPEG4          *MPEG4Configuration
+	H264           *H264Configuration
+	Multicast      *MulticastConfiguration
+	SessionTimeout time.Duration
 }
 
 // AudioEncoderConfiguration represents audio encoder configuration
@@ -178,20 +178,20 @@ type AudioEncoderConfiguration struct {
 
 // PTZConfiguration represents PTZ configuration
 type PTZConfiguration struct {
-	Token                    string
-	Name                     string
-	UseCount                 int
-	NodeToken                string
-	DefaultAbsolutePantTiltPositionSpace string
-	DefaultAbsoluteZoomPositionSpace     string
+	Token                                  string
+	Name                                   string
+	UseCount                               int
+	NodeToken                              string
+	DefaultAbsolutePantTiltPositionSpace   string
+	DefaultAbsoluteZoomPositionSpace       string
 	DefaultRelativePanTiltTranslationSpace string
 	DefaultRelativeZoomTranslationSpace    string
 	DefaultContinuousPanTiltVelocitySpace  string
 	DefaultContinuousZoomVelocitySpace     string
-	DefaultPTZSpeed          *PTZSpeed
-	DefaultPTZTimeout        time.Duration
-	PanTiltLimits            *PanTiltLimits
-	ZoomLimits               *ZoomLimits
+	DefaultPTZSpeed                        *PTZSpeed
+	DefaultPTZTimeout                      time.Duration
+	PanTiltLimits                          *PanTiltLimits
+	ZoomLimits                             *ZoomLimits
 }
 
 // MetadataConfiguration represents metadata configuration
@@ -214,14 +214,14 @@ type VideoResolution struct {
 
 // VideoRateControl represents video rate control
 type VideoRateControl struct {
-	FrameRateLimit      int
-	EncodingInterval    int
-	BitrateLimit        int
+	FrameRateLimit   int
+	EncodingInterval int
+	BitrateLimit     int
 }
 
 // MPEG4Configuration represents MPEG4 configuration
 type MPEG4Configuration struct {
-	GovLength   int
+	GovLength    int
 	MPEG4Profile string
 }
 
@@ -241,8 +241,10 @@ type MulticastConfiguration struct {
 
 // IPAddress represents an IP address
 type IPAddress struct {
-	Type    string // IPv4 or IPv6
-	Address string
+	Type        string // IPv4 or IPv6
+	Address     string
+	IPv4Address string
+	IPv6Address string
 }
 
 // IntRectangle represents a rectangle with integer coordinates
@@ -291,7 +293,7 @@ type Space2DDescription struct {
 
 // Space1DDescription represents 1D space description
 type Space1DDescription struct {
-	URI   string
+	URI    string
 	XRange *FloatRange
 }
 
@@ -365,8 +367,8 @@ type PTZMoveStatus struct {
 
 // PTZPreset represents a PTZ preset
 type PTZPreset struct {
-	Token    string
-	Name     string
+	Token       string
+	Name        string
 	PTZPosition *PTZVector
 }
 
@@ -393,17 +395,17 @@ type BacklightCompensation struct {
 
 // Exposure represents exposure settings
 type Exposure struct {
-	Mode        string // AUTO, MANUAL
-	Priority    string // LowNoise, FrameRate
+	Mode            string // AUTO, MANUAL
+	Priority        string // LowNoise, FrameRate
 	MinExposureTime float64
 	MaxExposureTime float64
-	MinGain     float64
-	MaxGain     float64
-	MinIris     float64
-	MaxIris     float64
-	ExposureTime float64
-	Gain        float64
-	Iris        float64
+	MinGain         float64
+	MaxGain         float64
+	MinIris         float64
+	MaxIris         float64
+	ExposureTime    float64
+	Gain            float64
+	Iris            float64
 }
 
 // FocusConfiguration represents focus configuration
@@ -429,3 +431,208 @@ type WhiteBalance struct {
 
 // ImagingSettingsExtension represents imaging settings extension
 type ImagingSettingsExtension struct{}
+
+// HostnameInformation represents hostname configuration
+type HostnameInformation struct {
+	FromDHCP bool
+	Name     string
+}
+
+// DNSInformation represents DNS configuration
+type DNSInformation struct {
+	FromDHCP     bool
+	SearchDomain []string
+	DNSFromDHCP  []IPAddress
+	DNSManual    []IPAddress
+}
+
+// NTPInformation represents NTP configuration
+type NTPInformation struct {
+	FromDHCP    bool
+	NTPFromDHCP []NetworkHost
+	NTPManual   []NetworkHost
+}
+
+// NetworkHost represents a network host
+type NetworkHost struct {
+	Type        string // IPv4, IPv6, DNS
+	IPv4Address string
+	IPv6Address string
+	DNSname     string
+}
+
+// NetworkInterface represents a network interface
+type NetworkInterface struct {
+	Token   string
+	Enabled bool
+	Info    NetworkInterfaceInfo
+	IPv4    *IPv4NetworkInterface
+	IPv6    *IPv6NetworkInterface
+}
+
+// NetworkInterfaceInfo represents network interface info
+type NetworkInterfaceInfo struct {
+	Name      string
+	HwAddress string
+	MTU       int
+}
+
+// IPv4NetworkInterface represents IPv4 configuration
+type IPv4NetworkInterface struct {
+	Enabled bool
+	Config  IPv4Configuration
+}
+
+// IPv6NetworkInterface represents IPv6 configuration
+type IPv6NetworkInterface struct {
+	Enabled bool
+	Config  IPv6Configuration
+}
+
+// IPv4Configuration represents IPv4 configuration
+type IPv4Configuration struct {
+	Manual []PrefixedIPv4Address
+	DHCP   bool
+}
+
+// IPv6Configuration represents IPv6 configuration
+type IPv6Configuration struct {
+	Manual []PrefixedIPv6Address
+	DHCP   bool
+}
+
+// PrefixedIPv4Address represents an IPv4 address with prefix
+type PrefixedIPv4Address struct {
+	Address      string
+	PrefixLength int
+}
+
+// PrefixedIPv6Address represents an IPv6 address with prefix
+type PrefixedIPv6Address struct {
+	Address      string
+	PrefixLength int
+}
+
+// Scope represents a device scope
+type Scope struct {
+	ScopeDef  string
+	ScopeItem string
+}
+
+// User represents a user account
+type User struct {
+	Username  string
+	Password  string
+	UserLevel string // Administrator, Operator, User
+}
+
+// VideoSource represents a video source
+type VideoSource struct {
+	Token      string
+	Framerate  float64
+	Resolution *VideoResolution
+	Imaging    *ImagingSettings
+}
+
+// AudioSource represents an audio source
+type AudioSource struct {
+	Token    string
+	Channels int
+}
+
+// AudioOutput represents an audio output
+type AudioOutput struct {
+	Token string
+}
+
+// ImagingOptions represents available imaging options
+type ImagingOptions struct {
+	BacklightCompensation *BacklightCompensationOptions
+	Brightness            *FloatRange
+	ColorSaturation       *FloatRange
+	Contrast              *FloatRange
+	Exposure              *ExposureOptions
+	Focus                 *FocusOptions
+	IrCutFilterModes      []string
+	Sharpness             *FloatRange
+	WideDynamicRange      *WideDynamicRangeOptions
+	WhiteBalance          *WhiteBalanceOptions
+}
+
+// BacklightCompensationOptions represents backlight compensation options
+type BacklightCompensationOptions struct {
+	Mode  []string
+	Level *FloatRange
+}
+
+// ExposureOptions represents exposure options
+type ExposureOptions struct {
+	Mode            []string
+	Priority        []string
+	MinExposureTime *FloatRange
+	MaxExposureTime *FloatRange
+	MinGain         *FloatRange
+	MaxGain         *FloatRange
+	MinIris         *FloatRange
+	MaxIris         *FloatRange
+	ExposureTime    *FloatRange
+	Gain            *FloatRange
+	Iris            *FloatRange
+}
+
+// FocusOptions represents focus options
+type FocusOptions struct {
+	AutoFocusModes []string
+	DefaultSpeed   *FloatRange
+	NearLimit      *FloatRange
+	FarLimit       *FloatRange
+}
+
+// WideDynamicRangeOptions represents WDR options
+type WideDynamicRangeOptions struct {
+	Mode  []string
+	Level *FloatRange
+}
+
+// WhiteBalanceOptions represents white balance options
+type WhiteBalanceOptions struct {
+	Mode   []string
+	YrGain *FloatRange
+	YbGain *FloatRange
+}
+
+// MoveOptions represents imaging move options
+type MoveOptions struct {
+	Absolute   *AbsoluteFocusOptions
+	Relative   *RelativeFocusOptions
+	Continuous *ContinuousFocusOptions
+}
+
+// AbsoluteFocusOptions represents absolute focus options
+type AbsoluteFocusOptions struct {
+	Position FloatRange
+	Speed    FloatRange
+}
+
+// RelativeFocusOptions represents relative focus options
+type RelativeFocusOptions struct {
+	Distance FloatRange
+	Speed    FloatRange
+}
+
+// ContinuousFocusOptions represents continuous focus options
+type ContinuousFocusOptions struct {
+	Speed FloatRange
+}
+
+// ImagingStatus represents imaging status
+type ImagingStatus struct {
+	FocusStatus *FocusStatus
+}
+
+// FocusStatus represents focus status
+type FocusStatus struct {
+	Position   float64
+	MoveStatus string
+	Error      string
+}
