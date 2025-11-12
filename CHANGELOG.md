@@ -16,7 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - See `docs/SIMPLIFIED_ENDPOINT.md` for details
 - Comprehensive test coverage for endpoint normalization (12 test cases)
 - New example: `examples/simplified-endpoint/` demonstrating all endpoint formats
+- Documentation: `docs/PROJECT_STRUCTURE.md` explaining project organization
 - Initial release of go-onvif library
+
+### Changed
+- **Project Structure**: Implemented ideal Go project layout
+  - Moved `soap/` to `internal/soap/` (private implementation)
+  - Public API remains at root level for clean imports
+  - Follows Standard Go Project Layout for libraries
+  - Updated all imports throughout codebase
+  - See `docs/PROJECT_STRUCTURE.md` and `docs/ARCHITECTURE.md` for details
+- Updated `docs/ARCHITECTURE.md` to reflect new project structure
 - ONVIF Client with context support
 - Device service implementation
   - GetDeviceInformation

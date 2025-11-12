@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	originsoap "github.com/0x524A/onvif-go/soap"
+	originsoap "github.com/0x524A/onvif-go/internal/soap"
 )
 
 // Handler handles incoming SOAP requests

@@ -6,6 +6,31 @@ go-onvif is a modern, performant Go library for communicating with ONVIF-complia
 
 ## Architecture
 
+### Project Structure
+
+The project follows the **Standard Go Project Layout** for libraries:
+
+```
+onvif-go/
+├── *.go                    # Public API (client.go, device.go, media.go, ptz.go, imaging.go)
+├── internal/              # Private implementation details
+│   └── soap/             # SOAP client (not exported)
+├── discovery/            # Device discovery (public subpackage)
+├── server/              # ONVIF server implementation (public subpackage)
+├── cmd/                 # Command-line tools
+├── examples/            # Usage examples
+├── docs/               # Documentation
+├── test/               # Testing utilities
+└── testdata/           # Test fixtures
+```
+
+**Design Rationale:**
+- **Root-level API**: Main package at root for clean imports (`github.com/0x524A/onvif-go`)
+- **internal/**: Private packages not intended for external use (SOAP implementation)
+- **Subpackages**: Additional features like `discovery/` and `server/`
+- **cmd/**: Executable applications and tools
+- **examples/**: Demonstrate library usage
+
 ### Core Components
 
 ```
@@ -27,7 +52,7 @@ go-onvif is a modern, performant Go library for communicating with ONVIF-complia
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                      Transport Layer                         │
-│  - SOAP Client (soap/soap.go)                               │
+│  - SOAP Client (internal/soap/soap.go)                      │
 │  - WS-Security Authentication                                │
 │  - XML Marshaling/Unmarshaling                              │
 └─────────────────────────────────────────────────────────────┘
