@@ -29,6 +29,7 @@ go.work
 # Binaries
 bin/
 dist/
+releases/
 onvif-diagnostics
 onvif-server
 onvif-server-example
