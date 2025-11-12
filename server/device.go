@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/0x524A/onvif-go/server/soap"
+	"github.com/0x524a/onvif-go/server/soap"
 )
 
 // Device service SOAP message types

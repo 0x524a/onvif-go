@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/0x524A/onvif-go"
-	"github.com/0x524A/onvif-go/server"
+	"github.com/0x524a/onvif-go"
+	"github.com/0x524a/onvif-go/server"
 )
 
 func main() {

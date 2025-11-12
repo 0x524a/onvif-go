@@ -191,7 +191,7 @@ Tested/compatible with major brands:
 ## Usage Example
 
 ```go
-import "github.com/0x524A/onvif-go"
+import "github.com/0x524a/onvif-go"
 
 // Create client
 client, _ := onvif.NewClient(
@@ -255,7 +255,7 @@ go-onvif/
 
 ```bash
 # Install
-go get github.com/0x524A/onvif-go
+go get github.com/0x524a/onvif-go
 
 # Run discovery example
 cd examples/discovery
@@ -296,4 +296,4 @@ This library is a complete refactoring and modernization inspired by the origina
 
 **Status**: ✅ Production Ready (v0.1.0)
 **Last Updated**: October 2025
-**Maintainer**: 0x524A
+**Maintainer**: 0x524a

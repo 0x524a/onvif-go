@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/0x524A/onvif-go/internal/soap"
+	"github.com/0x524a/onvif-go/internal/soap"
 )
 
 // Media service namespace

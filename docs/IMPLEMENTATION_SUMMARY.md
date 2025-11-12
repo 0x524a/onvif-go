@@ -85,7 +85,7 @@ We have successfully created a **comprehensive, production-ready Go ONVIF librar
 
 ### Basic Library Usage
 ```go
-import "github.com/0x524A/onvif-go"
+import "github.com/0x524a/onvif-go"
 
 client, err := onvif.NewClient(
     "http://192.168.1.100/onvif/device_service",

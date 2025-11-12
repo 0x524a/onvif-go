@@ -45,7 +45,7 @@ git clone https://github.com/YOUR_USERNAME/go-onvif.git
 cd go-onvif
 
 # Add upstream remote
-git remote add upstream https://github.com/0x524A/onvif-go.git
+git remote add upstream https://github.com/0x524a/onvif-go.git
 
 # Create a branch
 git checkout -b feature/my-new-feature

@@ -41,7 +41,7 @@ A complete ONVIF-compliant server implementation that simulates multi-lens IP ca
 
 ```bash
 # Clone the repository (if not already done)
-git clone https://github.com/0x524A/onvif-go
+git clone https://github.com/0x524a/onvif-go
 cd go-onvif
 
 # Build the server CLI
@@ -128,7 +128,7 @@ import (
     "log"
     "time"
 
-    "github.com/0x524A/onvif-go/server"
+    "github.com/0x524a/onvif-go/server"
 )
 
 func main() {
@@ -164,7 +164,7 @@ import (
     "log"
     "time"
 
-    "github.com/0x524A/onvif-go/server"
+    "github.com/0x524a/onvif-go/server"
 )
 
 func main() {
@@ -251,7 +251,7 @@ import (
     "log"
     "time"
 
-    "github.com/0x524A/onvif-go"
+    "github.com/0x524a/onvif-go"
 )
 
 func main() {
@@ -430,7 +430,7 @@ This project is licensed under the MIT License - see the [LICENSE](../../LICENSE
 
 ## Acknowledgments
 
-- Built on top of the [go-onvif](https://github.com/0x524A/onvif-go) client library
+- Built on top of the [go-onvif](https://github.com/0x524a/onvif-go) client library
 - ONVIF specifications from [ONVIF.org](https://www.onvif.org)
 - Inspired by the need for flexible camera simulation in development workflows
 

@@ -96,7 +96,7 @@ Help us maintain compatibility information:
 ### Clone and Build
 
 ```bash
-git clone https://github.com/0x524A/onvif-go.git
+git clone https://github.com/0x524a/onvif-go.git
 cd go-onvif
 go build ./...
 ```
@@ -262,9 +262,9 @@ go-onvif/
 
 ## Getting Help
 
-- 💬 [GitHub Discussions](https://github.com/0x524A/onvif-go/discussions) - Ask questions
-- 🐛 [GitHub Issues](https://github.com/0x524A/onvif-go/issues) - Report bugs
-- 📖 [Documentation](https://pkg.go.dev/github.com/0x524A/onvif-go) - Read the docs
+- 💬 [GitHub Discussions](https://github.com/0x524a/onvif-go/discussions) - Ask questions
+- 🐛 [GitHub Issues](https://github.com/0x524a/onvif-go/issues) - Report bugs
+- 📖 [Documentation](https://pkg.go.dev/github.com/0x524a/onvif-go) - Read the docs
 
 ## License
 

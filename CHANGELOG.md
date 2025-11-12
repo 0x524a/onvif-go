@@ -66,4 +66,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 - README with usage guide
 
-[Unreleased]: https://github.com/0x524A/onvif-go/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/0x524a/onvif-go/compare/v0.1.0...HEAD

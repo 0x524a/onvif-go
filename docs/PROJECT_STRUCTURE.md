@@ -85,7 +85,7 @@ onvif-go/
 As a **library package**, the main API lives at the root level:
 
 ```go
-import "github.com/0x524A/onvif-go"
+import "github.com/0x524a/onvif-go"
 
 client, err := onvif.NewClient("192.168.1.100")
 ```
@@ -102,7 +102,7 @@ The `internal/` directory contains implementation details not intended for exter
 
 ```go
 // This import is ONLY available within onvif-go:
-import "github.com/0x524A/onvif-go/internal/soap"
+import "github.com/0x524a/onvif-go/internal/soap"
 ```
 
 **Go's internal package restriction:**
@@ -122,10 +122,10 @@ Public subpackages for optional or specialized functionality:
 
 ```go
 // Discovery subpackage
-import "github.com/0x524A/onvif-go/discovery"
+import "github.com/0x524a/onvif-go/discovery"
 
 // Server subpackage
-import "github.com/0x524A/onvif-go/server"
+import "github.com/0x524a/onvif-go/server"
 ```
 
 **When to create a subpackage:**
@@ -148,7 +148,7 @@ cmd/
 **Naming convention:**
 - Directory name = binary name
 - Each cmd has its own `main.go`
-- Can import the library: `import "github.com/0x524A/onvif-go"`
+- Can import the library: `import "github.com/0x524a/onvif-go"`
 
 **Build commands:**
 ```bash
@@ -191,7 +191,7 @@ Comprehensive documentation in `docs/` directory:
 
 ```go
 // Main client functionality
-import "github.com/0x524A/onvif-go"
+import "github.com/0x524a/onvif-go"
 
 client, err := onvif.NewClient("192.168.1.100",
     onvif.WithCredentials("admin", "password"),
@@ -202,7 +202,7 @@ client, err := onvif.NewClient("192.168.1.100",
 
 ```go
 // Device discovery
-import "github.com/0x524A/onvif-go/discovery"
+import "github.com/0x524a/onvif-go/discovery"
 
 devices, err := discovery.Discover(ctx, 5*time.Second)
 ```
@@ -211,7 +211,7 @@ devices, err := discovery.Discover(ctx, 5*time.Second)
 
 ```go
 // Virtual ONVIF server
-import "github.com/0x524A/onvif-go/server"
+import "github.com/0x524a/onvif-go/server"
 
 srv := server.NewServer(
     server.WithCredentials("admin", "admin"),
@@ -223,7 +223,7 @@ srv := server.NewServer(
 
 ```go
 // Only usable within onvif-go itself
-import "github.com/0x524A/onvif-go/internal/soap"
+import "github.com/0x524a/onvif-go/internal/soap"
 
 // External projects CANNOT import internal packages
 ```
@@ -327,12 +327,12 @@ my-app/
 
 **Old:**
 ```go
-import "github.com/0x524A/onvif-go/soap"
+import "github.com/0x524a/onvif-go/soap"
 ```
 
 **New:**
 ```go
-import "github.com/0x524A/onvif-go/internal/soap"
+import "github.com/0x524a/onvif-go/internal/soap"
 ```
 
 **External users:** No changes needed (they never imported soap directly)
@@ -341,7 +341,7 @@ import "github.com/0x524A/onvif-go/internal/soap"
 
 ### For Library Users
 
-1. **Simple imports**: `import "github.com/0x524A/onvif-go"`
+1. **Simple imports**: `import "github.com/0x524a/onvif-go"`
 2. **Clear API**: Public vs private clearly separated
 3. **Stable interface**: Internal changes don't affect users
 4. **Good documentation**: Examples and docs organized

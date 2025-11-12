@@ -213,7 +213,7 @@ package main
 
 import (
     "context"
-    "github.com/0x524A/onvif-go/server"
+    "github.com/0x524a/onvif-go/server"
 )
 
 func main() {

@@ -25,7 +25,7 @@ onvif-go/
 ```
 
 **Design Rationale:**
-- **Root-level API**: Main package at root for clean imports (`github.com/0x524A/onvif-go`)
+- **Root-level API**: Main package at root for clean imports (`github.com/0x524a/onvif-go`)
 - **internal/**: Private packages not intended for external use (SOAP implementation)
 - **Subpackages**: Additional features like `discovery/` and `server/`
 - **cmd/**: Executable applications and tools

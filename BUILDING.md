@@ -209,8 +209,8 @@ Users can verify downloads using checksums:
 
 ```bash
 # Download binary and checksum
-wget https://github.com/0x524A/onvif-go/releases/download/v1.0.0/onvif-go-v1.0.0-linux-amd64.tar.gz
-wget https://github.com/0x524A/onvif-go/releases/download/v1.0.0/checksums.txt
+wget https://github.com/0x524a/onvif-go/releases/download/v1.0.0/onvif-go-v1.0.0-linux-amd64.tar.gz
+wget https://github.com/0x524a/onvif-go/releases/download/v1.0.0/checksums.txt
 
 # Verify
 sha256sum -c checksums.txt --ignore-missing
