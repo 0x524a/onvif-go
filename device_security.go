@@ -41,20 +41,14 @@ func buildIPAddressFilterRequest(filter *IPAddressFilter) ipAddressFilterRequest
 	if len(filter.IPv4Address) > 0 {
 		req.IPv4Address = make([]prefixedIPv4AddressXML, 0, len(filter.IPv4Address))
 		for _, addr := range filter.IPv4Address {
-			req.IPv4Address = append(req.IPv4Address, prefixedIPv4AddressXML{
-				Address:      addr.Address,
-				PrefixLength: addr.PrefixLength,
-			})
+			req.IPv4Address = append(req.IPv4Address, prefixedIPv4AddressXML(addr))
 		}
 	}
 
 	if len(filter.IPv6Address) > 0 {
 		req.IPv6Address = make([]prefixedIPv6AddressXML, 0, len(filter.IPv6Address))
 		for _, addr := range filter.IPv6Address {
-			req.IPv6Address = append(req.IPv6Address, prefixedIPv6AddressXML{
-				Address:      addr.Address,
-				PrefixLength: addr.PrefixLength,
-			})
+			req.IPv6Address = append(req.IPv6Address, prefixedIPv6AddressXML(addr))
 		}
 	}
 
@@ -174,20 +168,14 @@ func (c *Client) GetIPAddressFilter(ctx context.Context) (*IPAddressFilter, erro
 	if len(resp.IPAddressFilter.IPv4Address) > 0 {
 		filter.IPv4Address = make([]PrefixedIPv4Address, 0, len(resp.IPAddressFilter.IPv4Address))
 		for _, addr := range resp.IPAddressFilter.IPv4Address {
-			filter.IPv4Address = append(filter.IPv4Address, PrefixedIPv4Address{
-				Address:      addr.Address,
-				PrefixLength: addr.PrefixLength,
-			})
+			filter.IPv4Address = append(filter.IPv4Address, PrefixedIPv4Address(addr))
 		}
 	}
 
 	if len(resp.IPAddressFilter.IPv6Address) > 0 {
 		filter.IPv6Address = make([]PrefixedIPv6Address, 0, len(resp.IPAddressFilter.IPv6Address))
 		for _, addr := range resp.IPAddressFilter.IPv6Address {
-			filter.IPv6Address = append(filter.IPv6Address, PrefixedIPv6Address{
-				Address:      addr.Address,
-				PrefixLength: addr.PrefixLength,
-			})
+			filter.IPv6Address = append(filter.IPv6Address, PrefixedIPv6Address(addr))
 		}
 	}
 

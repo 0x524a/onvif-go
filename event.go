@@ -356,19 +356,19 @@ func (c *Client) PullMessages(
 		// Convert source items.
 		msg.Message.Source = make([]SimpleItem, len(nm.Message.Source.SimpleItems))
 		for j, item := range nm.Message.Source.SimpleItems {
-			msg.Message.Source[j] = SimpleItem{Name: item.Name, Value: item.Value}
+			msg.Message.Source[j] = SimpleItem(item)
 		}
 
 		// Convert key items.
 		msg.Message.Key = make([]SimpleItem, len(nm.Message.Key.SimpleItems))
 		for j, item := range nm.Message.Key.SimpleItems {
-			msg.Message.Key[j] = SimpleItem{Name: item.Name, Value: item.Value}
+			msg.Message.Key[j] = SimpleItem(item)
 		}
 
 		// Convert data items.
 		msg.Message.Data = make([]SimpleItem, len(nm.Message.Data.SimpleItems))
 		for j, item := range nm.Message.Data.SimpleItems {
-			msg.Message.Data[j] = SimpleItem{Name: item.Name, Value: item.Value}
+			msg.Message.Data[j] = SimpleItem(item)
 		}
 
 		messages[i] = msg

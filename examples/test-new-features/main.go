@@ -16,7 +16,6 @@ var (
 	endpoint = flag.String("endpoint", "http://192.168.1.201/onvif/device_service", "ONVIF device endpoint")
 	username = flag.String("username", "admin", "Username for authentication")
 	password = flag.String("password", "", "Password for authentication")
-	verbose  = flag.Bool("verbose", true, "Enable verbose output")
 	output   = flag.String("output", "test-results.json", "Output file for results")
 )
 
