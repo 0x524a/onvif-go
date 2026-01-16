@@ -14,10 +14,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/0x524a/onvif-go"
+	onviftesting "github.com/0x524a/onvif-go/testing"
 )
 
 const (
@@ -150,6 +153,7 @@ var (
 	timeout    = flag.Int("timeout", 30, "Request timeout in seconds") //nolint:mnd // Default timeout value
 	verbose    = flag.Bool("verbose", false, "Verbose output")
 	captureXML = flag.Bool("capture-xml", false, "Capture raw SOAP XML traffic and create tar.gz archive")
+	captureAll = flag.Bool("capture-all", false, "Capture all READ operations (comprehensive mode, implies -capture-xml)")
 )
 
 //nolint:funlen,gocognit,gocyclo // Main function has high complexity due to multiple diagnostic operations
@@ -190,6 +194,11 @@ func main() {
 		},
 		Errors:       make([]ErrorLog, 0),
 		RawResponses: make(map[string]interface{}),
+	}
+
+	// If capture-all is set, enable capture-xml automatically
+	if *captureAll {
+		*captureXML = true
 	}
 
 	// Setup XML capture if requested
@@ -246,72 +255,79 @@ func main() {
 
 	ctx := context.Background()
 
-	fmt.Println("Starting diagnostic collection...")
-	fmt.Println()
-
-	// Test 1: Get Device Information
-	logStepf("1. Getting device information...")
-	report.DeviceInfo = testGetDeviceInformation(ctx, client, report)
-
-	// Test 2: Get System Date and Time
-	logStepf("2. Getting system date and time...")
-	report.SystemDateTime = testGetSystemDateTime(ctx, client, report)
-
-	// Test 3: Get Capabilities
-	logStepf("3. Getting capabilities...")
-	report.Capabilities = testGetCapabilities(ctx, client, report)
-
-	// Test 4: Initialize (discover services)
-	logStepf("4. Discovering service endpoints...")
-	if err := client.Initialize(ctx); err != nil {
-		logErrorf("Service discovery failed: %v", err)
-		report.Errors = append(report.Errors, ErrorLog{
-			Operation: "Initialize",
-			Error:     err.Error(),
-			Timestamp: time.Now().Format(time.RFC3339),
-		})
+	if *captureAll {
+		fmt.Println("Starting COMPREHENSIVE diagnostic collection...")
+		fmt.Println("This will capture all READ operations for testing.")
+		fmt.Println()
+		runComprehensiveCapture(ctx, client, report)
 	} else {
-		logSuccessf("Service endpoints discovered")
-	}
+		fmt.Println("Starting diagnostic collection...")
+		fmt.Println()
 
-	// Test 5: Get Profiles
-	logStepf("5. Getting media profiles...")
-	report.Profiles = testGetProfiles(ctx, client, report)
+		// Test 1: Get Device Information
+		logStepf("1. Getting device information...")
+		report.DeviceInfo = testGetDeviceInformation(ctx, client, report)
 
-	// Test 6: Get Stream URIs (for each profile)
-	if report.Profiles != nil && report.Profiles.Success {
-		logStepf("6. Getting stream URIs for all profiles...")
-		report.StreamURIs = testGetStreamURIs(ctx, client, report.Profiles.Data, report)
-	}
+		// Test 2: Get System Date and Time
+		logStepf("2. Getting system date and time...")
+		report.SystemDateTime = testGetSystemDateTime(ctx, client, report)
 
-	// Test 7: Get Snapshot URIs (for each profile)
-	if report.Profiles != nil && report.Profiles.Success {
-		logStepf("7. Getting snapshot URIs for all profiles...")
-		report.SnapshotURIs = testGetSnapshotURIs(ctx, client, report.Profiles.Data, report)
-	}
+		// Test 3: Get Capabilities
+		logStepf("3. Getting capabilities...")
+		report.Capabilities = testGetCapabilities(ctx, client, report)
 
-	// Test 8: Get Video Encoder Configurations
-	if report.Profiles != nil && report.Profiles.Success {
-		logStepf("8. Getting video encoder configurations...")
-		report.VideoEncoders = testGetVideoEncoders(ctx, client, report.Profiles.Data, report)
-	}
+		// Test 4: Initialize (discover services)
+		logStepf("4. Discovering service endpoints...")
+		if err := client.Initialize(ctx); err != nil {
+			logErrorf("Service discovery failed: %v", err)
+			report.Errors = append(report.Errors, ErrorLog{
+				Operation: "Initialize",
+				Error:     err.Error(),
+				Timestamp: time.Now().Format(time.RFC3339),
+			})
+		} else {
+			logSuccessf("Service endpoints discovered")
+		}
 
-	// Test 9: Get Imaging Settings
-	if report.Profiles != nil && report.Profiles.Success {
-		logStepf("9. Getting imaging settings...")
-		report.ImagingSettings = testGetImagingSettings(ctx, client, report.Profiles.Data, report)
-	}
+		// Test 5: Get Profiles
+		logStepf("5. Getting media profiles...")
+		report.Profiles = testGetProfiles(ctx, client, report)
 
-	// Test 10: Get PTZ Status (if PTZ is available)
-	if report.Profiles != nil && report.Profiles.Success {
-		logStepf("10. Getting PTZ status...")
-		report.PTZStatus = testGetPTZStatus(ctx, client, report.Profiles.Data, report)
-	}
+		// Test 6: Get Stream URIs (for each profile)
+		if report.Profiles != nil && report.Profiles.Success {
+			logStepf("6. Getting stream URIs for all profiles...")
+			report.StreamURIs = testGetStreamURIs(ctx, client, report.Profiles.Data, report)
+		}
 
-	// Test 11: Get PTZ Presets (if PTZ is available)
-	if report.Profiles != nil && report.Profiles.Success {
-		logStepf("11. Getting PTZ presets...")
-		report.PTZPresets = testGetPTZPresets(ctx, client, report.Profiles.Data, report)
+		// Test 7: Get Snapshot URIs (for each profile)
+		if report.Profiles != nil && report.Profiles.Success {
+			logStepf("7. Getting snapshot URIs for all profiles...")
+			report.SnapshotURIs = testGetSnapshotURIs(ctx, client, report.Profiles.Data, report)
+		}
+
+		// Test 8: Get Video Encoder Configurations
+		if report.Profiles != nil && report.Profiles.Success {
+			logStepf("8. Getting video encoder configurations...")
+			report.VideoEncoders = testGetVideoEncoders(ctx, client, report.Profiles.Data, report)
+		}
+
+		// Test 9: Get Imaging Settings
+		if report.Profiles != nil && report.Profiles.Success {
+			logStepf("9. Getting imaging settings...")
+			report.ImagingSettings = testGetImagingSettings(ctx, client, report.Profiles.Data, report)
+		}
+
+		// Test 10: Get PTZ Status (if PTZ is available)
+		if report.Profiles != nil && report.Profiles.Success {
+			logStepf("10. Getting PTZ status...")
+			report.PTZStatus = testGetPTZStatus(ctx, client, report.Profiles.Data, report)
+		}
+
+		// Test 11: Get PTZ Presets (if PTZ is available)
+		if report.Profiles != nil && report.Profiles.Success {
+			logStepf("11. Getting PTZ presets...")
+			report.PTZPresets = testGetPTZPresets(ctx, client, report.Profiles.Data, report)
+		}
 	}
 
 	// Generate output filename based on device info
@@ -327,7 +343,14 @@ func main() {
 	// Create XML archive if capture was enabled
 	if *captureXML && loggingTransport != nil {
 		fmt.Println()
-		logStepf("Creating XML capture archive...")
+		logStepf("Creating V2 XML capture archive...")
+
+		// V2: Save metadata.json before creating archive
+		if err := loggingTransport.SaveMetadata(report); err != nil {
+			logErrorf("Failed to save metadata: %v", err)
+		} else {
+			logSuccessf("V2 metadata.json generated")
+		}
 
 		// Generate archive name based on device info
 		var archiveName string
@@ -344,10 +367,10 @@ func main() {
 
 		archivePath := filepath.Join(*outputDir, archiveName)
 
-		if err := createTarGz(xmlCaptureDir, archivePath); err != nil {
+		if err := createTarGzV2(xmlCaptureDir, archivePath); err != nil {
 			logErrorf("Failed to create XML archive: %v", err)
 		} else {
-			logSuccessf("XML archive created: %s", archiveName)
+			logSuccessf("V2 XML archive created: %s", archiveName)
 			logSuccessf("Total SOAP calls captured: %d", loggingTransport.Counter)
 
 			// Remove temporary directory
@@ -912,18 +935,452 @@ func logInfof(format string, args ...interface{}) {
 	fmt.Printf("  ℹ %s\n", fmt.Sprintf(format, args...))
 }
 
+// =============================================================================
+// Comprehensive Capture Mode
+// =============================================================================
+
+// runComprehensiveCapture captures all READ operations from the camera.
+// This function exercises the full API to create a comprehensive test fixture.
+//
+//nolint:funlen,gocognit,gocyclo // Comprehensive capture requires many operations
+func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *CameraReport) {
+	successCount := 0
+	failCount := 0
+	totalOps := 0
+
+	// Phase 1: Get device information first (needed for report)
+	logStepf("Phase 1: Core device information...")
+
+	report.DeviceInfo = testGetDeviceInformation(ctx, client, report)
+	if report.DeviceInfo != nil && report.DeviceInfo.Success {
+		successCount++
+	} else {
+		failCount++
+	}
+	totalOps++
+
+	report.SystemDateTime = testGetSystemDateTime(ctx, client, report)
+	if report.SystemDateTime != nil && report.SystemDateTime.Success {
+		successCount++
+	} else {
+		failCount++
+	}
+	totalOps++
+
+	report.Capabilities = testGetCapabilities(ctx, client, report)
+	if report.Capabilities != nil && report.Capabilities.Success {
+		successCount++
+	} else {
+		failCount++
+	}
+	totalOps++
+
+	// Phase 2: Initialize to discover service endpoints
+	logStepf("Phase 2: Service discovery...")
+	if err := client.Initialize(ctx); err != nil {
+		logErrorf("Service discovery failed: %v", err)
+		report.Errors = append(report.Errors, ErrorLog{
+			Operation: "Initialize",
+			Error:     err.Error(),
+			Timestamp: time.Now().Format(time.RFC3339),
+		})
+		failCount++
+	} else {
+		logSuccessf("Service endpoints discovered")
+		successCount++
+	}
+	totalOps++
+
+	// Phase 3: Device service operations (no dependencies)
+	logStepf("Phase 3: Device service operations...")
+	deviceOps := []struct {
+		name string
+		fn   func() error
+	}{
+		{"GetHostname", func() error { _, err := client.GetHostname(ctx); return err }},
+		{"GetDNS", func() error { _, err := client.GetDNS(ctx); return err }},
+		{"GetNTP", func() error { _, err := client.GetNTP(ctx); return err }},
+		{"GetNetworkInterfaces", func() error { _, err := client.GetNetworkInterfaces(ctx); return err }},
+		{"GetNetworkProtocols", func() error { _, err := client.GetNetworkProtocols(ctx); return err }},
+		{"GetNetworkDefaultGateway", func() error { _, err := client.GetNetworkDefaultGateway(ctx); return err }},
+		{"GetScopes", func() error { _, err := client.GetScopes(ctx); return err }},
+		{"GetUsers", func() error { _, err := client.GetUsers(ctx); return err }},
+		{"GetDiscoveryMode", func() error { _, err := client.GetDiscoveryMode(ctx); return err }},
+		{"GetRemoteDiscoveryMode", func() error { _, err := client.GetRemoteDiscoveryMode(ctx); return err }},
+		{"GetEndpointReference", func() error { _, err := client.GetEndpointReference(ctx); return err }},
+		{"GetRelayOutputs", func() error { _, err := client.GetRelayOutputs(ctx); return err }},
+		{"GetRemoteUser", func() error { _, err := client.GetRemoteUser(ctx); return err }},
+		{"GetIPAddressFilter", func() error { _, err := client.GetIPAddressFilter(ctx); return err }},
+		{"GetZeroConfiguration", func() error { _, err := client.GetZeroConfiguration(ctx); return err }},
+		{"GetServices", func() error { _, err := client.GetServices(ctx, true); return err }},
+		{"GetServiceCapabilities", func() error { _, err := client.GetServiceCapabilities(ctx); return err }},
+		{"GetStorageConfigurations", func() error { _, err := client.GetStorageConfigurations(ctx); return err }},
+		{"GetGeoLocation", func() error { _, err := client.GetGeoLocation(ctx); return err }},
+		{"GetDPAddresses", func() error { _, err := client.GetDPAddresses(ctx); return err }},
+		{"GetAccessPolicy", func() error { _, err := client.GetAccessPolicy(ctx); return err }},
+		{"GetWsdlURL", func() error { _, err := client.GetWsdlURL(ctx); return err }},
+		{"GetPasswordComplexityConfiguration", func() error { _, err := client.GetPasswordComplexityConfiguration(ctx); return err }},
+		{"GetPasswordHistoryConfiguration", func() error { _, err := client.GetPasswordHistoryConfiguration(ctx); return err }},
+		{"GetAuthFailureWarningConfiguration", func() error { _, err := client.GetAuthFailureWarningConfiguration(ctx); return err }},
+	}
+
+	for _, op := range deviceOps {
+		if err := op.fn(); err != nil {
+			if *verbose {
+				logErrorf("%s: %v", op.name, err)
+			}
+			failCount++
+		} else {
+			if *verbose {
+				logSuccessf("%s", op.name)
+			}
+			successCount++
+		}
+		totalOps++
+	}
+	logSuccessf("Device operations: %d captured", len(deviceOps))
+
+	// Phase 4: Media service - Get profiles and sources
+	logStepf("Phase 4: Media profiles and sources...")
+	report.Profiles = testGetProfiles(ctx, client, report)
+	totalOps++
+	if report.Profiles != nil && report.Profiles.Success {
+		successCount++
+	} else {
+		failCount++
+	}
+
+	// Get video sources
+	videoSources, err := client.GetVideoSources(ctx)
+	totalOps++
+	if err != nil {
+		if *verbose {
+			logErrorf("GetVideoSources: %v", err)
+		}
+		failCount++
+	} else {
+		if *verbose {
+			logSuccessf("GetVideoSources: %d sources", len(videoSources))
+		}
+		successCount++
+	}
+
+	// Get audio sources
+	audioSources, err := client.GetAudioSources(ctx)
+	totalOps++
+	if err != nil {
+		if *verbose {
+			logErrorf("GetAudioSources: %v", err)
+		}
+		failCount++
+	} else {
+		if *verbose {
+			logSuccessf("GetAudioSources: %d sources", len(audioSources))
+		}
+		successCount++
+	}
+
+	// Get audio outputs
+	_, err = client.GetAudioOutputs(ctx)
+	totalOps++
+	if err != nil {
+		if *verbose {
+			logErrorf("GetAudioOutputs: %v", err)
+		}
+		failCount++
+	} else {
+		if *verbose {
+			logSuccessf("GetAudioOutputs")
+		}
+		successCount++
+	}
+
+	// Phase 5: Profile-dependent operations
+	if report.Profiles != nil && report.Profiles.Success && len(report.Profiles.Data) > 0 {
+		logStepf("Phase 5: Profile-dependent operations...")
+
+		for _, profile := range report.Profiles.Data {
+			// GetProfile
+			_, err := client.GetProfile(ctx, profile.Token)
+			totalOps++
+			if err != nil {
+				failCount++
+			} else {
+				successCount++
+			}
+
+			// GetStreamURI
+			_, err = client.GetStreamURI(ctx, profile.Token)
+			totalOps++
+			if err != nil {
+				failCount++
+			} else {
+				successCount++
+			}
+
+			// GetSnapshotURI
+			_, err = client.GetSnapshotURI(ctx, profile.Token)
+			totalOps++
+			if err != nil {
+				failCount++
+			} else {
+				successCount++
+			}
+
+			// PTZ operations (if PTZ configuration exists)
+			if profile.PTZConfiguration != nil {
+				_, err = client.GetStatus(ctx, profile.Token)
+				totalOps++
+				if err != nil {
+					failCount++
+				} else {
+					successCount++
+				}
+
+				_, err = client.GetPresets(ctx, profile.Token)
+				totalOps++
+				if err != nil {
+					failCount++
+				} else {
+					successCount++
+				}
+			}
+
+			// Video encoder configuration
+			if profile.VideoEncoderConfiguration != nil {
+				_, err = client.GetVideoEncoderConfiguration(ctx, profile.VideoEncoderConfiguration.Token)
+				totalOps++
+				if err != nil {
+					failCount++
+				} else {
+					successCount++
+				}
+
+				_, err = client.GetVideoEncoderConfigurationOptions(ctx, profile.VideoEncoderConfiguration.Token)
+				totalOps++
+				if err != nil {
+					failCount++
+				} else {
+					successCount++
+				}
+			}
+
+			// Audio encoder configuration
+			if profile.AudioEncoderConfiguration != nil {
+				_, err = client.GetAudioEncoderConfiguration(ctx, profile.AudioEncoderConfiguration.Token)
+				totalOps++
+				if err != nil {
+					failCount++
+				} else {
+					successCount++
+				}
+			}
+		}
+		logSuccessf("Profile operations completed for %d profiles", len(report.Profiles.Data))
+	}
+
+	// Phase 6: Video source dependent operations
+	if len(videoSources) > 0 {
+		logStepf("Phase 6: Video source operations...")
+
+		for _, source := range videoSources {
+			// Imaging settings
+			_, err := client.GetImagingSettings(ctx, source.Token)
+			totalOps++
+			if err != nil {
+				failCount++
+			} else {
+				successCount++
+			}
+
+			// Imaging options
+			_, err = client.GetOptions(ctx, source.Token)
+			totalOps++
+			if err != nil {
+				failCount++
+			} else {
+				successCount++
+			}
+
+			// Imaging move options
+			_, err = client.GetMoveOptions(ctx, source.Token)
+			totalOps++
+			if err != nil {
+				failCount++
+			} else {
+				successCount++
+			}
+		}
+		logSuccessf("Video source operations completed for %d sources", len(videoSources))
+	}
+
+	// Phase 7: Configuration listings
+	logStepf("Phase 7: Configuration listings...")
+	configOps := []struct {
+		name string
+		fn   func() error
+	}{
+		{"GetVideoSourceConfigurations", func() error { _, err := client.GetVideoSourceConfigurations(ctx); return err }},
+		{"GetVideoEncoderConfigurations", func() error { _, err := client.GetVideoEncoderConfigurations(ctx); return err }},
+		{"GetAudioSourceConfigurations", func() error { _, err := client.GetAudioSourceConfigurations(ctx); return err }},
+		{"GetAudioEncoderConfigurations", func() error { _, err := client.GetAudioEncoderConfigurations(ctx); return err }},
+		{"GetAudioOutputConfigurations", func() error { _, err := client.GetAudioOutputConfigurations(ctx); return err }},
+		{"GetMetadataConfigurations", func() error { _, err := client.GetMetadataConfigurations(ctx); return err }},
+		{"GetMediaServiceCapabilities", func() error { _, err := client.GetMediaServiceCapabilities(ctx); return err }},
+	}
+
+	for _, op := range configOps {
+		if err := op.fn(); err != nil {
+			if *verbose {
+				logErrorf("%s: %v", op.name, err)
+			}
+			failCount++
+		} else {
+			if *verbose {
+				logSuccessf("%s", op.name)
+			}
+			successCount++
+		}
+		totalOps++
+	}
+	logSuccessf("Configuration listings: %d captured", len(configOps))
+
+	// Phase 8: Event service
+	logStepf("Phase 8: Event service...")
+	eventOps := []struct {
+		name string
+		fn   func() error
+	}{
+		{"GetEventServiceCapabilities", func() error { _, err := client.GetEventServiceCapabilities(ctx); return err }},
+		{"GetEventProperties", func() error { _, err := client.GetEventProperties(ctx); return err }},
+	}
+
+	for _, op := range eventOps {
+		if err := op.fn(); err != nil {
+			if *verbose {
+				logErrorf("%s: %v", op.name, err)
+			}
+			failCount++
+		} else {
+			if *verbose {
+				logSuccessf("%s", op.name)
+			}
+			successCount++
+		}
+		totalOps++
+	}
+	logSuccessf("Event operations: %d captured", len(eventOps))
+
+	// Phase 9: Certificate operations
+	logStepf("Phase 9: Certificate and security operations...")
+	certOps := []struct {
+		name string
+		fn   func() error
+	}{
+		{"GetCertificates", func() error { _, err := client.GetCertificates(ctx); return err }},
+		{"GetCACertificates", func() error { _, err := client.GetCACertificates(ctx); return err }},
+		{"GetCertificatesStatus", func() error { _, err := client.GetCertificatesStatus(ctx); return err }},
+		{"GetClientCertificateMode", func() error { _, err := client.GetClientCertificateMode(ctx); return err }},
+	}
+
+	for _, op := range certOps {
+		if err := op.fn(); err != nil {
+			if *verbose {
+				logErrorf("%s: %v", op.name, err)
+			}
+			failCount++
+		} else {
+			if *verbose {
+				logSuccessf("%s", op.name)
+			}
+			successCount++
+		}
+		totalOps++
+	}
+	logSuccessf("Certificate operations: %d captured", len(certOps))
+
+	// Phase 10: WiFi operations (may not be supported by all cameras)
+	logStepf("Phase 10: WiFi operations...")
+	wifiOps := []struct {
+		name string
+		fn   func() error
+	}{
+		{"GetDot11Capabilities", func() error { _, err := client.GetDot11Capabilities(ctx); return err }},
+		{"GetDot1XConfigurations", func() error { _, err := client.GetDot1XConfigurations(ctx); return err }},
+	}
+
+	for _, op := range wifiOps {
+		if err := op.fn(); err != nil {
+			if *verbose {
+				logErrorf("%s: %v", op.name, err)
+			}
+			failCount++
+		} else {
+			if *verbose {
+				logSuccessf("%s", op.name)
+			}
+			successCount++
+		}
+		totalOps++
+	}
+	logSuccessf("WiFi operations: %d captured", len(wifiOps))
+
+	// Summary
+	fmt.Println()
+	fmt.Println("========================================")
+	fmt.Printf("Comprehensive capture complete!\n")
+	fmt.Printf("  Total operations: %d\n", totalOps)
+	fmt.Printf("  Successful: %d\n", successCount)
+	fmt.Printf("  Failed: %d\n", failCount)
+	fmt.Printf("  Success rate: %.1f%%\n", float64(successCount)/float64(totalOps)*100)
+	fmt.Println("========================================")
+}
+
 // XML Capture functionality
 
-// XMLCapture stores a request/response pair.
+// XMLCapture stores a request/response pair (V2 format with parameter awareness).
 type XMLCapture struct {
-	Timestamp     string `json:"timestamp"`
-	Operation     int    `json:"operation"`
+	// Version indicates the capture format version ("2.0" for V2)
+	Version string `json:"version"`
+
+	// Timestamp is when the exchange was captured (RFC3339 format)
+	Timestamp string `json:"timestamp"`
+
+	// Sequence is the capture order (1-indexed for V2)
+	Sequence int `json:"sequence"`
+
+	// Operation is deprecated in V2, kept for backward compatibility
+	Operation int `json:"operation,omitempty"`
+
+	// OperationName is the SOAP operation name (e.g., "GetDeviceInformation")
 	OperationName string `json:"operation_name"`
-	Endpoint      string `json:"endpoint"`
-	RequestBody   string `json:"request_body"`
-	ResponseBody  string `json:"response_body"`
-	StatusCode    int    `json:"status_code"`
-	Error         string `json:"error,omitempty"`
+
+	// ServiceType categorizes which ONVIF service handles this operation
+	ServiceType string `json:"service_type,omitempty"`
+
+	// Parameters contains extracted key parameters from the request
+	Parameters map[string]interface{} `json:"parameters,omitempty"`
+
+	// Endpoint is the URL the request was sent to
+	Endpoint string `json:"endpoint"`
+
+	// RequestBody is the full SOAP request XML
+	RequestBody string `json:"request_body"`
+
+	// ResponseBody is the full SOAP response XML
+	ResponseBody string `json:"response_body"`
+
+	// StatusCode is the HTTP response status code
+	StatusCode int `json:"status_code"`
+
+	// DurationNs is the request duration in nanoseconds
+	DurationNs int64 `json:"duration_ns,omitempty"`
+
+	// Success indicates if the operation succeeded (no SOAP fault)
+	Success bool `json:"success"`
+
+	// Error contains error message if the operation failed
+	Error string `json:"error,omitempty"`
 }
 
 // LoggingTransport wraps http.RoundTripper to log requests and responses.
@@ -931,13 +1388,24 @@ type LoggingTransport struct {
 	Transport http.RoundTripper
 	LogDir    string
 	Counter   int
+	// V2 additions for metadata generation
+	captures   []*XMLCapture
+	serviceMap map[string]string // operation -> service type
+	mu         sync.Mutex
 }
 
 func (t *LoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	t.mu.Lock()
 	t.Counter++
+	sequence := t.Counter
+	t.mu.Unlock()
+
+	startTime := time.Now()
 	capture := XMLCapture{
-		Timestamp: time.Now().Format(time.RFC3339),
-		Operation: t.Counter,
+		Version:   onviftesting.CaptureVersion,
+		Timestamp: startTime.Format(time.RFC3339),
+		Sequence:  sequence,
+		Operation: sequence, // Keep for backward compatibility
 		Endpoint:  req.URL.String(),
 	}
 
@@ -948,6 +1416,11 @@ func (t *LoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 			capture.RequestBody = string(bodyBytes)
 			// Extract operation name from SOAP body
 			capture.OperationName = extractSOAPOperation(capture.RequestBody)
+			// V2: Extract service type
+			serviceType := onviftesting.DetermineServiceType(capture.RequestBody)
+			capture.ServiceType = string(serviceType)
+			// V2: Extract parameters
+			capture.Parameters = onviftesting.ExtractParameters(capture.OperationName, capture.RequestBody)
 			// Restore the body for the actual request
 			req.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
 		}
@@ -955,8 +1428,13 @@ func (t *LoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 
 	// Make the actual request
 	resp, err := t.Transport.RoundTrip(req)
+
+	// V2: Track request duration
+	capture.DurationNs = time.Since(startTime).Nanoseconds()
+
 	if err != nil {
 		capture.Error = err.Error()
+		capture.Success = false
 		t.saveCapture(&capture)
 
 		return nil, fmt.Errorf("round trip failed: %w", err)
@@ -972,6 +1450,12 @@ func (t *LoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 			resp.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
 		}
 	}
+
+	// V2: Determine success (no SOAP fault and 2xx status)
+	capture.Success = resp.StatusCode >= 200 && resp.StatusCode < 300 &&
+		!strings.Contains(capture.ResponseBody, "<soap:Fault>") &&
+		!strings.Contains(capture.ResponseBody, "<Fault>") &&
+		!strings.Contains(capture.ResponseBody, ":Fault>")
 
 	t.saveCapture(&capture)
 
@@ -1012,8 +1496,19 @@ func prettyPrintXML(xmlStr string) string {
 }
 
 func (t *LoggingTransport) saveCapture(capture *XMLCapture) {
-	// Create filename base using operation name
-	baseFilename := fmt.Sprintf("capture_%03d_%s", capture.Operation, capture.OperationName)
+	// V2: Track capture for metadata generation
+	t.mu.Lock()
+	t.captures = append(t.captures, capture)
+	if t.serviceMap == nil {
+		t.serviceMap = make(map[string]string)
+	}
+	if capture.ServiceType != "" && capture.ServiceType != "Unknown" {
+		t.serviceMap[capture.OperationName] = capture.ServiceType
+	}
+	t.mu.Unlock()
+
+	// Create filename base using sequence and operation name
+	baseFilename := fmt.Sprintf("capture_%03d_%s", capture.Sequence, capture.OperationName)
 
 	// Save as individual JSON file
 	filename := filepath.Join(t.LogDir, baseFilename+".json")
@@ -1044,6 +1539,50 @@ func (t *LoggingTransport) saveCapture(capture *XMLCapture) {
 	); err != nil {
 		log.Printf("Failed to write response XML: %v", err)
 	}
+}
+
+// GenerateMetadata creates the V2 metadata.json file from captured exchanges.
+func (t *LoggingTransport) GenerateMetadata(report *CameraReport) *onviftesting.CaptureMetadata {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	metadata := &onviftesting.CaptureMetadata{
+		Version:        onviftesting.CaptureVersion,
+		CreatedAt:      time.Now(),
+		ToolVersion:    version,
+		TotalExchanges: len(t.captures),
+		ServiceMap:     t.serviceMap,
+	}
+
+	// Extract camera info from report
+	if report.DeviceInfo != nil && report.DeviceInfo.Success && report.DeviceInfo.Data != nil {
+		metadata.CameraInfo = onviftesting.CameraInfo{
+			Manufacturer:    report.DeviceInfo.Data.Manufacturer,
+			Model:           report.DeviceInfo.Data.Model,
+			FirmwareVersion: report.DeviceInfo.Data.FirmwareVersion,
+			SerialNumber:    report.DeviceInfo.Data.SerialNumber,
+			HardwareID:      report.DeviceInfo.Data.HardwareID,
+		}
+	}
+
+	return metadata
+}
+
+// SaveMetadata writes the metadata.json file to the log directory.
+func (t *LoggingTransport) SaveMetadata(report *CameraReport) error {
+	metadata := t.GenerateMetadata(report)
+
+	data, err := json.MarshalIndent(metadata, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %w", err)
+	}
+
+	filename := filepath.Join(t.LogDir, "metadata.json")
+	if err := os.WriteFile(filename, data, 0600); err != nil { //nolint:mnd // 0600 appropriate for diagnostic files
+		return fmt.Errorf("failed to write metadata: %w", err)
+	}
+
+	return nil
 }
 
 // extractSOAPOperation extracts the operation name from a SOAP request body.
@@ -1094,8 +1633,8 @@ func extractSOAPOperation(soapBody string) string {
 	return "Unknown"
 }
 
-// createTarGz creates a tar.gz archive from a directory.
-func createTarGz(sourceDir, archivePath string) error {
+// createTarGzV2 creates a V2 tar.gz archive with metadata.json first.
+func createTarGzV2(sourceDir, archivePath string) error {
 	// Create archive file
 	archiveFile, err := os.Create(archivePath) //nolint:gosec // Archive path is validated before use
 	if err != nil {
@@ -1117,15 +1656,53 @@ func createTarGz(sourceDir, archivePath string) error {
 		_ = tarWriter.Close()
 	}()
 
-	// Walk through source directory
+	// V2: Collect all files and sort them with metadata.json first
+	var files []string
 	if err := filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
-		// Skip the root directory itself
-		if path == sourceDir {
+		if path == sourceDir || info.IsDir() {
 			return nil
+		}
+		files = append(files, path)
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to walk source directory: %w", err)
+	}
+
+	// Sort files: metadata.json first, then capture JSON files in order, then XML files
+	sort.Slice(files, func(i, j int) bool {
+		nameI := filepath.Base(files[i])
+		nameJ := filepath.Base(files[j])
+
+		// metadata.json always first
+		if nameI == "metadata.json" {
+			return true
+		}
+		if nameJ == "metadata.json" {
+			return false
+		}
+
+		// JSON files before XML files
+		isJSONi := strings.HasSuffix(nameI, ".json")
+		isJSONj := strings.HasSuffix(nameJ, ".json")
+		if isJSONi && !isJSONj {
+			return true
+		}
+		if !isJSONi && isJSONj {
+			return false
+		}
+
+		// Sort by name
+		return nameI < nameJ
+	})
+
+	// Write files in sorted order
+	for _, path := range files {
+		info, err := os.Stat(path)
+		if err != nil {
+			return fmt.Errorf("failed to stat file: %w", err)
 		}
 
 		// Create tar header
@@ -1146,24 +1723,17 @@ func createTarGz(sourceDir, archivePath string) error {
 			return fmt.Errorf("failed to write tar header: %w", err)
 		}
 
-		// If it's a file, write its content
-		if !info.IsDir() {
-			file, err := os.Open(path) //nolint:gosec // File path is from filepath.Walk, safe
-			if err != nil {
-				return fmt.Errorf("failed to open file: %w", err)
-			}
-			defer func() {
-				_ = file.Close()
-			}()
-
-			if _, err := io.Copy(tarWriter, file); err != nil {
-				return fmt.Errorf("failed to write file to tar: %w", err)
-			}
+		// Write file content
+		file, err := os.Open(path) //nolint:gosec // File path is from filepath.Walk, safe
+		if err != nil {
+			return fmt.Errorf("failed to open file: %w", err)
 		}
 
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to walk source directory: %w", err)
+		if _, err := io.Copy(tarWriter, file); err != nil {
+			_ = file.Close()
+			return fmt.Errorf("failed to write file to tar: %w", err)
+		}
+		_ = file.Close()
 	}
 
 	return nil

@@ -1,20 +1,42 @@
+//go:build real_camera
+
 package onvif
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/0x524a/onvif-go"
 )
 
+// getTestCredentials returns ONVIF credentials from environment variables.
+// Required environment variables:
+//   - ONVIF_ENDPOINT: Camera endpoint URL (e.g., http://192.168.1.201/onvif/device_service)
+//   - ONVIF_USERNAME: ONVIF username
+//   - ONVIF_PASSWORD: ONVIF password
+func getTestCredentials(t *testing.T) (endpoint, username, password string) {
+	endpoint = os.Getenv("ONVIF_ENDPOINT")
+	username = os.Getenv("ONVIF_USERNAME")
+	password = os.Getenv("ONVIF_PASSWORD")
+
+	if endpoint == "" || username == "" || password == "" {
+		t.Skip("ONVIF credentials not configured. Set ONVIF_ENDPOINT, ONVIF_USERNAME, and ONVIF_PASSWORD environment variables.")
+	}
+
+	return endpoint, username, password
+}
+
 // TestEnhancedDeviceFeatures tests new Device service methods with real camera data
 // Based on test results from Bosch FLEXIDOME indoor 5100i IR (8.71.0066)
 func TestEnhancedDeviceFeatures(t *testing.T) {
+	endpoint, username, password := getTestCredentials(t)
+
 	// Create client with test credentials
 	client, err := onvif.NewClient(
-		"http://192.168.1.201/onvif/device_service",
-		onvif.WithCredentials("service", "Service.1234"),
+		endpoint,
+		onvif.WithCredentials(username, password),
 		onvif.WithTimeout(30*time.Second),
 	)
 	if err != nil {
@@ -191,9 +213,11 @@ func TestEnhancedDeviceFeatures(t *testing.T) {
 
 // TestEnhancedMediaFeatures tests new Media service methods
 func TestEnhancedMediaFeatures(t *testing.T) {
+	endpoint, username, password := getTestCredentials(t)
+
 	client, err := onvif.NewClient(
-		"http://192.168.1.201/onvif/device_service",
-		onvif.WithCredentials("service", "Service.1234"),
+		endpoint,
+		onvif.WithCredentials(username, password),
 		onvif.WithTimeout(30*time.Second),
 	)
 	if err != nil {
@@ -283,9 +307,11 @@ func TestEnhancedMediaFeatures(t *testing.T) {
 
 // TestEnhancedImagingFeatures tests new Imaging service methods
 func TestEnhancedImagingFeatures(t *testing.T) {
+	endpoint, username, password := getTestCredentials(t)
+
 	client, err := onvif.NewClient(
-		"http://192.168.1.201/onvif/device_service",
-		onvif.WithCredentials("service", "Service.1234"),
+		endpoint,
+		onvif.WithCredentials(username, password),
 		onvif.WithTimeout(30*time.Second),
 	)
 	if err != nil {

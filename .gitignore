@@ -26,6 +26,9 @@ go.work
 *~
 .DS_Store
 
+# Claude Code
+.claude/
+
 # Binaries (in root, bin, or dist directories)
 bin/
 dist/
@@ -46,6 +49,10 @@ temp/
 camera-logs/*.json
 camera-logs/*.tar.gz
 xml-captures/
+
+# Camera data collection artifacts
+camera-data-batch-*/
+camera-discovery-*.log
 
 # Extracted test captures
 capture_*.xml
