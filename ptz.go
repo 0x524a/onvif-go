@@ -48,6 +48,7 @@ func convertToPTZVectorXML(v *PTZVector) *ptzVectorXML {
 	if v.Zoom != nil {
 		result.Zoom = &ptzZoomXML{X: v.Zoom.X, Space: v.Zoom.Space}
 	}
+
 	return result
 }
 
@@ -63,6 +64,7 @@ func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedXML {
 	if s.Zoom != nil {
 		result.Zoom = &ptzZoomXML{X: s.Zoom.X, Space: s.Zoom.Space}
 	}
+
 	return result
 }
 
