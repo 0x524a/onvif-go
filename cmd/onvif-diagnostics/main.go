@@ -1003,14 +1003,17 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		{"GetNTP", func() error { _, err := client.GetNTP(ctx); return fmt.Errorf("GetNTP: %w", err) }},                //nolint:nlreturn
 		{"GetNetworkInterfaces", func() error {
 			_, err := client.GetNetworkInterfaces(ctx)
+
 			return fmt.Errorf("GetNetworkInterfaces: %w", err)
 		}},
 		{"GetNetworkProtocols", func() error {
 			_, err := client.GetNetworkProtocols(ctx)
+
 			return fmt.Errorf("GetNetworkProtocols: %w", err)
 		}},
 		{"GetNetworkDefaultGateway", func() error {
 			_, err := client.GetNetworkDefaultGateway(ctx)
+
 			return fmt.Errorf("GetNetworkDefaultGateway: %w", err)
 		}},
 		{"GetScopes", func() error { _, err := client.GetScopes(ctx); return err }},
