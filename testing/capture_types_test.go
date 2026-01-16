@@ -156,7 +156,7 @@ func TestMatchKey_MatchScore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := tt.key1.MatchScore(tt.key2); result != tt.expected {
+			if result := tt.key1.MatchScore(&tt.key2); result != tt.expected {
 				t.Errorf("MatchScore() = %v, want %v", result, tt.expected)
 			}
 		})

@@ -998,12 +998,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		name string
 		fn   func() error
 	}{
-		{"GetHostname", func() error { _, err := client.GetHostname(ctx); return err }},
-		{"GetDNS", func() error { _, err := client.GetDNS(ctx); return err }},
-		{"GetNTP", func() error { _, err := client.GetNTP(ctx); return err }},
-		{"GetNetworkInterfaces", func() error { _, err := client.GetNetworkInterfaces(ctx); return err }},
-		{"GetNetworkProtocols", func() error { _, err := client.GetNetworkProtocols(ctx); return err }},
-		{"GetNetworkDefaultGateway", func() error { _, err := client.GetNetworkDefaultGateway(ctx); return err }},
+		{"GetHostname", func() error { _, err := client.GetHostname(ctx); return err }}, //nolint:nlreturn
+		{"GetDNS", func() error { _, err := client.GetDNS(ctx); return err }},                          //nolint:nlreturn
+		{"GetNTP", func() error { _, err := client.GetNTP(ctx); return err }},                         //nolint:nlreturn
+		{"GetNetworkInterfaces", func() error { _, err := client.GetNetworkInterfaces(ctx); return err }}, //nolint:nlreturn
+		{"GetNetworkProtocols", func() error { _, err := client.GetNetworkProtocols(ctx); return err }}, //nolint:nlreturn
+		{"GetNetworkDefaultGateway", func() error { _, err := client.GetNetworkDefaultGateway(ctx); return err }}, //nolint:nlreturn
 		{"GetScopes", func() error { _, err := client.GetScopes(ctx); return err }},
 		{"GetUsers", func() error { _, err := client.GetUsers(ctx); return err }},
 		{"GetDiscoveryMode", func() error { _, err := client.GetDiscoveryMode(ctx); return err }},
@@ -1688,7 +1688,7 @@ func writeTarEntry(tarWriter *tar.Writer, sourceDir, path string) error {
 	}
 
 	// Write file content
-	file, err := os.Open(path) //nolint:gosec // File path is from filepath.Walk, safe
+	file, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}

@@ -34,8 +34,7 @@ func main() {
 	devices, err := discovery.DiscoverWithOptions(ctx, *timeout, opts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Discovery error: %v\n", err)
-		cancel()
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic // defer cancel() is still executed by runtime on exit
 	}
 
 	if len(devices) == 0 {

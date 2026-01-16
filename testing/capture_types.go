@@ -273,17 +273,19 @@ func BuildMatchKeyFromExchange(exchange *CapturedExchangeV2) MatchKey {
 	}
 }
 
-// addTokenScore adds 10 points to score if token matches between two MatchKeys.
+// addTokenScore adds tokenScoreBonus points to score if token matches between two MatchKeys.
+const tokenScoreBonus = 10
+
 func addTokenScore(score int, token1, token2 string) int {
 	if token1 != "" && token1 == token2 {
-		return score + 10
+		return score + tokenScoreBonus
 	}
 	return score
 }
 
 // MatchScore returns how well two MatchKeys match (higher is better).
 // Returns -1 if operation names don't match.
-func (k MatchKey) MatchScore(other MatchKey) int {
+func (k *MatchKey) MatchScore(other *MatchKey) int {
 	if k.OperationName != other.OperationName {
 		return -1
 	}

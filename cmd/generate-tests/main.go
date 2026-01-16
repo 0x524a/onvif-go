@@ -153,6 +153,7 @@ func main() {
 	// Handle coverage report mode
 	if *coverageReport {
 		generateCoverageReport(regPath)
+
 		return
 	}
 
@@ -251,7 +252,9 @@ func generateTests() string {
 	defer f.Close()
 
 	if err := tmpl.Execute(f, testData); err != nil {
-		log.Fatalf("Failed to execute template: %v", err)
+		log.Printf("Failed to execute template: %v", err)
+
+		return ""
 	}
 
 	fmt.Printf("✓ Generated test file: %s\n", outputFile)
@@ -305,7 +308,6 @@ func hasNonDeviceOperations(ops []operationInfo) bool {
 		case onviftesting.ServiceMedia, onviftesting.ServicePTZ, onviftesting.ServiceImaging, onviftesting.ServiceEvent, onviftesting.ServiceDeviceIO:
 			return true
 		case onviftesting.ServiceDevice, onviftesting.ServiceUnknown:
-			// continue checking
 		}
 	}
 
@@ -723,6 +725,7 @@ func makeRelativePath(archivePath, outputDir string) string {
 			}
 		}
 	}
+
 	return archivePath
 }
 
@@ -759,12 +762,14 @@ func updateCameraRegistry(regPath, archivePath, testFile string) {
 	registry, err := onviftesting.LoadRegistry(regPath)
 	if err != nil {
 		log.Printf("Warning: Failed to load registry: %v", err)
+
 		return
 	}
 
 	entry, err := onviftesting.CreateCameraEntryFromCapture(archivePath)
 	if err != nil {
 		log.Printf("Warning: Failed to create registry entry: %v", err)
+
 		return
 	}
 
@@ -792,6 +797,7 @@ func updateCameraRegistry(regPath, archivePath, testFile string) {
 	// Save registry
 	if err := onviftesting.SaveRegistry(registry, regPath); err != nil {
 		log.Printf("Warning: Failed to save registry: %v", err)
+
 		return
 	}
 
@@ -809,7 +815,8 @@ func updateRegistryCoverage(registry *onviftesting.Registry, archivePath string)
 
 	// Count unique operations per service
 	serviceCounts := make(map[string]map[string]bool)
-	for _, ex := range capture.Exchanges {
+	for i := range capture.Exchanges {
+		ex := &capture.Exchanges[i]
 		service := string(ex.ServiceType)
 		if service == "" || service == "Unknown" {
 			continue

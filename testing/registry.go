@@ -136,11 +136,11 @@ func (r *Registry) RemoveCamera(id string) bool {
 }
 
 // GetCamerasByManufacturer returns all cameras from a specific manufacturer.
-func (r *Registry) GetCamerasByManufacturer(manufacturer string) []CameraEntry {
-	var cameras []CameraEntry
-	for _, cam := range r.Cameras {
-		if cam.Manufacturer == manufacturer {
-			cameras = append(cameras, cam)
+func (r *Registry) GetCamerasByManufacturer(manufacturer string) []*CameraEntry {
+	var cameras []*CameraEntry
+	for i := range r.Cameras {
+		if r.Cameras[i].Manufacturer == manufacturer {
+			cameras = append(cameras, &r.Cameras[i])
 		}
 	}
 	return cameras
@@ -208,7 +208,8 @@ func sanitizeID(s string) string {
 func ValidateRegistry(registry *Registry, basePath string) []string {
 	var errors []string
 
-	for _, cam := range registry.Cameras {
+	for i := range registry.Cameras {
+		cam := &registry.Cameras[i]
 		capturePath := filepath.Join(basePath, cam.CaptureFile)
 		if _, err := os.Stat(capturePath); os.IsNotExist(err) {
 			errors = append(errors, fmt.Sprintf("camera %s: capture file not found: %s", cam.ID, cam.CaptureFile))
@@ -238,7 +239,8 @@ func CreateCameraEntryFromCapture(archivePath string) (*CameraEntry, error) {
 		cameraInfo = metadata.CameraInfo
 	} else {
 		// Try to extract from GetDeviceInformation response
-		for _, ex := range capture.Exchanges {
+		for i := range capture.Exchanges {
+			ex := &capture.Exchanges[i]
 			if ex.OperationName == "GetDeviceInformation" {
 				cameraInfo.Manufacturer = ExtractXMLElement(ex.ResponseBody, "Manufacturer")
 				cameraInfo.Model = ExtractXMLElement(ex.ResponseBody, "Model")
@@ -274,7 +276,8 @@ func CreateCameraEntryFromCapture(archivePath string) (*CameraEntry, error) {
 func detectCapabilities(capture *CameraCaptureV2) []string {
 	services := make(map[string]bool)
 
-	for _, ex := range capture.Exchanges {
+	for i := range capture.Exchanges {
+		ex := &capture.Exchanges[i]
 		if ex.ServiceType != "" {
 			services[string(ex.ServiceType)] = true
 		} else {
@@ -356,8 +359,8 @@ func (r *Registry) GetSummary() RegistrySummary {
 	}
 
 	// Count by manufacturer
-	for _, cam := range r.Cameras {
-		summary.ManufacturerCount[cam.Manufacturer]++
+	for i := range r.Cameras {
+		summary.ManufacturerCount[r.Cameras[i].Manufacturer]++
 	}
 
 	// Calculate coverage percentages

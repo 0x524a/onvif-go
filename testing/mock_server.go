@@ -405,7 +405,7 @@ func (m *MockSOAPServerV2) handleRequest(w http.ResponseWriter, r *http.Request)
 
 	for _, ex := range exchanges {
 		exchangeKey := BuildMatchKeyFromExchange(ex)
-		score := requestKey.MatchScore(exchangeKey)
+		score := requestKey.MatchScore(&exchangeKey)
 		if score > bestScore {
 			bestScore = score
 			bestMatch = ex
