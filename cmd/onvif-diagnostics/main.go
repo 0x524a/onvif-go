@@ -998,11 +998,11 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		name string
 		fn   func() error
 	}{
-		{"GetHostname", func() error { _, err := client.GetHostname(ctx); return err }}, //nolint:nlreturn
-		{"GetDNS", func() error { _, err := client.GetDNS(ctx); return err }},                          //nolint:nlreturn
-		{"GetNTP", func() error { _, err := client.GetNTP(ctx); return err }},                         //nolint:nlreturn
-		{"GetNetworkInterfaces", func() error { _, err := client.GetNetworkInterfaces(ctx); return err }}, //nolint:nlreturn
-		{"GetNetworkProtocols", func() error { _, err := client.GetNetworkProtocols(ctx); return err }}, //nolint:nlreturn
+		{"GetHostname", func() error { _, err := client.GetHostname(ctx); return err }},                           //nolint:nlreturn
+		{"GetDNS", func() error { _, err := client.GetDNS(ctx); return err }},                                     //nolint:nlreturn
+		{"GetNTP", func() error { _, err := client.GetNTP(ctx); return err }},                                     //nolint:nlreturn
+		{"GetNetworkInterfaces", func() error { _, err := client.GetNetworkInterfaces(ctx); return err }},         //nolint:nlreturn
+		{"GetNetworkProtocols", func() error { _, err := client.GetNetworkProtocols(ctx); return err }},           //nolint:nlreturn
 		{"GetNetworkDefaultGateway", func() error { _, err := client.GetNetworkDefaultGateway(ctx); return err }}, //nolint:nlreturn
 		{"GetScopes", func() error { _, err := client.GetScopes(ctx); return err }},
 		{"GetUsers", func() error { _, err := client.GetUsers(ctx); return err }},
