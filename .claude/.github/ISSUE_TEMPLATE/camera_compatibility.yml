@@ -1,0 +1,86 @@
+name: 📷 Camera Compatibility Report
+description: Report compatibility with a specific camera model
+title: "[CAMERA] "
+labels: ["camera-compatibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us track camera compatibility! Share your experience with a specific camera model.
+
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Camera Manufacturer
+      placeholder: Hikvision, Axis, Dahua, Bosch, etc.
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Camera Model
+      placeholder: DS-2CD2xx, M1065-L, IPC-HDW2xxx, etc.
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware Version
+      placeholder: V5.7.3 build 220727
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Compatibility Status
+      options:
+        - ✅ Fully Working
+        - ⚠️ Partially Working
+        - ❌ Not Working
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: features
+    attributes:
+      label: Working Features
+      description: Which features work with this camera?
+      options:
+        - label: Device Information
+        - label: Media Profiles
+        - label: Stream URIs (RTSP)
+        - label: Snapshots
+        - label: PTZ Control
+        - label: Imaging Settings
+        - label: Discovery
+
+  - type: textarea
+    id: issues
+    attributes:
+      label: Known Issues
+      description: Describe any issues or limitations
+      placeholder: PTZ presets don't work, imaging settings return error, etc.
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Any special configuration or workarounds needed
+      placeholder: Requires authentication, needs specific settings, etc.
+
+  - type: checkboxes
+    id: test-results
+    attributes:
+      label: Test Results
+      description: Have you run the diagnostic tool?
+      options:
+        - label: I have run onvif-diagnostics and can attach the output
+          required: false
+
+  - type: textarea
+    id: diagnostic-output
+    attributes:
+      label: Diagnostic Output
+      description: Paste the output from onvif-diagnostics if available
+      render: json

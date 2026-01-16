@@ -1,0 +1,414 @@
+{
+  "device_info": {
+    "manufacturer": "Bosch",
+    "model": "FLEXIDOME indoor 5100i IR",
+    "firmware_version": "8.71.0066",
+    "serial_number": "404754734001050102",
+    "hardware_id": "F000B543"
+  },
+  "test_results": [
+    {
+      "operation": "GetMediaServiceCapabilities",
+      "success": true,
+      "response": {
+        "SnapshotUri": false,
+        "Rotation": true,
+        "VideoSourceMode": false,
+        "OSD": false,
+        "TemporaryOSDText": false,
+        "EXICompression": false,
+        "MaximumNumberOfProfiles": 32,
+        "RTPMulticast": true,
+        "RTP_TCP": false,
+        "RTP_RTSP_TCP": true
+      },
+      "response_time": "5.736ms"
+    },
+    {
+      "operation": "GetProfiles",
+      "success": true,
+      "response": [
+        {
+          "Token": "0",
+          "Name": "Profile_L1S1",
+          "VideoSourceConfiguration": {
+            "Token": "1",
+            "Name": "Camera_1",
+            "UseCount": 4,
+            "SourceToken": "1",
+            "Bounds": {
+              "X": 0,
+              "Y": 0,
+              "Width": 1920,
+              "Height": 1080
+            }
+          },
+          "AudioSourceConfiguration": null,
+          "VideoEncoderConfiguration": {
+            "Token": "EncCfg_L1S1",
+            "Name": "Balanced 2 MP",
+            "UseCount": 1,
+            "Encoding": "H264",
+            "Resolution": {
+              "Width": 1920,
+              "Height": 1080
+            },
+            "Quality": 0,
+            "RateControl": {
+              "FrameRateLimit": 30,
+              "EncodingInterval": 1,
+              "BitrateLimit": 5200
+            },
+            "MPEG4": null,
+            "H264": null,
+            "Multicast": null,
+            "SessionTimeout": 0
+          },
+          "AudioEncoderConfiguration": null,
+          "PTZConfiguration": null,
+          "MetadataConfiguration": null,
+          "Extension": null
+        },
+        {
+          "Token": "1",
+          "Name": "Profile_L1S2",
+          "VideoSourceConfiguration": {
+            "Token": "1",
+            "Name": "Camera_1",
+            "UseCount": 4,
+            "SourceToken": "1",
+            "Bounds": {
+              "X": 0,
+              "Y": 0,
+              "Width": 1920,
+              "Height": 1080
+            }
+          },
+          "AudioSourceConfiguration": null,
+          "VideoEncoderConfiguration": {
+            "Token": "EncCfg_L1S2",
+            "Name": "Balanced",
+            "UseCount": 1,
+            "Encoding": "H264",
+            "Resolution": {
+              "Width": 1536,
+              "Height": 864
+            },
+            "Quality": 0,
+            "RateControl": {
+              "FrameRateLimit": 30,
+              "EncodingInterval": 1,
+              "BitrateLimit": 3400
+            },
+            "MPEG4": null,
+            "H264": null,
+            "Multicast": null,
+            "SessionTimeout": 0
+          },
+          "AudioEncoderConfiguration": null,
+          "PTZConfiguration": null,
+          "MetadataConfiguration": null,
+          "Extension": null
+        },
+        {
+          "Token": "2",
+          "Name": "Profile_L1S3",
+          "VideoSourceConfiguration": {
+            "Token": "1",
+            "Name": "Camera_1",
+            "UseCount": 4,
+            "SourceToken": "1",
+            "Bounds": {
+              "X": 0,
+              "Y": 0,
+              "Width": 1920,
+              "Height": 1080
+            }
+          },
+          "AudioSourceConfiguration": null,
+          "VideoEncoderConfiguration": {
+            "Token": "EncCfg_L1S3",
+            "Name": "Balanced",
+            "UseCount": 1,
+            "Encoding": "H264",
+            "Resolution": {
+              "Width": 1280,
+              "Height": 720
+            },
+            "Quality": 0,
+            "RateControl": {
+              "FrameRateLimit": 30,
+              "EncodingInterval": 1,
+              "BitrateLimit": 2400
+            },
+            "MPEG4": null,
+            "H264": null,
+            "Multicast": null,
+            "SessionTimeout": 0
+          },
+          "AudioEncoderConfiguration": null,
+          "PTZConfiguration": null,
+          "MetadataConfiguration": null,
+          "Extension": null
+        },
+        {
+          "Token": "3",
+          "Name": "Profile_L1S4",
+          "VideoSourceConfiguration": {
+            "Token": "1",
+            "Name": "Camera_1",
+            "UseCount": 4,
+            "SourceToken": "1",
+            "Bounds": {
+              "X": 0,
+              "Y": 0,
+              "Width": 1920,
+              "Height": 1080
+            }
+          },
+          "AudioSourceConfiguration": null,
+          "VideoEncoderConfiguration": {
+            "Token": "EncCfg_L1S4",
+            "Name": "Balanced",
+            "UseCount": 1,
+            "Encoding": "H264",
+            "Resolution": {
+              "Width": 512,
+              "Height": 288
+            },
+            "Quality": 0,
+            "RateControl": {
+              "FrameRateLimit": 30,
+              "EncodingInterval": 1,
+              "BitrateLimit": 400
+            },
+            "MPEG4": null,
+            "H264": null,
+            "Multicast": null,
+            "SessionTimeout": 0
+          },
+          "AudioEncoderConfiguration": null,
+          "PTZConfiguration": null,
+          "MetadataConfiguration": null,
+          "Extension": null
+        }
+      ],
+      "response_time": "208.0409ms"
+    },
+    {
+      "operation": "GetVideoSources",
+      "success": true,
+      "response": [
+        {
+          "Token": "1",
+          "Framerate": 30,
+          "Resolution": {
+            "Width": 1920,
+            "Height": 1080
+          },
+          "Imaging": null
+        }
+      ],
+      "response_time": "6.6461ms"
+    },
+    {
+      "operation": "GetAudioSources",
+      "success": true,
+      "response": [
+        {
+          "Token": "1",
+          "Channels": 2
+        }
+      ],
+      "response_time": "4.947ms"
+    },
+    {
+      "operation": "GetAudioOutputs",
+      "success": true,
+      "response": [
+        {
+          "Token": "AudioOut 1"
+        }
+      ],
+      "response_time": "5.244ms"
+    },
+    {
+      "operation": "GetStreamURI",
+      "success": true,
+      "response": {
+        "URI": "rtsp://192.168.1.201/rtsp_tunnel?p=0\u0026line=1\u0026inst=1\u0026vcd=2",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "6.7716ms"
+    },
+    {
+      "operation": "GetSnapshotURI",
+      "success": true,
+      "response": {
+        "URI": "http://192.168.1.201/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "5.4494ms"
+    },
+    {
+      "operation": "GetProfile",
+      "success": true,
+      "response": {
+        "Token": "0",
+        "Name": "Profile_L1S1",
+        "VideoSourceConfiguration": null,
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      "response_time": "42.7149ms"
+    },
+    {
+      "operation": "SetSynchronizationPoint",
+      "success": true,
+      "response_time": "4.8374ms"
+    },
+    {
+      "operation": "GetVideoEncoderConfiguration",
+      "success": true,
+      "response": {
+        "Token": "EncCfg_L1S1",
+        "Name": "Balanced 2 MP",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 1920,
+          "Height": 1080
+        },
+        "Quality": 0,
+        "RateControl": {
+          "FrameRateLimit": 30,
+          "EncodingInterval": 1,
+          "BitrateLimit": 5200
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "14.7718ms"
+    },
+    {
+      "operation": "GetVideoEncoderConfigurationOptions",
+      "success": true,
+      "response": {
+        "QualityRange": {
+          "Min": 0,
+          "Max": 100
+        },
+        "JPEG": null,
+        "H264": {
+          "ResolutionsAvailable": [
+            {
+              "Width": 1920,
+              "Height": 1080
+            }
+          ],
+          "GovLengthRange": {
+            "Min": 1,
+            "Max": 255
+          },
+          "FrameRateRange": {
+            "Min": 1,
+            "Max": 30
+          },
+          "EncodingIntervalRange": {
+            "Min": 1,
+            "Max": 1
+          },
+          "H264ProfilesSupported": [
+            "Main"
+          ]
+        }
+      },
+      "response_time": "11.7737ms"
+    },
+    {
+      "operation": "GetGuaranteedNumberOfVideoEncoderInstances",
+      "success": false,
+      "error": "GetGuaranteedNumberOfVideoEncoderInstances failed: HTTP request failed with status 400: \u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e\u003cSOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:ter=\"http://www.onvif.org/ver10/error\"\u003e\u003cSOAP-ENV:Body\u003e\u003cSOAP-ENV:Fault\u003e\u003cSOAP-ENV:Code\u003e\u003cSOAP-ENV:Value\u003eSOAP-ENV:Sender\u003c/SOAP-ENV:Value\u003e\u003cSOAP-ENV:Subcode\u003e\u003cSOAP-ENV:Value\u003eter:InvalidArgVal\u003c/SOAP-ENV:Value\u003e\u003cSOAP-ENV:Subcode\u003e\u003cSOAP-ENV:Value\u003eter:NoConfig\u003c/SOAP-ENV:Value\u003e\u003c/SOAP-ENV:Subcode\u003e\u003c/SOAP-ENV:Subcode\u003e\u003c/SOAP-ENV:Code\u003e\u003cSOAP-ENV:Reason\u003e\u003cSOAP-ENV:Text xml:lang=\"en\"\u003eConfiguration token does not exist\u003c/SOAP-ENV:Text\u003e\u003c/SOAP-ENV:Reason\u003e\u003cSOAP-ENV:Node\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Node\u003e\u003cSOAP-ENV:Role\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Role\u003e\u003c/SOAP-ENV:Fault\u003e\u003c/SOAP-ENV:Body\u003e\u003c/SOAP-ENV:Envelope\u003e",
+      "response_time": "4.8371ms"
+    },
+    {
+      "operation": "GetAudioEncoderConfigurationOptions",
+      "success": true,
+      "response": {
+        "EncodingOptions": null,
+        "BitrateList": null,
+        "SampleRateList": null
+      },
+      "response_time": "6.1044ms"
+    },
+    {
+      "operation": "GetVideoSourceModes",
+      "success": false,
+      "error": "GetVideoSourceModes failed: HTTP request failed with status 500: \u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e\u003cSOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:ter=\"http://www.onvif.org/ver10/error\"\u003e\u003cSOAP-ENV:Body\u003e\u003cSOAP-ENV:Fault\u003e\u003cSOAP-ENV:Code\u003e\u003cSOAP-ENV:Value\u003eSOAP-ENV:Receiver\u003c/SOAP-ENV:Value\u003e\u003cSOAP-ENV:Subcode\u003e\u003cSOAP-ENV:Value\u003eter:Action\u003c/SOAP-ENV:Value\u003e\u003c/SOAP-ENV:Subcode\u003e\u003c/SOAP-ENV:Code\u003e\u003cSOAP-ENV:Reason\u003e\u003cSOAP-ENV:Text xml:lang=\"en\"\u003eAction Failed 9341\u003c/SOAP-ENV:Text\u003e\u003c/SOAP-ENV:Reason\u003e\u003cSOAP-ENV:Node\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Node\u003e\u003cSOAP-ENV:Role\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Role\u003e\u003c/SOAP-ENV:Fault\u003e\u003c/SOAP-ENV:Body\u003e\u003c/SOAP-ENV:Envelope\u003e",
+      "response_time": "4.999ms"
+    },
+    {
+      "operation": "GetAudioOutputConfiguration",
+      "success": false,
+      "error": "audio output configuration token lookup not implemented",
+      "response_time": "0s"
+    },
+    {
+      "operation": "GetAudioOutputConfigurationOptions",
+      "success": true,
+      "response": {
+        "OutputTokensAvailable": [
+          "AudioOut 1"
+        ]
+      },
+      "response_time": "8.479ms"
+    },
+    {
+      "operation": "GetMetadataConfigurationOptions",
+      "success": true,
+      "response": {
+        "PTZStatusFilterOptions": {
+          "Status": false,
+          "Position": false
+        }
+      },
+      "response_time": "7.3824ms"
+    },
+    {
+      "operation": "GetAudioDecoderConfigurationOptions",
+      "success": true,
+      "response": {
+        "AACDecOptions": null,
+        "G711DecOptions": {
+          "BitrateList": null,
+          "SampleRateList": null
+        },
+        "G726DecOptions": null
+      },
+      "response_time": "7.3178ms"
+    },
+    {
+      "operation": "GetOSDs",
+      "success": false,
+      "error": "GetOSDs failed: HTTP request failed with status 500: \u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e\u003cSOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:ter=\"http://www.onvif.org/ver10/error\"\u003e\u003cSOAP-ENV:Body\u003e\u003cSOAP-ENV:Fault\u003e\u003cSOAP-ENV:Code\u003e\u003cSOAP-ENV:Value\u003eSOAP-ENV:Receiver\u003c/SOAP-ENV:Value\u003e\u003cSOAP-ENV:Subcode\u003e\u003cSOAP-ENV:Value\u003eter:Action\u003c/SOAP-ENV:Value\u003e\u003c/SOAP-ENV:Subcode\u003e\u003c/SOAP-ENV:Code\u003e\u003cSOAP-ENV:Reason\u003e\u003cSOAP-ENV:Text xml:lang=\"en\"\u003eAction Failed 9341\u003c/SOAP-ENV:Text\u003e\u003c/SOAP-ENV:Reason\u003e\u003cSOAP-ENV:Node\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Node\u003e\u003cSOAP-ENV:Role\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Role\u003e\u003c/SOAP-ENV:Fault\u003e\u003c/SOAP-ENV:Body\u003e\u003c/SOAP-ENV:Envelope\u003e",
+      "response_time": "12.2789ms"
+    },
+    {
+      "operation": "GetOSDOptions",
+      "success": false,
+      "error": "GetOSDOptions failed: HTTP request failed with status 500: \u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e\u003cSOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:ter=\"http://www.onvif.org/ver10/error\"\u003e\u003cSOAP-ENV:Body\u003e\u003cSOAP-ENV:Fault\u003e\u003cSOAP-ENV:Code\u003e\u003cSOAP-ENV:Value\u003eSOAP-ENV:Receiver\u003c/SOAP-ENV:Value\u003e\u003cSOAP-ENV:Subcode\u003e\u003cSOAP-ENV:Value\u003eter:Action\u003c/SOAP-ENV:Value\u003e\u003c/SOAP-ENV:Subcode\u003e\u003c/SOAP-ENV:Code\u003e\u003cSOAP-ENV:Reason\u003e\u003cSOAP-ENV:Text xml:lang=\"en\"\u003eAction Failed 9341\u003c/SOAP-ENV:Text\u003e\u003c/SOAP-ENV:Reason\u003e\u003cSOAP-ENV:Node\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Node\u003e\u003cSOAP-ENV:Role\u003ehttp://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver\u003c/SOAP-ENV:Role\u003e\u003c/SOAP-ENV:Fault\u003e\u003c/SOAP-ENV:Body\u003e\u003c/SOAP-ENV:Envelope\u003e",
+      "response_time": "5.8128ms"
+    }
+  ],
+  "timestamp": "2025-12-01T23:49:14-05:00"
+}

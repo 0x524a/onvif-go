@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(GOPROXY=direct go build:*)",
+      "Bash(GOPROXY=https://proxy.golang.org,direct go mod download:*)",
+      "Bash(go mod download:*)",
+      "Bash(./bin/onvif-cli discover:*)",
+      "Bash(./bin/onvif-cli:*)",
+      "Bash(./bin/onvif-diagnostics:*)",
+      "Bash(./bin/discover:*)",
+      "Bash(tee:*)",
+      "Bash(nc:*)",
+      "Bash(tree:*)",
+      "Bash(du -sh:*)",
+      "Bash(xargs:*)"
+    ]
+  }
+}

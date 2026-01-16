@@ -1,0 +1,131 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - misspell
+    - unconvert
+    - unparam
+    - gocritic
+    - gosec
+    - copyloopvar
+    - goconst
+    - gocyclo
+    - dupl
+    - funlen
+    - gocognit
+    - nakedret
+    - prealloc
+    - whitespace
+    - wrapcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - godot
+    - err113
+    - mnd
+    - goprintffuncname
+    - nlreturn
+    - noctx
+    - nolintlint
+    - thelper
+    - tparallel
+    - wastedassign
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    
+    gocyclo:
+      min-complexity: 15
+    
+    funlen:
+      lines: 120
+      statements: 60
+    
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+      disabled-checks:
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+        - wrapperFunc
+    
+    godot:
+      scope: declarations
+      exclude:
+        - "^TODO:"
+        - "^FIXME:"
+    
+    misspell:
+      locale: US
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+          - funlen
+          - gocyclo
+          - gocognit
+          - dupl
+      
+      - path: (media|device|ptz|imaging|device_security|device_additional)\.go
+        linters:
+          - dupl
+      
+      - path: cmd/
+        linters:
+          - dupl
+      
+      - path: deviceio\.go
+        linters:
+          - dupl
+      
+      - path: event\.go
+        linters:
+          - dupl
+          - gocritic
+          - staticcheck
+      
+      - path: examples/
+        linters:
+          - errcheck
+          - err113
+          - funlen
+          - gocognit
+          - gocritic
+          - gocyclo
+          - godot
+          - gosec
+          - mnd
+          - nlreturn
+          - noctx
+          - unused
+          - wrapcheck
+
+output:
+  formats:
+    text:
+      path: stdout

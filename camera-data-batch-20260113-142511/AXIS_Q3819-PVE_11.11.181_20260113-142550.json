@@ -1,0 +1,189 @@
+{
+  "timestamp": "2026-01-13T14:25:47-05:00",
+  "utility_version": "1.0.0",
+  "connection_info": {
+    "endpoint": "http://192.168.2.190:80/onvif/device_service",
+    "username": "service",
+    "test_date": "2026-01-13"
+  },
+  "device_info": {
+    "success": true,
+    "data": {
+      "Manufacturer": "AXIS",
+      "Model": "Q3819-PVE",
+      "FirmwareVersion": "11.11.181",
+      "SerialNumber": "B8A44F9DC7ED",
+      "HardwareID": "98C"
+    },
+    "response_time": "16.482041ms"
+  },
+  "capabilities": {
+    "success": true,
+    "data": {
+      "Analytics": {
+        "XAddr": "http://192.168.2.190/onvif/services",
+        "RuleSupport": true,
+        "AnalyticsModuleSupport": true
+      },
+      "Device": {
+        "XAddr": "http://192.168.2.190/onvif/device_service",
+        "Network": {
+          "IPFilter": true,
+          "ZeroConfiguration": true,
+          "IPVersion6": true,
+          "DynDNS": true,
+          "Extension": null
+        },
+        "System": {
+          "DiscoveryResolve": true,
+          "DiscoveryBye": true,
+          "RemoteDiscovery": false,
+          "SystemBackup": false,
+          "SystemLogging": true,
+          "FirmwareUpgrade": false,
+          "SupportedVersions": [
+            "1"
+          ],
+          "Extension": null
+        },
+        "IO": {
+          "InputConnectors": 2,
+          "RelayOutputs": 0,
+          "Extension": null
+        },
+        "Security": {
+          "TLS11": true,
+          "TLS12": true,
+          "OnboardKeyGeneration": true,
+          "AccessPolicyConfig": true,
+          "X509Token": false,
+          "SAMLToken": false,
+          "KerberosToken": false,
+          "RELToken": false,
+          "Extension": null
+        }
+      },
+      "Events": {
+        "XAddr": "http://192.168.2.190/onvif/services",
+        "WSSubscriptionPolicySupport": false,
+        "WSPullPointSupport": true,
+        "WSPausableSubscriptionSupport": false
+      },
+      "Imaging": {
+        "XAddr": "http://192.168.2.190/onvif/services"
+      },
+      "Media": {
+        "XAddr": "http://192.168.2.190/onvif/services",
+        "StreamingCapabilities": {
+          "RTPMulticast": true,
+          "RTPTCP": true,
+          "RTPRTSPTCP": true,
+          "Extension": null
+        }
+      },
+      "PTZ": null,
+      "Extension": null
+    },
+    "response_time": "108.435875ms"
+  },
+  "profiles": {
+    "success": true,
+    "data": [
+      {
+        "Token": "profile_1_h264",
+        "Name": "profile_1 h264",
+        "VideoSourceConfiguration": {
+          "Token": "0",
+          "Name": "user0",
+          "UseCount": 3,
+          "SourceToken": "0",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 8192,
+            "Height": 1728
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "default_1_h264",
+          "Name": "default_1 h264",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 8192,
+            "Height": 1728
+          },
+          "Quality": 70,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 2147483647
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "profile_1_jpeg",
+        "Name": "profile_1 jpeg",
+        "VideoSourceConfiguration": {
+          "Token": "0",
+          "Name": "user0",
+          "UseCount": 3,
+          "SourceToken": "0",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 8192,
+            "Height": 1728
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "default_1_jpeg",
+          "Name": "default_1 jpeg",
+          "UseCount": 1,
+          "Encoding": "JPEG",
+          "Resolution": {
+            "Width": 8192,
+            "Height": 1728
+          },
+          "Quality": 70,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 2147483647
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      }
+    ],
+    "count": 2,
+    "response_time": "28.154417ms"
+  },
+  "stream_uris": null,
+  "snapshot_uris": null,
+  "video_encoders": null,
+  "imaging_settings": null,
+  "ptz_status": null,
+  "ptz_presets": null,
+  "system_datetime": {
+    "success": true,
+    "response_time": "614.967958ms"
+  },
+  "errors": []
+}

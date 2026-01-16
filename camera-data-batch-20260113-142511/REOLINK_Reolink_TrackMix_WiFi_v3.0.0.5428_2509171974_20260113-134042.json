@@ -1,0 +1,538 @@
+{
+  "timestamp": "2026-01-13T13:40:40-05:00",
+  "utility_version": "1.0.0",
+  "connection_info": {
+    "endpoint": "http://192.168.2.236:8000/onvif/device_service",
+    "username": "service",
+    "test_date": "2026-01-13"
+  },
+  "device_info": {
+    "success": true,
+    "data": {
+      "Manufacturer": "REOLINK",
+      "Model": "Reolink TrackMix WiFi",
+      "FirmwareVersion": "v3.0.0.5428_2509171974",
+      "SerialNumber": "1921682236",
+      "HardwareID": "IPC"
+    },
+    "response_time": "61.742333ms"
+  },
+  "capabilities": {
+    "success": true,
+    "data": {
+      "Analytics": {
+        "XAddr": "http://192.168.2.236:8000/onvif/analytics_service",
+        "RuleSupport": true,
+        "AnalyticsModuleSupport": true
+      },
+      "Device": {
+        "XAddr": "http://192.168.2.236:8000/onvif/device_service",
+        "Network": {
+          "IPFilter": false,
+          "ZeroConfiguration": false,
+          "IPVersion6": false,
+          "DynDNS": false,
+          "Extension": null
+        },
+        "System": {
+          "DiscoveryResolve": true,
+          "DiscoveryBye": true,
+          "RemoteDiscovery": false,
+          "SystemBackup": false,
+          "SystemLogging": false,
+          "FirmwareUpgrade": false,
+          "SupportedVersions": [
+            "21"
+          ],
+          "Extension": null
+        },
+        "IO": {
+          "InputConnectors": 0,
+          "RelayOutputs": 0,
+          "Extension": null
+        },
+        "Security": {
+          "TLS11": false,
+          "TLS12": false,
+          "OnboardKeyGeneration": false,
+          "AccessPolicyConfig": false,
+          "X509Token": false,
+          "SAMLToken": false,
+          "KerberosToken": false,
+          "RELToken": false,
+          "Extension": null
+        }
+      },
+      "Events": {
+        "XAddr": "http://192.168.2.236:8000/onvif/event_service",
+        "WSSubscriptionPolicySupport": true,
+        "WSPullPointSupport": true,
+        "WSPausableSubscriptionSupport": false
+      },
+      "Imaging": {
+        "XAddr": "http://192.168.2.236:8000/onvif/imaging_service"
+      },
+      "Media": {
+        "XAddr": "http://192.168.2.236:8000/onvif/media_service",
+        "StreamingCapabilities": {
+          "RTPMulticast": false,
+          "RTPTCP": true,
+          "RTPRTSPTCP": true,
+          "Extension": null
+        }
+      },
+      "PTZ": {
+        "XAddr": "http://192.168.2.236:8000/onvif/ptz_service"
+      },
+      "Extension": null
+    },
+    "response_time": "41.840125ms"
+  },
+  "profiles": {
+    "success": true,
+    "data": [
+      {
+        "Token": "000",
+        "Name": "Profile000_MainStream",
+        "VideoSourceConfiguration": {
+          "Token": "000",
+          "Name": "VideoS_000",
+          "UseCount": 3,
+          "SourceToken": "000",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 3840,
+            "Height": 2160
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "000",
+          "Name": "VideoE_000",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 3840,
+            "Height": 2160
+          },
+          "Quality": 0,
+          "RateControl": {
+            "FrameRateLimit": 15,
+            "EncodingInterval": 1,
+            "BitrateLimit": 4096
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "000",
+          "Name": "PtzConfig000",
+          "UseCount": 3,
+          "NodeToken": "000",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "001",
+        "Name": "Profile001_SubStream",
+        "VideoSourceConfiguration": {
+          "Token": "000",
+          "Name": "VideoS_000",
+          "UseCount": 3,
+          "SourceToken": "000",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 3840,
+            "Height": 2160
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "001",
+          "Name": "VideoE_001",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 896,
+            "Height": 512
+          },
+          "Quality": 2,
+          "RateControl": {
+            "FrameRateLimit": 20,
+            "EncodingInterval": 1,
+            "BitrateLimit": 768
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "000",
+          "Name": "PtzConfig000",
+          "UseCount": 3,
+          "NodeToken": "000",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "003",
+        "Name": "Profile003_AutotrackStream",
+        "VideoSourceConfiguration": {
+          "Token": "000",
+          "Name": "VideoS_000",
+          "UseCount": 3,
+          "SourceToken": "000",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 3840,
+            "Height": 2160
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "003",
+          "Name": "VideoE_003",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1920,
+            "Height": 1080
+          },
+          "Quality": 0,
+          "RateControl": {
+            "FrameRateLimit": 15,
+            "EncodingInterval": 1,
+            "BitrateLimit": 3072
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "000",
+          "Name": "PtzConfig000",
+          "UseCount": 3,
+          "NodeToken": "000",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      }
+    ],
+    "count": 3,
+    "response_time": "665.611583ms"
+  },
+  "stream_uris": [
+    {
+      "profile_token": "000",
+      "profile_name": "Profile000_MainStream",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.236:554/Preview_01_main",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": false,
+        "Timeout": 0
+      },
+      "response_time": "145.269584ms"
+    },
+    {
+      "profile_token": "001",
+      "profile_name": "Profile001_SubStream",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.236:554/Preview_01_sub",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": false,
+        "Timeout": 0
+      },
+      "response_time": "101.717125ms"
+    },
+    {
+      "profile_token": "003",
+      "profile_name": "Profile003_AutotrackStream",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.236:554/Preview_01_autotrack",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": false,
+        "Timeout": 0
+      },
+      "response_time": "106.040959ms"
+    }
+  ],
+  "snapshot_uris": [
+    {
+      "profile_token": "000",
+      "profile_name": "Profile000_MainStream",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.236:80/cgi-bin/api.cgi?cmd=onvifSnapPic\u0026channel=0",
+        "InvalidAfterConnect": true,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "100.872875ms"
+    },
+    {
+      "profile_token": "001",
+      "profile_name": "Profile001_SubStream",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.236:80/cgi-bin/api.cgi?cmd=onvifSnapPic\u0026channel=0",
+        "InvalidAfterConnect": true,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "107.674125ms"
+    },
+    {
+      "profile_token": "003",
+      "profile_name": "Profile003_AutotrackStream",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.236:80/cgi-bin/api.cgi?cmd=onvifSnapPic\u0026channel=0",
+        "InvalidAfterConnect": true,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "87.940166ms"
+    }
+  ],
+  "video_encoders": [
+    {
+      "profile_token": "000",
+      "profile_name": "Profile000_MainStream",
+      "success": true,
+      "data": {
+        "Token": "000",
+        "Name": "VideoE_000",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 3840,
+          "Height": 2160
+        },
+        "Quality": 0,
+        "RateControl": {
+          "FrameRateLimit": 15,
+          "EncodingInterval": 1,
+          "BitrateLimit": 4096
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "61.735708ms"
+    },
+    {
+      "profile_token": "001",
+      "profile_name": "Profile001_SubStream",
+      "success": true,
+      "data": {
+        "Token": "001",
+        "Name": "VideoE_001",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 896,
+          "Height": 512
+        },
+        "Quality": 2,
+        "RateControl": {
+          "FrameRateLimit": 20,
+          "EncodingInterval": 1,
+          "BitrateLimit": 768
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "69.698ms"
+    },
+    {
+      "profile_token": "003",
+      "profile_name": "Profile003_AutotrackStream",
+      "success": true,
+      "data": {
+        "Token": "003",
+        "Name": "VideoE_003",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 1920,
+          "Height": 1080
+        },
+        "Quality": 0,
+        "RateControl": {
+          "FrameRateLimit": 15,
+          "EncodingInterval": 1,
+          "BitrateLimit": 3072
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "62.47825ms"
+    }
+  ],
+  "imaging_settings": [
+    {
+      "video_source_token": "000",
+      "success": true,
+      "data": {
+        "BacklightCompensation": null,
+        "Brightness": 128,
+        "ColorSaturation": 128,
+        "Contrast": 128,
+        "Exposure": null,
+        "Focus": null,
+        "IrCutFilter": "AUTO",
+        "Sharpness": 128,
+        "WideDynamicRange": null,
+        "WhiteBalance": null,
+        "Extension": null
+      },
+      "response_time": "46.372666ms"
+    }
+  ],
+  "ptz_status": [
+    {
+      "profile_token": "000",
+      "profile_name": "Profile000_MainStream",
+      "success": true,
+      "data": {
+        "Position": null,
+        "MoveStatus": {
+          "PanTilt": "IDLE",
+          "Zoom": "IDLE"
+        },
+        "Error": "",
+        "UTCTime": "0001-01-01T00:00:00Z"
+      },
+      "response_time": "52.647792ms"
+    },
+    {
+      "profile_token": "001",
+      "profile_name": "Profile001_SubStream",
+      "success": true,
+      "data": {
+        "Position": null,
+        "MoveStatus": {
+          "PanTilt": "IDLE",
+          "Zoom": "IDLE"
+        },
+        "Error": "",
+        "UTCTime": "0001-01-01T00:00:00Z"
+      },
+      "response_time": "47.896416ms"
+    },
+    {
+      "profile_token": "003",
+      "profile_name": "Profile003_AutotrackStream",
+      "success": true,
+      "data": {
+        "Position": null,
+        "MoveStatus": {
+          "PanTilt": "IDLE",
+          "Zoom": "IDLE"
+        },
+        "Error": "",
+        "UTCTime": "0001-01-01T00:00:00Z"
+      },
+      "response_time": "26.201541ms"
+    }
+  ],
+  "ptz_presets": [
+    {
+      "profile_token": "000",
+      "profile_name": "Profile000_MainStream",
+      "success": true,
+      "data": [
+        {
+          "Token": "000",
+          "Name": "testOnat",
+          "PTZPosition": null
+        }
+      ],
+      "count": 1,
+      "response_time": "43.879958ms"
+    },
+    {
+      "profile_token": "001",
+      "profile_name": "Profile001_SubStream",
+      "success": true,
+      "data": [
+        {
+          "Token": "000",
+          "Name": "testOnat",
+          "PTZPosition": null
+        }
+      ],
+      "count": 1,
+      "response_time": "45.437458ms"
+    },
+    {
+      "profile_token": "003",
+      "profile_name": "Profile003_AutotrackStream",
+      "success": true,
+      "data": [
+        {
+          "Token": "000",
+          "Name": "testOnat",
+          "PTZPosition": null
+        }
+      ],
+      "count": 1,
+      "response_time": "74.35975ms"
+    }
+  ],
+  "system_datetime": {
+    "success": true,
+    "response_time": "27.343584ms"
+  },
+  "errors": []
+}

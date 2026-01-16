@@ -1,0 +1,286 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Release Binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: arm
+            goarm: 7
+          
+          # Windows
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+          
+          # macOS
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version: '1.24.x'
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
+
+      - name: Build binaries
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          SHORT_SHA=${{ steps.version.outputs.SHORT_SHA }}
+          LDFLAGS="-s -w -X main.Version=${VERSION} -X main.Commit=${SHORT_SHA}"
+          
+          # Set file extension for Windows
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            EXT=".exe"
+          fi
+          
+          # Build all CLI tools
+          mkdir -p dist
+          
+          echo "🔨 Building onvif-cli..."
+          go build -ldflags="${LDFLAGS}" -o "dist/onvif-cli-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}" ./cmd/onvif-cli
+          
+          echo "🔨 Building onvif-quick..."
+          go build -ldflags="${LDFLAGS}" -o "dist/onvif-quick-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}" ./cmd/onvif-quick
+          
+          echo "🔨 Building onvif-server..."
+          go build -ldflags="${LDFLAGS}" -o "dist/onvif-server-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}" ./cmd/onvif-server
+          
+          echo "🔨 Building onvif-diagnostics..."
+          go build -ldflags="${LDFLAGS}" -o "dist/onvif-diagnostics-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}" ./cmd/onvif-diagnostics
+
+      - name: Create archive
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PLATFORM="${{ matrix.goos }}-${{ matrix.goarch }}"
+          ARCHIVE_NAME="onvif-go-${VERSION}-${PLATFORM}"
+          
+          mkdir -p releases staging
+          
+          # Copy binaries with clean names (without platform suffix)
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            cp dist/onvif-cli-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-cli.exe
+            cp dist/onvif-quick-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-quick.exe
+            cp dist/onvif-server-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-server.exe
+            cp dist/onvif-diagnostics-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-diagnostics.exe
+          else
+            cp dist/onvif-cli-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-cli
+            cp dist/onvif-quick-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-quick
+            cp dist/onvif-server-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-server
+            cp dist/onvif-diagnostics-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-diagnostics
+          fi
+          
+          # Copy documentation
+          cp README.md LICENSE staging/ 2>/dev/null || true
+          
+          # Create archive from staging directory
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            cd staging
+            zip -r "../releases/${ARCHIVE_NAME}.zip" .
+            cd ..
+          else
+            cd staging
+            tar czf "../releases/${ARCHIVE_NAME}.tar.gz" .
+            cd ..
+          fi
+          
+          echo "✅ Created ${ARCHIVE_NAME}.tar.gz"
+
+      - name: Generate checksums
+        run: |
+          cd releases
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum * > checksums-${{ matrix.goos }}-${{ matrix.goarch }}.txt
+          else
+            shasum -a 256 * > checksums-${{ matrix.goos }}-${{ matrix.goarch }}.txt
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: releases/*
+          retention-days: 7
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          path: all-releases
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Generate combined checksums
+        run: |
+          cd all-releases
+          # Combine all checksum files
+          cat checksums-*.txt > checksums.txt 2>/dev/null || true
+          # Remove individual checksum files
+          rm -f checksums-*.txt
+
+      - name: Get version and changelog
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          
+          # Generate changelog from commits since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG=Initial release" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.2
+        with:
+          files: all-releases/*
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+          generate_release_notes: true
+          make_latest: true
+          body: |
+            ## Release ${{ steps.version.outputs.VERSION }}
+            
+            ### 📦 Installation
+            
+            Download the appropriate binary for your platform below.
+            
+            #### Linux/macOS
+            ```bash
+            # Download and extract
+            wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/onvif-go-${{ steps.version.outputs.VERSION }}-linux-amd64.tar.gz
+            tar xzf onvif-go-${{ steps.version.outputs.VERSION }}-linux-amd64.tar.gz
+            
+            # Make executable and move to PATH
+            chmod +x onvif-cli
+            sudo mv onvif-cli /usr/local/bin/onvif-cli
+            ```
+            
+            #### Windows
+            Download the `.zip` file for your architecture and extract it.
+            
+            #### Go Library
+            ```bash
+            go get github.com/${{ github.repository }}@${{ steps.version.outputs.VERSION }}
+            ```
+            
+            ### 🔐 Checksums
+            
+            SHA256 checksums are available in `checksums.txt`
+            
+            ### 📝 Changes
+            
+            ${{ steps.version.outputs.CHANGELOG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    name: Build and Push Docker Image
+    needs: build
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3.6.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            # Remove 'v' prefix if present
+            VERSION=${VERSION#v}
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v5.5.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

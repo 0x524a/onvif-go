@@ -1,0 +1,399 @@
+{
+  "timestamp": "2026-01-13T13:40:50-05:00",
+  "utility_version": "1.0.0",
+  "connection_info": {
+    "endpoint": "http://192.168.2.200/onvif/device_service",
+    "username": "service",
+    "test_date": "2026-01-13"
+  },
+  "device_info": {
+    "success": true,
+    "data": {
+      "Manufacturer": "Bosch",
+      "Model": "FLEXIDOME IP starlight 8000i",
+      "FirmwareVersion": "7.70.0126",
+      "SerialNumber": "044518807925140011",
+      "HardwareID": "F0009F43"
+    },
+    "response_time": "23.442375ms"
+  },
+  "capabilities": {
+    "success": true,
+    "data": {
+      "Analytics": null,
+      "Device": {
+        "XAddr": "http://192.168.2.200/onvif/device_service",
+        "Network": {
+          "IPFilter": false,
+          "ZeroConfiguration": true,
+          "IPVersion6": false,
+          "DynDNS": false,
+          "Extension": null
+        },
+        "System": {
+          "DiscoveryResolve": false,
+          "DiscoveryBye": false,
+          "RemoteDiscovery": false,
+          "SystemBackup": false,
+          "SystemLogging": false,
+          "FirmwareUpgrade": false,
+          "SupportedVersions": [
+            "1",
+            "2"
+          ],
+          "Extension": null
+        },
+        "IO": {
+          "InputConnectors": 2,
+          "RelayOutputs": 1,
+          "Extension": null
+        },
+        "Security": {
+          "TLS11": true,
+          "TLS12": true,
+          "OnboardKeyGeneration": false,
+          "AccessPolicyConfig": false,
+          "X509Token": false,
+          "SAMLToken": false,
+          "KerberosToken": false,
+          "RELToken": false,
+          "Extension": null
+        }
+      },
+      "Events": {
+        "XAddr": "http://192.168.2.200/onvif/event_service",
+        "WSSubscriptionPolicySupport": false,
+        "WSPullPointSupport": false,
+        "WSPausableSubscriptionSupport": false
+      },
+      "Imaging": {
+        "XAddr": "http://192.168.2.200/onvif/imaging_service"
+      },
+      "Media": {
+        "XAddr": "http://192.168.2.200/onvif/media_service",
+        "StreamingCapabilities": {
+          "RTPMulticast": true,
+          "RTPTCP": false,
+          "RTPRTSPTCP": true,
+          "Extension": null
+        }
+      },
+      "PTZ": null,
+      "Extension": null
+    },
+    "response_time": "115.450209ms"
+  },
+  "profiles": {
+    "success": true,
+    "data": [
+      {
+        "Token": "0",
+        "Name": "H26x_L1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera 1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 3264,
+            "Height": 1840
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "H26x_L1S1",
+          "Name": "SD Balanced",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 1400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "1",
+        "Name": "H26x_L1S2",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera 1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 3264,
+            "Height": 1840
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "H26x_L1S2",
+          "Name": "SD Balanced",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 1400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "2",
+        "Name": "JPEG_L1S3",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera 1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 3264,
+            "Height": 1840
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "JPEG_L1S3",
+          "Name": "6MP Image Optimized",
+          "UseCount": 1,
+          "Encoding": "JPEG",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 70,
+          "RateControl": {
+            "FrameRateLimit": 1,
+            "EncodingInterval": 1,
+            "BitrateLimit": 6000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      }
+    ],
+    "count": 3,
+    "response_time": "250.015125ms"
+  },
+  "stream_uris": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.200/rtsp_tunnel?p=0\u0026h26x=4\u0026vcd=2",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "9.114958ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.200/rtsp_tunnel?p=1\u0026inst=2\u0026h26x=4",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "16.648709ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.200/rtsp_tunnel?h26x=0",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "11.3795ms"
+    }
+  ],
+  "snapshot_uris": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.200/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "4.941416ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.200/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "13.766417ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.200/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "7.643708ms"
+    }
+  ],
+  "video_encoders": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "Token": "H26x_L1S1",
+        "Name": "SD Balanced",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 1536,
+          "Height": 864
+        },
+        "Quality": 50,
+        "RateControl": {
+          "FrameRateLimit": 30,
+          "EncodingInterval": 1,
+          "BitrateLimit": 1400
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "31.50175ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "Token": "H26x_L1S2",
+        "Name": "SD Balanced",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 1536,
+          "Height": 864
+        },
+        "Quality": 50,
+        "RateControl": {
+          "FrameRateLimit": 30,
+          "EncodingInterval": 1,
+          "BitrateLimit": 1400
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "30.77325ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "Token": "JPEG_L1S3",
+        "Name": "6MP Image Optimized",
+        "UseCount": 1,
+        "Encoding": "JPEG",
+        "Resolution": {
+          "Width": 1536,
+          "Height": 864
+        },
+        "Quality": 70,
+        "RateControl": {
+          "FrameRateLimit": 1,
+          "EncodingInterval": 1,
+          "BitrateLimit": 6000
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "32.96675ms"
+    }
+  ],
+  "imaging_settings": [
+    {
+      "video_source_token": "1",
+      "success": true,
+      "data": {
+        "BacklightCompensation": null,
+        "Brightness": 128,
+        "ColorSaturation": 128,
+        "Contrast": 128,
+        "Exposure": null,
+        "Focus": null,
+        "IrCutFilter": null,
+        "Sharpness": null,
+        "WideDynamicRange": null,
+        "WhiteBalance": null,
+        "Extension": null
+      },
+      "response_time": "12.75125ms"
+    }
+  ],
+  "ptz_status": [],
+  "ptz_presets": [],
+  "system_datetime": {
+    "success": true,
+    "response_time": "10.978959ms"
+  },
+  "errors": []
+}

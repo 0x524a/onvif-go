@@ -1,0 +1,274 @@
+{
+  "timestamp": "2026-01-13T14:25:20-05:00",
+  "utility_version": "1.0.0",
+  "connection_info": {
+    "endpoint": "http://192.168.2.57:80/onvif/device_service",
+    "username": "service",
+    "test_date": "2026-01-13"
+  },
+  "device_info": {
+    "success": true,
+    "data": {
+      "Manufacturer": "Bosch",
+      "Model": "AUTODOME IP starlight 5000i",
+      "FirmwareVersion": "7.80.0128",
+      "SerialNumber": "044566917926150010",
+      "HardwareID": "F0009A43"
+    },
+    "response_time": "18.399875ms"
+  },
+  "capabilities": {
+    "success": true,
+    "data": {
+      "Analytics": null,
+      "Device": {
+        "XAddr": "http://192.168.2.57/onvif/device_service",
+        "Network": {
+          "IPFilter": false,
+          "ZeroConfiguration": true,
+          "IPVersion6": false,
+          "DynDNS": false,
+          "Extension": null
+        },
+        "System": {
+          "DiscoveryResolve": false,
+          "DiscoveryBye": false,
+          "RemoteDiscovery": false,
+          "SystemBackup": false,
+          "SystemLogging": false,
+          "FirmwareUpgrade": false,
+          "SupportedVersions": [
+            "1",
+            "2"
+          ],
+          "Extension": null
+        },
+        "IO": {
+          "InputConnectors": 2,
+          "RelayOutputs": 1,
+          "Extension": null
+        },
+        "Security": {
+          "TLS11": true,
+          "TLS12": true,
+          "OnboardKeyGeneration": false,
+          "AccessPolicyConfig": false,
+          "X509Token": false,
+          "SAMLToken": false,
+          "KerberosToken": false,
+          "RELToken": false,
+          "Extension": null
+        }
+      },
+      "Events": {
+        "XAddr": "http://192.168.2.57/onvif/event_service",
+        "WSSubscriptionPolicySupport": false,
+        "WSPullPointSupport": false,
+        "WSPausableSubscriptionSupport": false
+      },
+      "Imaging": {
+        "XAddr": "http://192.168.2.57/onvif/imaging_service"
+      },
+      "Media": {
+        "XAddr": "http://192.168.2.57/onvif/media_service",
+        "StreamingCapabilities": {
+          "RTPMulticast": true,
+          "RTPTCP": false,
+          "RTPRTSPTCP": true,
+          "Extension": null
+        }
+      },
+      "PTZ": {
+        "XAddr": "http://192.168.2.57/onvif/ptz_service"
+      },
+      "Extension": null
+    },
+    "response_time": "37.757583ms"
+  },
+  "profiles": {
+    "success": true,
+    "data": [
+      {
+        "Token": "0",
+        "Name": "H26x_L1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera_1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 1920,
+            "Height": 1080
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "H26x_L1S1",
+          "Name": "SD Balanced",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 1400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "1",
+          "Name": "PTZConfig_1",
+          "UseCount": 3,
+          "NodeToken": "1",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "1",
+        "Name": "H26x_L1S2",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera_1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 1920,
+            "Height": 1080
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "H26x_L1S2",
+          "Name": "SD Balanced",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 1400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "1",
+          "Name": "PTZConfig_1",
+          "UseCount": 3,
+          "NodeToken": "1",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "2",
+        "Name": "JPEG_L1S3",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera_1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 1920,
+            "Height": 1080
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "JPEG_L1S3",
+          "Name": "HD Image Optimized",
+          "UseCount": 1,
+          "Encoding": "JPEG",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 70,
+          "RateControl": {
+            "FrameRateLimit": 1,
+            "EncodingInterval": 1,
+            "BitrateLimit": 6000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "1",
+          "Name": "PTZConfig_1",
+          "UseCount": 3,
+          "NodeToken": "1",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      }
+    ],
+    "count": 3,
+    "response_time": "468.67825ms"
+  },
+  "stream_uris": null,
+  "snapshot_uris": null,
+  "video_encoders": null,
+  "imaging_settings": null,
+  "ptz_status": null,
+  "ptz_presets": null,
+  "system_datetime": {
+    "success": true,
+    "response_time": "7.38075ms"
+  },
+  "errors": []
+}

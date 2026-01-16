@@ -1,0 +1,648 @@
+{
+  "timestamp": "2026-01-13T13:40:23-05:00",
+  "utility_version": "1.0.0",
+  "connection_info": {
+    "endpoint": "http://192.168.2.57/onvif/device_service",
+    "username": "service",
+    "test_date": "2026-01-13"
+  },
+  "device_info": {
+    "success": true,
+    "data": {
+      "Manufacturer": "Bosch",
+      "Model": "AUTODOME IP starlight 5000i",
+      "FirmwareVersion": "7.80.0128",
+      "SerialNumber": "044566917926150010",
+      "HardwareID": "F0009A43"
+    },
+    "response_time": "29.720625ms"
+  },
+  "capabilities": {
+    "success": true,
+    "data": {
+      "Analytics": null,
+      "Device": {
+        "XAddr": "http://192.168.2.57/onvif/device_service",
+        "Network": {
+          "IPFilter": false,
+          "ZeroConfiguration": true,
+          "IPVersion6": false,
+          "DynDNS": false,
+          "Extension": null
+        },
+        "System": {
+          "DiscoveryResolve": false,
+          "DiscoveryBye": false,
+          "RemoteDiscovery": false,
+          "SystemBackup": false,
+          "SystemLogging": false,
+          "FirmwareUpgrade": false,
+          "SupportedVersions": [
+            "1",
+            "2"
+          ],
+          "Extension": null
+        },
+        "IO": {
+          "InputConnectors": 2,
+          "RelayOutputs": 1,
+          "Extension": null
+        },
+        "Security": {
+          "TLS11": true,
+          "TLS12": true,
+          "OnboardKeyGeneration": false,
+          "AccessPolicyConfig": false,
+          "X509Token": false,
+          "SAMLToken": false,
+          "KerberosToken": false,
+          "RELToken": false,
+          "Extension": null
+        }
+      },
+      "Events": {
+        "XAddr": "http://192.168.2.57/onvif/event_service",
+        "WSSubscriptionPolicySupport": false,
+        "WSPullPointSupport": false,
+        "WSPausableSubscriptionSupport": false
+      },
+      "Imaging": {
+        "XAddr": "http://192.168.2.57/onvif/imaging_service"
+      },
+      "Media": {
+        "XAddr": "http://192.168.2.57/onvif/media_service",
+        "StreamingCapabilities": {
+          "RTPMulticast": true,
+          "RTPTCP": false,
+          "RTPRTSPTCP": true,
+          "Extension": null
+        }
+      },
+      "PTZ": {
+        "XAddr": "http://192.168.2.57/onvif/ptz_service"
+      },
+      "Extension": null
+    },
+    "response_time": "33.852125ms"
+  },
+  "profiles": {
+    "success": true,
+    "data": [
+      {
+        "Token": "0",
+        "Name": "H26x_L1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera_1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 1920,
+            "Height": 1080
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "H26x_L1S1",
+          "Name": "SD Balanced",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 1400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "1",
+          "Name": "PTZConfig_1",
+          "UseCount": 3,
+          "NodeToken": "1",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "1",
+        "Name": "H26x_L1S2",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera_1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 1920,
+            "Height": 1080
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "H26x_L1S2",
+          "Name": "SD Balanced",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 1400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "1",
+          "Name": "PTZConfig_1",
+          "UseCount": 3,
+          "NodeToken": "1",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "2",
+        "Name": "JPEG_L1S3",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Camera_1",
+          "UseCount": 3,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 1920,
+            "Height": 1080
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "JPEG_L1S3",
+          "Name": "HD Image Optimized",
+          "UseCount": 1,
+          "Encoding": "JPEG",
+          "Resolution": {
+            "Width": 1536,
+            "Height": 864
+          },
+          "Quality": 70,
+          "RateControl": {
+            "FrameRateLimit": 1,
+            "EncodingInterval": 1,
+            "BitrateLimit": 6000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": {
+          "Token": "1",
+          "Name": "PTZConfig_1",
+          "UseCount": 3,
+          "NodeToken": "1",
+          "DefaultAbsolutePantTiltPositionSpace": "",
+          "DefaultAbsoluteZoomPositionSpace": "",
+          "DefaultRelativePanTiltTranslationSpace": "",
+          "DefaultRelativeZoomTranslationSpace": "",
+          "DefaultContinuousPanTiltVelocitySpace": "",
+          "DefaultContinuousZoomVelocitySpace": "",
+          "DefaultPTZSpeed": null,
+          "DefaultPTZTimeout": 0,
+          "PanTiltLimits": null,
+          "ZoomLimits": null
+        },
+        "MetadataConfiguration": null,
+        "Extension": null
+      }
+    ],
+    "count": 3,
+    "response_time": "447.58875ms"
+  },
+  "stream_uris": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.57/rtsp_tunnel?p=0\u0026h26x=4\u0026vcd=2",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "10.034375ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.57/rtsp_tunnel?p=1\u0026inst=2\u0026h26x=4",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "9.262625ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "URI": "rtsp://192.168.2.57/rtsp_tunnel?h26x=0",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "21.538333ms"
+    }
+  ],
+  "snapshot_uris": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.57/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "6.027834ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.57/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "7.4085ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "URI": "http://192.168.2.57/snap.jpg?JpegCam=1",
+        "InvalidAfterConnect": false,
+        "InvalidAfterReboot": true,
+        "Timeout": 0
+      },
+      "response_time": "17.825792ms"
+    }
+  ],
+  "video_encoders": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "Token": "H26x_L1S1",
+        "Name": "SD Balanced",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 1536,
+          "Height": 864
+        },
+        "Quality": 50,
+        "RateControl": {
+          "FrameRateLimit": 30,
+          "EncodingInterval": 1,
+          "BitrateLimit": 1400
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "40.896542ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "Token": "H26x_L1S2",
+        "Name": "SD Balanced",
+        "UseCount": 1,
+        "Encoding": "H264",
+        "Resolution": {
+          "Width": 1536,
+          "Height": 864
+        },
+        "Quality": 50,
+        "RateControl": {
+          "FrameRateLimit": 30,
+          "EncodingInterval": 1,
+          "BitrateLimit": 1400
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "58.877083ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "Token": "JPEG_L1S3",
+        "Name": "HD Image Optimized",
+        "UseCount": 1,
+        "Encoding": "JPEG",
+        "Resolution": {
+          "Width": 1536,
+          "Height": 864
+        },
+        "Quality": 70,
+        "RateControl": {
+          "FrameRateLimit": 1,
+          "EncodingInterval": 1,
+          "BitrateLimit": 6000
+        },
+        "MPEG4": null,
+        "H264": null,
+        "Multicast": null,
+        "SessionTimeout": 0
+      },
+      "response_time": "44.634084ms"
+    }
+  ],
+  "imaging_settings": [
+    {
+      "video_source_token": "1",
+      "success": true,
+      "data": {
+        "BacklightCompensation": {
+          "Mode": "OFF",
+          "Level": 0
+        },
+        "Brightness": 128,
+        "ColorSaturation": 128,
+        "Contrast": 128,
+        "Exposure": null,
+        "Focus": {
+          "AutoFocusMode": "AUTO",
+          "DefaultSpeed": 4,
+          "NearLimit": 0,
+          "FarLimit": 0
+        },
+        "IrCutFilter": null,
+        "Sharpness": null,
+        "WideDynamicRange": null,
+        "WhiteBalance": null,
+        "Extension": null
+      },
+      "response_time": "28.041125ms"
+    }
+  ],
+  "ptz_status": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": {
+        "Position": {
+          "PanTilt": {
+            "X": 1,
+            "Y": -0.844,
+            "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+          },
+          "Zoom": {
+            "X": 0.006,
+            "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+          }
+        },
+        "MoveStatus": {
+          "PanTilt": "IDLE",
+          "Zoom": "IDLE"
+        },
+        "Error": "",
+        "UTCTime": "0001-01-01T00:00:00Z"
+      },
+      "response_time": "19.659833ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": {
+        "Position": {
+          "PanTilt": {
+            "X": 1,
+            "Y": -0.844,
+            "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+          },
+          "Zoom": {
+            "X": 0.006,
+            "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+          }
+        },
+        "MoveStatus": {
+          "PanTilt": "IDLE",
+          "Zoom": "IDLE"
+        },
+        "Error": "",
+        "UTCTime": "0001-01-01T00:00:00Z"
+      },
+      "response_time": "11.462792ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": {
+        "Position": {
+          "PanTilt": {
+            "X": 1,
+            "Y": -0.844,
+            "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+          },
+          "Zoom": {
+            "X": 0.006,
+            "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+          }
+        },
+        "MoveStatus": {
+          "PanTilt": "IDLE",
+          "Zoom": "IDLE"
+        },
+        "Error": "",
+        "UTCTime": "0001-01-01T00:00:00Z"
+      },
+      "response_time": "15.459ms"
+    }
+  ],
+  "ptz_presets": [
+    {
+      "profile_token": "0",
+      "profile_name": "H26x_L1S1",
+      "success": true,
+      "data": [
+        {
+          "Token": "1",
+          "Name": "tabletop",
+          "PTZPosition": {
+            "PanTilt": {
+              "X": -0.311,
+              "Y": 0.822,
+              "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+            },
+            "Zoom": {
+              "X": 0.179,
+              "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+            }
+          }
+        },
+        {
+          "Token": "2",
+          "Name": "tabletopzoom54",
+          "PTZPosition": {
+            "PanTilt": {
+              "X": -0.311,
+              "Y": 0.822,
+              "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+            },
+            "Zoom": {
+              "X": 0.226,
+              "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+            }
+          }
+        }
+      ],
+      "count": 2,
+      "response_time": "27.948959ms"
+    },
+    {
+      "profile_token": "1",
+      "profile_name": "H26x_L1S2",
+      "success": true,
+      "data": [
+        {
+          "Token": "1",
+          "Name": "tabletop",
+          "PTZPosition": {
+            "PanTilt": {
+              "X": -0.311,
+              "Y": 0.822,
+              "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+            },
+            "Zoom": {
+              "X": 0.179,
+              "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+            }
+          }
+        },
+        {
+          "Token": "2",
+          "Name": "tabletopzoom54",
+          "PTZPosition": {
+            "PanTilt": {
+              "X": -0.311,
+              "Y": 0.822,
+              "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+            },
+            "Zoom": {
+              "X": 0.226,
+              "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+            }
+          }
+        }
+      ],
+      "count": 2,
+      "response_time": "33.975208ms"
+    },
+    {
+      "profile_token": "2",
+      "profile_name": "JPEG_L1S3",
+      "success": true,
+      "data": [
+        {
+          "Token": "1",
+          "Name": "tabletop",
+          "PTZPosition": {
+            "PanTilt": {
+              "X": -0.311,
+              "Y": 0.822,
+              "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+            },
+            "Zoom": {
+              "X": 0.179,
+              "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+            }
+          }
+        },
+        {
+          "Token": "2",
+          "Name": "tabletopzoom54",
+          "PTZPosition": {
+            "PanTilt": {
+              "X": -0.311,
+              "Y": 0.822,
+              "Space": "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"
+            },
+            "Zoom": {
+              "X": 0.226,
+              "Space": "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"
+            }
+          }
+        }
+      ],
+      "count": 2,
+      "response_time": "33.122333ms"
+    }
+  ],
+  "system_datetime": {
+    "success": true,
+    "response_time": "7.788459ms"
+  },
+  "errors": []
+}

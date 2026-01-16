@@ -1,0 +1,105 @@
+ONVIF Camera Diagnostic Utility v1.0.0
+========================================
+
+📦 XML capture enabled, saving to: camera-logs/temp_20260113-142520
+Starting COMPREHENSIVE diagnostic collection...
+This will capture all READ operations for testing.
+
+→ Phase 1: Core device information...
+  ✓ Manufacturer: Bosch, Model: AUTODOME IP starlight 5000i
+  ✓ Retrieved
+  ✓ Services: Device, Media, PTZ, Imaging, Events
+→ Phase 2: Service discovery...
+  ✓ Service endpoints discovered
+→ Phase 3: Device service operations...
+  ✓ GetHostname
+  ✓ GetDNS
+  ✓ GetNTP
+  ✓ GetNetworkInterfaces
+  ✓ GetNetworkProtocols
+  ✓ GetNetworkDefaultGateway
+  ✓ GetScopes
+  ✓ GetUsers
+  ✓ GetDiscoveryMode
+  ✗ GetRemoteDiscoveryMode: GetRemoteDiscoveryMode failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✓ GetEndpointReference
+  ✓ GetRelayOutputs
+  ✗ GetRemoteUser: GetRemoteUser failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetIPAddressFilter: GetIPAddressFilter failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✓ GetZeroConfiguration
+  ✓ GetServices
+  ✓ GetServiceCapabilities
+  ✓ GetStorageConfigurations
+  ✗ GetGeoLocation: GetGeoLocation failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetDPAddresses: GetDPAddresses failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetAccessPolicy: GetAccessPolicy failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✓ GetWsdlURL
+  ✗ GetPasswordComplexityConfiguration: GetPasswordComplexityConfiguration failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetPasswordHistoryConfiguration: GetPasswordHistoryConfiguration failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetAuthFailureWarningConfiguration: GetAuthFailureWarningConfiguration failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✓ Device operations: 25 captured
+→ Phase 4: Media profiles and sources...
+  ✓ Found 3 profile(s)
+   Profile 1: H26x_L1S1 (Token: 0)
+     Resolution: 1536x864, Encoding: H264
+   Profile 2: H26x_L1S2 (Token: 1)
+     Resolution: 1536x864, Encoding: H264
+   Profile 3: JPEG_L1S3 (Token: 2)
+     Resolution: 1536x864, Encoding: JPEG
+  ✓ GetVideoSources: 1 sources
+  ✓ GetAudioSources: 1 sources
+  ✓ GetAudioOutputs
+→ Phase 5: Profile-dependent operations...
+  ✓ Profile operations completed for 3 profiles
+→ Phase 6: Video source operations...
+  ✓ Video source operations completed for 1 sources
+→ Phase 7: Configuration listings...
+  ✓ GetVideoSourceConfigurations
+  ✓ GetVideoEncoderConfigurations
+  ✓ GetAudioSourceConfigurations
+  ✓ GetAudioEncoderConfigurations
+  ✓ GetAudioOutputConfigurations
+  ✓ GetMetadataConfigurations
+  ✓ GetMediaServiceCapabilities
+  ✓ Configuration listings: 7 captured
+→ Phase 8: Event service...
+  ✓ GetEventServiceCapabilities
+  ✓ GetEventProperties
+  ✓ Event operations: 2 captured
+→ Phase 9: Certificate and security operations...
+  ✗ GetCertificates: GetCertificates failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetCACertificates: GetCACertificates failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetCertificatesStatus: GetCertificatesStatus failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetClientCertificateMode: GetClientCertificateMode failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:ActionNotSupported</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Optional Action Not Implemented</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✓ Certificate operations: 4 captured
+→ Phase 10: WiFi operations...
+  ✗ GetDot11Capabilities: GetDot11Capabilities failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✗ GetDot1XConfigurations: GetDot1XConfigurations failed: HTTP request failed with status 500: <?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Body><SOAP-ENV:Fault><SOAP-ENV:Code><SOAP-ENV:Value>SOAP-ENV:Receiver</SOAP-ENV:Value><SOAP-ENV:Subcode><SOAP-ENV:Value>ter:Action</SOAP-ENV:Value></SOAP-ENV:Subcode></SOAP-ENV:Code><SOAP-ENV:Reason><SOAP-ENV:Text xml:lang="en">Action Failed</SOAP-ENV:Text></SOAP-ENV:Reason><SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node><SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Role></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+  ✓ WiFi operations: 2 captured
+
+========================================
+Comprehensive capture complete!
+  Total operations: 72
+  Successful: 57
+  Failed: 15
+  Success rate: 79.2%
+========================================
+→ Saving diagnostic report...
+
+→ Creating V2 XML capture archive...
+  ✓ V2 metadata.json generated
+  ✓ V2 XML archive created: Bosch_AUTODOME_IP_starlight_5000i_7.80.0128_xmlcapture_20260113-142522.tar.gz
+  ✓ Total SOAP calls captured: 72
+
+========================================
+✓ Diagnostic collection complete!
+  Report saved to: camera-logs/Bosch_AUTODOME_IP_starlight_5000i_7.80.0128_20260113-142522.json
+  Total errors: 0
+
+  Device: Bosch AUTODOME IP starlight 5000i
+  Firmware: 7.80.0128
+  Profiles: 3
+
+Both JSON report and XML capture archive saved to camera-logs/
+Share both files for comprehensive analysis.
+========================================

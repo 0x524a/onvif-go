@@ -1,0 +1,622 @@
+{
+  "timestamp": "2026-01-13T14:25:41-05:00",
+  "utility_version": "1.0.0",
+  "connection_info": {
+    "endpoint": "http://192.168.2.24:80/onvif/device_service",
+    "username": "service",
+    "test_date": "2026-01-13"
+  },
+  "device_info": {
+    "success": true,
+    "data": {
+      "Manufacturer": "Bosch",
+      "Model": "FLEXIDOME panoramic 5100i",
+      "FirmwareVersion": "9.00.0210",
+      "SerialNumber": "404705923918060213",
+      "HardwareID": "F000B543"
+    },
+    "response_time": "20.032ms"
+  },
+  "capabilities": {
+    "success": true,
+    "data": {
+      "Analytics": {
+        "XAddr": "http://192.168.2.24/onvif/analytics_service",
+        "RuleSupport": true,
+        "AnalyticsModuleSupport": true
+      },
+      "Device": {
+        "XAddr": "http://192.168.2.24/onvif/device_service",
+        "Network": {
+          "IPFilter": false,
+          "ZeroConfiguration": true,
+          "IPVersion6": false,
+          "DynDNS": false,
+          "Extension": null
+        },
+        "System": {
+          "DiscoveryResolve": false,
+          "DiscoveryBye": false,
+          "RemoteDiscovery": false,
+          "SystemBackup": false,
+          "SystemLogging": false,
+          "FirmwareUpgrade": false,
+          "SupportedVersions": [
+            "1",
+            "2"
+          ],
+          "Extension": null
+        },
+        "IO": {
+          "InputConnectors": 0,
+          "RelayOutputs": 0,
+          "Extension": null
+        },
+        "Security": {
+          "TLS11": false,
+          "TLS12": true,
+          "OnboardKeyGeneration": false,
+          "AccessPolicyConfig": false,
+          "X509Token": false,
+          "SAMLToken": false,
+          "KerberosToken": false,
+          "RELToken": false,
+          "Extension": null
+        }
+      },
+      "Events": {
+        "XAddr": "http://192.168.2.24/onvif/event_service",
+        "WSSubscriptionPolicySupport": false,
+        "WSPullPointSupport": false,
+        "WSPausableSubscriptionSupport": false
+      },
+      "Imaging": {
+        "XAddr": "http://192.168.2.24/onvif/imaging_service"
+      },
+      "Media": {
+        "XAddr": "http://192.168.2.24/onvif/media_service",
+        "StreamingCapabilities": {
+          "RTPMulticast": true,
+          "RTPTCP": false,
+          "RTPRTSPTCP": true,
+          "Extension": null
+        }
+      },
+      "PTZ": {
+        "XAddr": "http://192.168.2.24/onvif/ptz_service"
+      },
+      "Extension": null
+    },
+    "response_time": "10.689708ms"
+  },
+  "profiles": {
+    "success": true,
+    "data": [
+      {
+        "Token": "0",
+        "Name": "OnvdV1VidE3S1",
+        "VideoSourceConfiguration": {
+          "Token": "3",
+          "Name": "E_PTZ",
+          "UseCount": 2,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L3S4",
+          "Name": "OnvdV1VidE3S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1920,
+            "Height": 1080
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 5200
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "1",
+        "Name": "OnvdV1VidE2S1",
+        "VideoSourceConfiguration": {
+          "Token": "2",
+          "Name": "Dewarped_view_mode",
+          "UseCount": 6,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L2S1",
+          "Name": "OnvdV1VidE2S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 3072,
+            "Height": 1728
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "2",
+        "Name": "OnvdV1VidE1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L1S4",
+          "Name": "OnvdV1VidE1S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 2112,
+            "Height": 2112
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 13000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "3",
+        "Name": "OnvdV1VidE1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L1S1",
+          "Name": "OnvdV1VidE1S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 2112,
+            "Height": 2112
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 4096
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "4",
+        "Name": "OnvdV1VidE2S1",
+        "VideoSourceConfiguration": {
+          "Token": "2",
+          "Name": "Dewarped_view_mode",
+          "UseCount": 6,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L2S4",
+          "Name": "OnvdV1VidE2S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 3072,
+            "Height": 1728
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 13000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "5",
+        "Name": "OnvdV1VidE2S1",
+        "VideoSourceConfiguration": {
+          "Token": "2",
+          "Name": "Dewarped_view_mode",
+          "UseCount": 6,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L2S2",
+          "Name": "OnvdV1VidE2S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1280,
+            "Height": 720
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 2400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "6",
+        "Name": "OnvdV1VidE1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L1S2",
+          "Name": "OnvdV1VidE1S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 1792,
+            "Height": 1792
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 8000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "7",
+        "Name": "OnvdV1VidE1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L1S3",
+          "Name": "OnvdV1VidE1S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 2112,
+            "Height": 2112
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 11000
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "8",
+        "Name": "OnvdV1VidE2S1",
+        "VideoSourceConfiguration": {
+          "Token": "2",
+          "Name": "Dewarped_view_mode",
+          "UseCount": 6,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": {
+          "Token": "EncCfg_L2S3",
+          "Name": "OnvdV1VidE2S1",
+          "UseCount": 1,
+          "Encoding": "H264",
+          "Resolution": {
+            "Width": 512,
+            "Height": 288
+          },
+          "Quality": 50,
+          "RateControl": {
+            "FrameRateLimit": 30,
+            "EncodingInterval": 1,
+            "BitrateLimit": 400
+          },
+          "MPEG4": null,
+          "H264": null,
+          "Multicast": null,
+          "SessionTimeout": 0
+        },
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "9",
+        "Name": "OnvdV1VidE2S1",
+        "VideoSourceConfiguration": {
+          "Token": "2",
+          "Name": "Dewarped_view_mode",
+          "UseCount": 6,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "10",
+        "Name": "OnvdV1VidE1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "11",
+        "Name": "OnvdV1VidE1S1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "12",
+        "Name": "OnvdV1Aud1",
+        "VideoSourceConfiguration": null,
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "13",
+        "Name": "OnvdV1Met1",
+        "VideoSourceConfiguration": {
+          "Token": "1",
+          "Name": "Full_Image_Circle",
+          "UseCount": 7,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "14",
+        "Name": "OnvdV1Met2",
+        "VideoSourceConfiguration": {
+          "Token": "2",
+          "Name": "Dewarped_view_mode",
+          "UseCount": 6,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      },
+      {
+        "Token": "15",
+        "Name": "OnvdV1Met3",
+        "VideoSourceConfiguration": {
+          "Token": "3",
+          "Name": "E_PTZ",
+          "UseCount": 2,
+          "SourceToken": "1",
+          "Bounds": {
+            "X": 0,
+            "Y": 0,
+            "Width": 2112,
+            "Height": 2112
+          }
+        },
+        "AudioSourceConfiguration": null,
+        "VideoEncoderConfiguration": null,
+        "AudioEncoderConfiguration": null,
+        "PTZConfiguration": null,
+        "MetadataConfiguration": null,
+        "Extension": null
+      }
+    ],
+    "count": 16,
+    "response_time": "656.002459ms"
+  },
+  "stream_uris": null,
+  "snapshot_uris": null,
+  "video_encoders": null,
+  "imaging_settings": null,
+  "ptz_status": null,
+  "ptz_presets": null,
+  "system_datetime": {
+    "success": true,
+    "response_time": "21.637875ms"
+  },
+  "errors": []
+}
