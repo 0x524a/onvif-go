@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const percentScale = 100
+
 // Registry holds information about all available camera captures.
 type Registry struct {
 	Version     string              `json:"version"`
@@ -47,7 +49,7 @@ const DefaultRegistryPath = "testdata/captures/registry.json"
 
 // LoadRegistry loads the capture registry from a file.
 func LoadRegistry(path string) (*Registry, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // Registry path is from constant or test data, safe
 	if err != nil {
 		if os.IsNotExist(err) {
 			// Return empty registry if file doesn't exist
@@ -92,12 +94,13 @@ func SaveRegistry(registry *Registry, path string) error {
 }
 
 // AddCamera adds a new camera to the registry.
-func (r *Registry) AddCamera(entry CameraEntry) {
+func (r *Registry) AddCamera(entry *CameraEntry) {
 	// Check if camera already exists
-	for i, cam := range r.Cameras {
+	for i := range r.Cameras {
+		cam := &r.Cameras[i]
 		if cam.ID == entry.ID {
 			// Update existing entry
-			r.Cameras[i] = entry
+			r.Cameras[i] = *entry
 			return
 		}
 	}
@@ -106,7 +109,7 @@ func (r *Registry) AddCamera(entry CameraEntry) {
 	if entry.AddedDate == "" {
 		entry.AddedDate = time.Now().Format("2006-01-02")
 	}
-	r.Cameras = append(r.Cameras, entry)
+	r.Cameras = append(r.Cameras, *entry)
 }
 
 // GetCamera retrieves a camera entry by ID.
@@ -121,12 +124,14 @@ func (r *Registry) GetCamera(id string) *CameraEntry {
 
 // RemoveCamera removes a camera from the registry.
 func (r *Registry) RemoveCamera(id string) bool {
-	for i, cam := range r.Cameras {
+	for i := range r.Cameras {
+		cam := &r.Cameras[i]
 		if cam.ID == id {
 			r.Cameras = append(r.Cameras[:i], r.Cameras[i+1:]...)
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -164,7 +169,7 @@ func (r *Registry) UpdateCoverage() {
 }
 
 // GetTotalCoverage returns the total coverage across all services.
-func (r *Registry) GetTotalCoverage() (total int, captured int) {
+func (r *Registry) GetTotalCoverage() (total, captured int) {
 	for _, cov := range r.Coverage {
 		total += cov.Total
 		captured += cov.Captured
@@ -238,6 +243,7 @@ func CreateCameraEntryFromCapture(archivePath string) (*CameraEntry, error) {
 				cameraInfo.Manufacturer = ExtractXMLElement(ex.ResponseBody, "Manufacturer")
 				cameraInfo.Model = ExtractXMLElement(ex.ResponseBody, "Model")
 				cameraInfo.FirmwareVersion = ExtractXMLElement(ex.ResponseBody, "FirmwareVersion")
+
 				break
 			}
 		}
@@ -280,10 +286,11 @@ func detectCapabilities(capture *CameraCaptureV2) []string {
 		}
 	}
 
-	var result []string
+	result := make([]string, 0, len(services))
 	for svc := range services {
 		result = append(result, svc)
 	}
+
 	return result
 }
 
@@ -358,7 +365,7 @@ func (r *Registry) GetSummary() RegistrySummary {
 		summary.TotalOperations += cov.Total
 		summary.CapturedOperations += cov.Captured
 		if cov.Total > 0 {
-			summary.ServiceCoverage[service] = float64(cov.Captured) / float64(cov.Total) * 100
+			summary.ServiceCoverage[service] = float64(cov.Captured) / float64(cov.Total) * percentScale
 		}
 	}
 

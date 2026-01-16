@@ -30,6 +30,7 @@ const (
 	retryDelaySec     = 5
 	maxIdleTimeoutSec = 90
 	unknownStatus     = "Unknown"
+	percentScale      = 100
 )
 
 type CameraReport struct {
@@ -1332,7 +1333,7 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 	fmt.Printf("  Total operations: %d\n", totalOps)
 	fmt.Printf("  Successful: %d\n", successCount)
 	fmt.Printf("  Failed: %d\n", failCount)
-	fmt.Printf("  Success rate: %.1f%%\n", float64(successCount)/float64(totalOps)*100)
+	fmt.Printf("  Success rate: %.1f%%\n", float64(successCount)/float64(totalOps)*percentScale)
 	fmt.Println("========================================")
 }
 
@@ -1633,6 +1634,73 @@ func extractSOAPOperation(soapBody string) string {
 	return "Unknown"
 }
 
+// compareFileOrder determines sort order for tar archive entries.
+// Returns true if file i should come before file j.
+func compareFileOrder(i, j int, files []string) bool {
+	nameI := filepath.Base(files[i])
+	nameJ := filepath.Base(files[j])
+
+	// metadata.json always first
+	if nameI == "metadata.json" {
+		return true
+	}
+	if nameJ == "metadata.json" {
+		return false
+	}
+
+	// JSON files before XML files
+	isJSONi := strings.HasSuffix(nameI, ".json")
+	isJSONj := strings.HasSuffix(nameJ, ".json")
+	if isJSONi && !isJSONj {
+		return true
+	}
+	if !isJSONi && isJSONj {
+		return false
+	}
+
+	// Sort by name
+	return nameI < nameJ
+}
+
+// writeTarEntry writes a single file to the tar archive.
+func writeTarEntry(tarWriter *tar.Writer, sourceDir, path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// Create tar header
+	header, err := tar.FileInfoHeader(info, "")
+	if err != nil {
+		return fmt.Errorf("failed to create tar header: %w", err)
+	}
+
+	// Set name to relative path
+	relPath, err := filepath.Rel(sourceDir, path)
+	if err != nil {
+		return fmt.Errorf("failed to get relative path: %w", err)
+	}
+	header.Name = relPath
+
+	// Write header
+	if err := tarWriter.WriteHeader(header); err != nil {
+		return fmt.Errorf("failed to write tar header: %w", err)
+	}
+
+	// Write file content
+	file, err := os.Open(path) //nolint:gosec // File path is from filepath.Walk, safe
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+
+	if _, err := io.Copy(tarWriter, file); err != nil {
+		_ = file.Close()
+		return fmt.Errorf("failed to write file to tar: %w", err)
+	}
+	_ = file.Close()
+	return nil
+}
+
 // createTarGzV2 creates a V2 tar.gz archive with metadata.json first.
 func createTarGzV2(sourceDir, archivePath string) error {
 	// Create archive file
@@ -1673,67 +1741,14 @@ func createTarGzV2(sourceDir, archivePath string) error {
 
 	// Sort files: metadata.json first, then capture JSON files in order, then XML files
 	sort.Slice(files, func(i, j int) bool {
-		nameI := filepath.Base(files[i])
-		nameJ := filepath.Base(files[j])
-
-		// metadata.json always first
-		if nameI == "metadata.json" {
-			return true
-		}
-		if nameJ == "metadata.json" {
-			return false
-		}
-
-		// JSON files before XML files
-		isJSONi := strings.HasSuffix(nameI, ".json")
-		isJSONj := strings.HasSuffix(nameJ, ".json")
-		if isJSONi && !isJSONj {
-			return true
-		}
-		if !isJSONi && isJSONj {
-			return false
-		}
-
-		// Sort by name
-		return nameI < nameJ
+		return compareFileOrder(i, j, files)
 	})
 
 	// Write files in sorted order
 	for _, path := range files {
-		info, err := os.Stat(path)
-		if err != nil {
-			return fmt.Errorf("failed to stat file: %w", err)
+		if err := writeTarEntry(tarWriter, sourceDir, path); err != nil {
+			return err
 		}
-
-		// Create tar header
-		header, err := tar.FileInfoHeader(info, "")
-		if err != nil {
-			return fmt.Errorf("failed to create tar header: %w", err)
-		}
-
-		// Set name to relative path
-		relPath, err := filepath.Rel(sourceDir, path)
-		if err != nil {
-			return fmt.Errorf("failed to get relative path: %w", err)
-		}
-		header.Name = relPath
-
-		// Write header
-		if err := tarWriter.WriteHeader(header); err != nil {
-			return fmt.Errorf("failed to write tar header: %w", err)
-		}
-
-		// Write file content
-		file, err := os.Open(path) //nolint:gosec // File path is from filepath.Walk, safe
-		if err != nil {
-			return fmt.Errorf("failed to open file: %w", err)
-		}
-
-		if _, err := io.Copy(tarWriter, file); err != nil {
-			_ = file.Close()
-			return fmt.Errorf("failed to write file to tar: %w", err)
-		}
-		_ = file.Close()
 	}
 
 	return nil

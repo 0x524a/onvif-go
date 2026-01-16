@@ -417,9 +417,10 @@ func ReadOperationsByService(service ServiceType) []OperationSpec {
 		return EventReadOperations
 	case ServiceDeviceIO:
 		return DeviceIOReadOperations
-	default:
+	case ServiceUnknown:
 		return nil
 	}
+	return nil
 }
 
 // IndependentOperations returns operations that don't depend on other operations.

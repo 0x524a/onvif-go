@@ -9,6 +9,7 @@ require github.com/0x524A/rtspeek v0.0.1
 require (
 	github.com/bluenviron/gortsplib/v4 v4.16.2 // indirect
 	github.com/bluenviron/mediacommon/v2 v2.4.1 // indirect
+	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect

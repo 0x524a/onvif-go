@@ -273,6 +273,14 @@ func BuildMatchKeyFromExchange(exchange *CapturedExchangeV2) MatchKey {
 	}
 }
 
+// addTokenScore adds 10 points to score if token matches between two MatchKeys.
+func addTokenScore(score int, token1, token2 string) int {
+	if token1 != "" && token1 == token2 {
+		return score + 10
+	}
+	return score
+}
+
 // MatchScore returns how well two MatchKeys match (higher is better).
 // Returns -1 if operation names don't match.
 func (k MatchKey) MatchScore(other MatchKey) int {
@@ -283,27 +291,13 @@ func (k MatchKey) MatchScore(other MatchKey) int {
 	score := 1 // Base score for matching operation
 
 	// Bonus points for matching parameters
-	if k.ProfileToken != "" && k.ProfileToken == other.ProfileToken {
-		score += 10
-	}
-	if k.ConfigurationToken != "" && k.ConfigurationToken == other.ConfigurationToken {
-		score += 10
-	}
-	if k.VideoSourceToken != "" && k.VideoSourceToken == other.VideoSourceToken {
-		score += 10
-	}
-	if k.AudioSourceToken != "" && k.AudioSourceToken == other.AudioSourceToken {
-		score += 10
-	}
-	if k.PresetToken != "" && k.PresetToken == other.PresetToken {
-		score += 10
-	}
-	if k.NodeToken != "" && k.NodeToken == other.NodeToken {
-		score += 10
-	}
-	if k.OSDToken != "" && k.OSDToken == other.OSDToken {
-		score += 10
-	}
+	score = addTokenScore(score, k.ProfileToken, other.ProfileToken)
+	score = addTokenScore(score, k.ConfigurationToken, other.ConfigurationToken)
+	score = addTokenScore(score, k.VideoSourceToken, other.VideoSourceToken)
+	score = addTokenScore(score, k.AudioSourceToken, other.AudioSourceToken)
+	score = addTokenScore(score, k.PresetToken, other.PresetToken)
+	score = addTokenScore(score, k.NodeToken, other.NodeToken)
+	score = addTokenScore(score, k.OSDToken, other.OSDToken)
 
 	return score
 }

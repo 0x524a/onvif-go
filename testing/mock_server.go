@@ -263,6 +263,58 @@ func NewMockSOAPServerV2(archivePath string) (*MockSOAPServerV2, error) {
 	return mock, nil
 }
 
+// processArchiveEntry processes a single tar archive entry (JSON file) and adds it to the capture.
+// Returns (isMetadata, error).
+func processArchiveEntry(header *tar.Header, data []byte, capture *CameraCaptureV2) (*CaptureMetadata, error) {
+	// Check for metadata.json (V2 archives)
+	if header.Name == "metadata.json" || strings.HasSuffix(header.Name, "/metadata.json") {
+		var meta CaptureMetadata
+		if err := json.Unmarshal(data, &meta); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+		}
+		return &meta, nil
+	}
+
+	// Skip files that look like request/response XML stored as JSON
+	if strings.Contains(header.Name, "_request") || strings.Contains(header.Name, "_response") {
+		return nil, nil
+	}
+
+	// Parse exchange from JSON
+	exchange, err := parseExchange(header.Name, data)
+	if err != nil {
+		return nil, err
+	}
+	if exchange != nil {
+		capture.Exchanges = append(capture.Exchanges, *exchange)
+	}
+
+	return nil, nil
+}
+
+// parseExchange parses a JSON exchange entry, supporting both V1 and V2 formats.
+func parseExchange(fileName string, data []byte) (*CapturedExchangeV2, error) {
+	version := DetectCaptureVersion(data)
+	if version >= "2.0" {
+		var exchange CapturedExchangeV2
+		if err := json.Unmarshal(data, &exchange); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal V2 %s: %w", fileName, err)
+		}
+		return &exchange, nil
+	}
+
+	// V1 format - convert to V2
+	var v1Exchange CapturedExchange
+	if err := json.Unmarshal(data, &v1Exchange); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal V1 %s: %w", fileName, err)
+	}
+	v2Exchange := ConvertV1ToV2(&v1Exchange)
+	// Extract parameters from V1 request body
+	v2Exchange.Parameters = ExtractParameters(v2Exchange.OperationName, v2Exchange.RequestBody)
+	v2Exchange.ServiceType = DetermineServiceType(v2Exchange.RequestBody)
+	return v2Exchange, nil
+}
+
 // LoadCaptureFromArchiveV2 loads captures from archive, supporting both V1 and V2 formats.
 func LoadCaptureFromArchiveV2(archivePath string) (*CameraCaptureV2, *CaptureMetadata, error) {
 	file, err := os.Open(archivePath) //nolint:gosec // File path is from test data, safe
@@ -308,40 +360,13 @@ func LoadCaptureFromArchiveV2(archivePath string) (*CameraCaptureV2, *CaptureMet
 			return nil, nil, fmt.Errorf("failed to read file %s: %w", header.Name, err)
 		}
 
-		// Check for metadata.json (V2 archives)
-		if header.Name == "metadata.json" || strings.HasSuffix(header.Name, "/metadata.json") {
-			var meta CaptureMetadata
-			if err := json.Unmarshal(data, &meta); err != nil {
-				return nil, nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
-			}
-			metadata = &meta
-			continue
+		// Process the archive entry
+		meta, err := processArchiveEntry(header, data, capture)
+		if err != nil {
+			return nil, nil, err
 		}
-
-		// Skip files that look like request/response XML stored as JSON
-		if strings.Contains(header.Name, "_request") || strings.Contains(header.Name, "_response") {
-			continue
-		}
-
-		// Detect version and unmarshal accordingly
-		version := DetectCaptureVersion(data)
-		if version >= "2.0" {
-			var exchange CapturedExchangeV2
-			if err := json.Unmarshal(data, &exchange); err != nil {
-				return nil, nil, fmt.Errorf("failed to unmarshal V2 %s: %w", header.Name, err)
-			}
-			capture.Exchanges = append(capture.Exchanges, exchange)
-		} else {
-			// V1 format - convert to V2
-			var v1Exchange CapturedExchange
-			if err := json.Unmarshal(data, &v1Exchange); err != nil {
-				return nil, nil, fmt.Errorf("failed to unmarshal V1 %s: %w", header.Name, err)
-			}
-			v2Exchange := ConvertV1ToV2(&v1Exchange)
-			// Extract parameters from V1 request body
-			v2Exchange.Parameters = ExtractParameters(v2Exchange.OperationName, v2Exchange.RequestBody)
-			v2Exchange.ServiceType = DetermineServiceType(v2Exchange.RequestBody)
-			capture.Exchanges = append(capture.Exchanges, *v2Exchange)
+		if meta != nil {
+			metadata = meta
 		}
 	}
 
@@ -496,6 +521,7 @@ func ExtractParameters(operationName, soapBody string) map[string]interface{} {
 			for i := 1; i < len(matches); i++ {
 				if matches[i] != "" {
 					params[paramName] = strings.TrimSpace(matches[i])
+
 					break
 				}
 			}
