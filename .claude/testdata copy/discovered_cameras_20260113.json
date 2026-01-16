@@ -1,0 +1,141 @@
+{
+  "discovery_date": "2026-01-13T13:22:10",
+  "total_cameras": 8,
+  "cameras": [
+    {
+      "id": 1,
+      "endpoint": "urn:uuid:15020314-0204-0408-1500-ec71db465af7",
+      "xaddrs": [
+        "http://192.168.2.61:8000/onvif/device_service"
+      ],
+      "manufacturer": "Reolink",
+      "model": "E1Zoom",
+      "ip": "192.168.2.61",
+      "port": 8000,
+      "profiles": ["Streaming", "T"],
+      "location": "china"
+    },
+    {
+      "id": 2,
+      "endpoint": "urn:uuid:00075fe0-a604-04a6-e05f-0700075fe05f",
+      "xaddrs": [
+        "http://192.168.2.57/onvif/device_service",
+        "https://192.168.2.57/onvif/device_service"
+      ],
+      "manufacturer": "Bosch",
+      "model": "AUTODOME_IP_starlight_5000i",
+      "ip": "192.168.2.57",
+      "port": 80,
+      "profiles": ["Streaming", "G", "T"],
+      "location": "",
+      "supports_https": true
+    },
+    {
+      "id": 3,
+      "endpoint": "urn:uuid:555a3d17-6698-43d9-9a52-2a199ff14dec",
+      "xaddrs": [
+        "http://192.168.2.82/onvif/device_service"
+      ],
+      "manufacturer": "AXIS",
+      "model": "P3818-PVE",
+      "ip": "192.168.2.82",
+      "port": 80,
+      "profiles": ["Streaming", "G", "M", "T"],
+      "location": ""
+    },
+    {
+      "id": 4,
+      "endpoint": "urn:uuid:12060714-0005-0000-0302-ec71dbe838cc",
+      "xaddrs": [
+        "http://192.168.2.236:8000/onvif/device_service"
+      ],
+      "manufacturer": "Reolink",
+      "model": "ReolinkTrackMixWiFi",
+      "ip": "192.168.2.236",
+      "port": 8000,
+      "profiles": ["Streaming", "T"],
+      "location": "china"
+    },
+    {
+      "id": 5,
+      "endpoint": "urn:uuid:00075fca-f8fa-faf8-ca5f-0700075fca5f",
+      "xaddrs": [
+        "http://192.168.2.200/onvif/device_service",
+        "https://192.168.2.200/onvif/device_service"
+      ],
+      "manufacturer": "Bosch",
+      "model": "FLEXIDOME_IP_starlight_8000i",
+      "ip": "192.168.2.200",
+      "port": 80,
+      "profiles": ["Streaming", "G", "T"],
+      "location": "",
+      "supports_https": true
+    },
+    {
+      "id": 6,
+      "endpoint": "urn:uuid:00075fd5-9fbe-be9f-d55f-0700075fd55f",
+      "xaddrs": [
+        "http://192.168.2.24/onvif/device_service",
+        "https://192.168.2.24/onvif/device_service"
+      ],
+      "manufacturer": "Bosch",
+      "model": "FLEXIDOME_panoramic_5100i",
+      "ip": "192.168.2.24",
+      "port": 80,
+      "profiles": ["Streaming", "G", "T", "M"],
+      "location": "",
+      "supports_https": true
+    },
+    {
+      "id": 7,
+      "endpoint": "urn:uuid:cbc93166-2a81-4635-9fe3-dcd5e99528d3",
+      "xaddrs": [
+        "http://192.168.2.190/onvif/device_service",
+        "https://192.168.2.190/onvif/device_service",
+        "http://169.254.34.187/onvif/device_service",
+        "https://169.254.34.187/onvif/device_service"
+      ],
+      "manufacturer": "AXIS",
+      "model": "Q3819-PVE",
+      "ip": "192.168.2.190",
+      "port": 80,
+      "profiles": ["Streaming", "G", "M", "T"],
+      "location": "",
+      "supports_https": true,
+      "additional_ips": ["169.254.34.187"]
+    },
+    {
+      "id": 8,
+      "endpoint": "urn:uuid:9e8de0a1-c818-448d-90eb-85670b2b9872",
+      "xaddrs": [
+        "http://192.168.2.30/onvif/device_service",
+        "https://192.168.2.30/onvif/device_service"
+      ],
+      "manufacturer": "AXIS",
+      "model": "P5655-E",
+      "ip": "192.168.2.30",
+      "port": 80,
+      "profiles": ["Streaming", "G", "M", "T"],
+      "location": "",
+      "supports_https": true
+    }
+  ],
+  "manufacturers": {
+    "Reolink": 2,
+    "Bosch": 3,
+    "AXIS": 3
+  },
+  "profile_support": {
+    "Streaming": 8,
+    "T": 8,
+    "G": 6,
+    "M": 4
+  },
+  "notes": [
+    "All cameras discovered on 192.168.2.0/24 network",
+    "3 Bosch cameras support HTTPS",
+    "3 AXIS cameras support HTTPS and Profile M (metadata)",
+    "2 Reolink cameras are basic (Profile T only)",
+    "Camera 7 (AXIS Q3819-PVE) has dual network interfaces"
+  ]
+}
