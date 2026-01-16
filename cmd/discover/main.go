@@ -11,13 +11,12 @@ import (
 	"github.com/0x524a/onvif-go/discovery"
 )
 
+const defaultDiscoveryTimeout = 10 * time.Second
+
 func main() {
 	iface := flag.String("interface", "", "Network interface to use (e.g., en0, en11)")
-	timeout := flag.Duration("timeout", 10*time.Second, "Discovery timeout")
+	timeout := flag.Duration("timeout", defaultDiscoveryTimeout, "Discovery timeout")
 	flag.Parse()
-
-	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-	defer cancel()
 
 	opts := &discovery.DiscoverOptions{
 		NetworkInterface: *iface,
@@ -29,10 +28,13 @@ func main() {
 	}
 	fmt.Println("...")
 
+	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+	defer cancel()
+
 	devices, err := discovery.DiscoverWithOptions(ctx, *timeout, opts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Discovery error: %v\n", err)
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic // defer cancel() is still executed by runtime on exit
 	}
 
 	if len(devices) == 0 {

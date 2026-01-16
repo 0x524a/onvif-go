@@ -14,6 +14,11 @@ import (
 	onviftesting "github.com/0x524a/onvif-go/testing"
 )
 
+const (
+	maxTokenLength = 20
+	percentScale   = 100
+)
+
 var (
 	captureArchive = flag.String("capture", "", "Path to XML capture archive (.tar.gz)")
 	outputDir      = flag.String("output", "./", "Output directory for generated test file")
@@ -128,7 +133,7 @@ type GeneratedTest struct {
 	Code string
 }
 
-// operationInfo holds info about captured operations
+// operationInfo holds info about captured operations.
 type operationInfo struct {
 	OperationName string
 	ServiceType   onviftesting.ServiceType
@@ -148,6 +153,7 @@ func main() {
 	// Handle coverage report mode
 	if *coverageReport {
 		generateCoverageReport(regPath)
+
 		return
 	}
 
@@ -199,7 +205,8 @@ func generateTests() string {
 			metadata.CameraInfo.FirmwareVersion)
 	} else {
 		// Try to extract from GetDeviceInformation response
-		for _, ex := range capture.Exchanges {
+		for i := range capture.Exchanges {
+			ex := &capture.Exchanges[i]
 			if ex.OperationName == "GetDeviceInformation" && ex.Success {
 				manufacturer := extractXMLValue(ex.ResponseBody, "Manufacturer")
 				model := extractXMLValue(ex.ResponseBody, "Model")
@@ -207,6 +214,7 @@ func generateTests() string {
 				if manufacturer != "" && model != "" {
 					cameraDesc = fmt.Sprintf("%s %s (Firmware: %s)", manufacturer, model, firmware)
 				}
+
 				break
 			}
 		}
@@ -241,13 +249,12 @@ func generateTests() string {
 	if err != nil {
 		log.Fatalf("Failed to create output file: %v", err)
 	}
-	defer func() {
-		_ = f.Close()
-	}()
+	defer f.Close()
 
 	if err := tmpl.Execute(f, testData); err != nil {
-		_ = f.Close()
-		log.Fatalf("Failed to execute template: %v", err)
+		log.Printf("Failed to execute template: %v", err)
+
+		return ""
 	}
 
 	fmt.Printf("✓ Generated test file: %s\n", outputFile)
@@ -264,10 +271,11 @@ func generateTests() string {
 }
 
 func analyzeOperations(capture *onviftesting.CameraCaptureV2) []operationInfo {
-	var ops []operationInfo
+	ops := make([]operationInfo, 0, len(capture.Exchanges))
 	seen := make(map[string]bool)
 
-	for _, ex := range capture.Exchanges {
+	for i := range capture.Exchanges {
+		ex := &capture.Exchanges[i]
 		// Create unique key for deduplication
 		key := ex.OperationName
 		if token := ex.GetProfileToken(); token != "" {
@@ -297,10 +305,12 @@ func analyzeOperations(capture *onviftesting.CameraCaptureV2) []operationInfo {
 func hasNonDeviceOperations(ops []operationInfo) bool {
 	for _, op := range ops {
 		switch op.ServiceType {
-		case onviftesting.ServiceMedia, onviftesting.ServicePTZ, onviftesting.ServiceImaging:
+		case onviftesting.ServiceMedia, onviftesting.ServicePTZ, onviftesting.ServiceImaging, onviftesting.ServiceEvent, onviftesting.ServiceDeviceIO:
 			return true
+		case onviftesting.ServiceDevice, onviftesting.ServiceUnknown:
 		}
 	}
+
 	return false
 }
 
@@ -574,6 +584,7 @@ func generatePTZTests(ops []operationInfo) []GeneratedTest {
 				Code: code,
 			})
 			delete(ptzOps, op.OperationName)
+
 			continue
 		}
 		if token, ok := op.Parameters["ProfileToken"].(string); ok && token != "" {
@@ -699,9 +710,10 @@ func sanitizeToken(token string) string {
 	token = strings.ReplaceAll(token, ".", "_")
 	token = strings.ReplaceAll(token, " ", "_")
 	// Truncate if too long
-	if len(token) > 20 {
-		token = token[:20]
+	if len(token) > maxTokenLength {
+		token = token[:maxTokenLength]
 	}
+
 	return token
 }
 
@@ -713,6 +725,7 @@ func makeRelativePath(archivePath, outputDir string) string {
 			}
 		}
 	}
+
 	return archivePath
 }
 
@@ -749,12 +762,14 @@ func updateCameraRegistry(regPath, archivePath, testFile string) {
 	registry, err := onviftesting.LoadRegistry(regPath)
 	if err != nil {
 		log.Printf("Warning: Failed to load registry: %v", err)
+
 		return
 	}
 
 	entry, err := onviftesting.CreateCameraEntryFromCapture(archivePath)
 	if err != nil {
 		log.Printf("Warning: Failed to create registry entry: %v", err)
+
 		return
 	}
 
@@ -774,7 +789,7 @@ func updateCameraRegistry(regPath, archivePath, testFile string) {
 	}
 
 	// Add or update the camera entry
-	registry.AddCamera(*entry)
+	registry.AddCamera(entry)
 
 	// Update coverage statistics
 	updateRegistryCoverage(registry, archivePath)
@@ -782,6 +797,7 @@ func updateCameraRegistry(regPath, archivePath, testFile string) {
 	// Save registry
 	if err := onviftesting.SaveRegistry(registry, regPath); err != nil {
 		log.Printf("Warning: Failed to save registry: %v", err)
+
 		return
 	}
 
@@ -799,7 +815,8 @@ func updateRegistryCoverage(registry *onviftesting.Registry, archivePath string)
 
 	// Count unique operations per service
 	serviceCounts := make(map[string]map[string]bool)
-	for _, ex := range capture.Exchanges {
+	for i := range capture.Exchanges {
+		ex := &capture.Exchanges[i]
 		service := string(ex.ServiceType)
 		if service == "" || service == "Unknown" {
 			continue
@@ -874,7 +891,7 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 	total, captured := registry.GetTotalCoverage()
 	if total > 0 {
 		sb.WriteString(fmt.Sprintf("- **Overall Coverage**: %.1f%% (%d/%d operations)\n\n",
-			float64(captured)/float64(total)*100, captured, total))
+			float64(captured)/float64(total)*percentScale, captured, total))
 	}
 
 	// Cameras
@@ -883,7 +900,8 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 		sb.WriteString("| Manufacturer | Model | Firmware | Operations | Capabilities |\n")
 		sb.WriteString("|--------------|-------|----------|------------|---------------|\n")
 
-		for _, cam := range registry.Cameras {
+		for i := range registry.Cameras {
+			cam := &registry.Cameras[i]
 			caps := strings.Join(cam.Capabilities, ", ")
 			sb.WriteString(fmt.Sprintf("| %s | %s | %s | %d | %s |\n",
 				cam.Manufacturer, cam.Model, cam.Firmware, cam.OperationsCaptured, caps))
@@ -902,7 +920,7 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 			if cov, ok := registry.Coverage[service]; ok {
 				pct := 0.0
 				if cov.Total > 0 {
-					pct = float64(cov.Captured) / float64(cov.Total) * 100
+					pct = float64(cov.Captured) / float64(cov.Total) * percentScale
 				}
 				sb.WriteString(fmt.Sprintf("| %s | %d | %d | %.1f%% |\n",
 					service, cov.Total, cov.Captured, pct))

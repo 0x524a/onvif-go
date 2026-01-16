@@ -58,6 +58,7 @@ func buildIPAddressFilterRequest(filter *IPAddressFilter) ipAddressFilterRequest
 // newSOAPClient creates a SOAP client with the current client credentials.
 func (c *Client) newSOAPClient() *soap.Client {
 	username, password := c.GetCredentials()
+
 	return soap.NewClient(c.httpClient, username, password)
 }
 

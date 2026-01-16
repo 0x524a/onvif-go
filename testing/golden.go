@@ -2,6 +2,7 @@
 package onviftesting
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -40,7 +41,7 @@ type GoldenFileSet struct {
 // LoadGoldenManifest loads a manifest.json from a golden directory.
 func LoadGoldenManifest(goldenDir string) (*GoldenManifest, error) {
 	manifestPath := filepath.Join(goldenDir, "manifest.json")
-	data, err := os.ReadFile(manifestPath)
+	data, err := os.ReadFile(manifestPath) //nolint:gosec // Path is from test data directory, safe
 	if err != nil {
 		return nil, fmt.Errorf("failed to read manifest: %w", err)
 	}
@@ -82,7 +83,7 @@ func LoadGoldenFiles(goldenDir string) (*GoldenFileSet, error) {
 			return nil
 		}
 
-		data, err := os.ReadFile(path)
+		data, err := os.ReadFile(path) //nolint:gosec // Path is from filepath.Walk, safe
 		if err != nil {
 			return fmt.Errorf("failed to read %s: %w", path, err)
 		}
@@ -100,7 +101,7 @@ func LoadGoldenFiles(goldenDir string) (*GoldenFileSet, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load golden files: %w", err)
 	}
 
 	return set, nil
@@ -171,6 +172,7 @@ func ValidateResponse(response interface{}, golden *GoldenFile) []string {
 		actual, ok := responseData[field]
 		if !ok {
 			errors = append(errors, fmt.Sprintf("missing field: %s", field))
+
 			continue
 		}
 
@@ -192,12 +194,12 @@ func ValidateResponse(response interface{}, golden *GoldenFile) []string {
 func toMap(v interface{}) (map[string]interface{}, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal value: %w", err)
 	}
 
 	var result map[string]interface{}
 	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal to map: %w", err)
 	}
 
 	return result, nil
@@ -230,7 +232,7 @@ func valuesEqual(expected, actual interface{}) bool {
 		return false
 	}
 
-	return string(e) == string(a)
+	return bytes.Equal(e, a)
 }
 
 // SaveGoldenFile saves a golden file to disk.
