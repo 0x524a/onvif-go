@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -25,20 +26,16 @@ func newMockDeviceStorageServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetStorageConfigurationsResponse>
-      <tds:StorageConfigurations>
-        <tt:Token>storage-001</tt:Token>
-        <tt:Data>
+      <tds:StorageConfigurations token="storage-001">
+        <tt:Data type="NFS">
           <tt:LocalPath>/var/media/storage1</tt:LocalPath>
           <tt:StorageUri>file:///var/media/storage1</tt:StorageUri>
-          <tt:Type>NFS</tt:Type>
         </tt:Data>
       </tds:StorageConfigurations>
-      <tds:StorageConfigurations>
-        <tt:Token>storage-002</tt:Token>
-        <tt:Data>
+      <tds:StorageConfigurations token="storage-002">
+        <tt:Data type="CIFS">
           <tt:LocalPath>/var/media/storage2</tt:LocalPath>
           <tt:StorageUri>cifs://nas.local/recordings</tt:StorageUri>
-          <tt:Type>CIFS</tt:Type>
         </tt:Data>
       </tds:StorageConfigurations>
     </tds:GetStorageConfigurationsResponse>
@@ -50,12 +47,10 @@ func newMockDeviceStorageServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetStorageConfigurationResponse>
-      <tds:StorageConfiguration>
-        <tt:Token>storage-001</tt:Token>
-        <tt:Data>
+      <tds:StorageConfiguration token="storage-001">
+        <tt:Data type="NFS">
           <tt:LocalPath>/var/media/storage1</tt:LocalPath>
           <tt:StorageUri>file:///var/media/storage1</tt:StorageUri>
-          <tt:Type>NFS</tt:Type>
         </tt:Data>
       </tds:StorageConfiguration>
     </tds:GetStorageConfigurationResponse>
@@ -235,6 +230,67 @@ func TestSetStorageConfiguration(t *testing.T) {
 	err = client.SetStorageConfiguration(ctx, config)
 	if err != nil {
 		t.Fatalf("SetStorageConfiguration failed: %v", err)
+	}
+}
+
+// TestSetStorageConfigurationWireFormat asserts the outbound payload matches the
+// ONVIF schema: token and type are attributes, and the URI element is StorageUri.
+func TestSetStorageConfigurationWireFormat(t *testing.T) {
+	var requestBody string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("reading request body: %v", err)
+		}
+		requestBody = string(body)
+
+		w.Header().Set("Content-Type", "application/soap+xml")
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
+  <SOAP-ENV:Body>
+    <tds:SetStorageConfigurationResponse/>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("NewClient failed: %v", err)
+	}
+
+	config := &StorageConfiguration{
+		Token: "storage-001",
+		Data: StorageConfigurationData{
+			LocalPath:  "/var/media/updated",
+			StorageURI: "file:///var/media/updated",
+			Type:       "NFS",
+		},
+	}
+
+	if err := client.SetStorageConfiguration(context.Background(), config); err != nil {
+		t.Fatalf("SetStorageConfiguration failed: %v", err)
+	}
+
+	for _, want := range []string{
+		`token="storage-001"`,
+		`type="NFS"`,
+		"<StorageUri>file:///var/media/updated</StorageUri>",
+	} {
+		if !strings.Contains(requestBody, want) {
+			t.Errorf("request body missing %s\nbody:\n%s", want, requestBody)
+		}
+	}
+
+	for _, unwanted := range []string{
+		"<Token>",
+		"<Type>",
+		"<StorageURI>",
+	} {
+		if strings.Contains(requestBody, unwanted) {
+			t.Errorf("request body contains non-spec element %s\nbody:\n%s", unwanted, requestBody)
+		}
 	}
 }
 

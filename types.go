@@ -1178,18 +1178,21 @@ const (
 )
 
 // StorageConfiguration represents storage configuration.
+// Extends tt:DeviceEntity, whose token is an XML attribute.
 type StorageConfiguration struct {
-	Token string
-	Data  StorageConfigurationData
+	Token string                   `xml:"token,attr"`
+	Data  StorageConfigurationData `xml:"Data"`
 }
 
 // StorageConfigurationData represents storage configuration data.
+// Tags are required: the wire names differ from the Go field names
+// (type is an attribute, and the spec spells the URI element StorageUri).
 type StorageConfigurationData struct {
-	Type                       string
-	LocalPath                  string
-	StorageURI                 string
-	User                       *UserCredential
-	CertPathValidationPolicyID string
+	Type                       string          `xml:"type,attr"`
+	LocalPath                  string          `xml:"LocalPath,omitempty"`
+	StorageURI                 string          `xml:"StorageUri,omitempty"`
+	User                       *UserCredential `xml:"User,omitempty"`
+	CertPathValidationPolicyID string          `xml:"CertPathValidationPolicyID,omitempty"`
 }
 
 // UserCredential represents user credentials.
