@@ -29,6 +29,9 @@ go.work
 # Claude Code
 .claude/
 
+# Serena MCP
+.serena/
+
 # Binaries (in root, bin, or dist directories)
 bin/
 dist/

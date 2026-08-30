@@ -722,7 +722,7 @@ onvif-go/
 
 ## Compatibility
 
-- **Go Version**: 1.21+
+- **Go Version**: 1.25+
 - **ONVIF Versions**: Compatible with ONVIF Profile S, Profile T, Profile G
 - **Tested Cameras**: Works with most ONVIF-compliant IP cameras including:
   - Axis
