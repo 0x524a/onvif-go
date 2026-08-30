@@ -27,7 +27,7 @@ jobs:
           go-version: '1.26.x'
       
       - name: Run gosec
-        uses: securego/gosec@549db668017d67c5eedc9ee8a695208bc3af7c23 # v2.29.0
+        uses: securego/gosec@deb54465fea23d19a77f037e11e6589021f8501d # v2.29.0
         with:
           args: -no-fail -fmt json -out gosec-report.json ./...
       
