@@ -320,4 +320,4 @@ Minimal dependencies (see `go.mod`):
 - `github.com/0x524A/rtspeek`: RTSP stream validation (diagnostics tool)
 - Standard library for everything else
 
-Go version: 1.21+ (currently 1.24)
+Go version: 1.25+ (CI builds on 1.26.x)
