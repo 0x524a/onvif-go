@@ -66,7 +66,7 @@ func TestRegisterHandler(t *testing.T) {
 func TestServeHTTPMethodNotAllowed(t *testing.T) {
 	handler := NewHandler("admin", "password")
 
-	req := httptest.NewRequest("GET", "/", http.NoBody)
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "/", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -92,7 +92,7 @@ func TestServeHTTPValidSOAPRequest(t *testing.T) {
   </soap:Body>
 </soap:Envelope>`
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -121,7 +121,7 @@ func TestServeHTTPInvalidSOAPEnvelope(t *testing.T) {
   <xml>not soap</xml>
 </invalid>`
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(invalidXML))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(invalidXML))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -142,7 +142,7 @@ func TestServeHTTPUnknownAction(t *testing.T) {
   </soap:Body>
 </soap:Envelope>`
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -336,7 +336,7 @@ func TestHandlerWithoutAuthentication(t *testing.T) {
 		return "success", nil
 	})
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -351,7 +351,7 @@ func TestReadRequestBodyError(t *testing.T) {
 	handler := NewHandler("", "")
 
 	// Create a request with a body that will fail to read
-	req := httptest.NewRequest("POST", "/", &failingReader{})
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", &failingReader{})
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -383,7 +383,7 @@ func TestResponseHandling(t *testing.T) {
   </soap:Body>
 </soap:Envelope>`
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -401,7 +401,7 @@ func TestResponseHandling(t *testing.T) {
 func TestEmptyBody(t *testing.T) {
 	handler := NewHandler("", "")
 
-	req := httptest.NewRequest("POST", "/", bytes.NewReader([]byte("")))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", bytes.NewReader([]byte("")))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -425,7 +425,7 @@ func TestContentType(t *testing.T) {
   </soap:Body>
 </soap:Envelope>`
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
 	req.Header.Set("Content-Type", "application/soap+xml")
 	w := httptest.NewRecorder()
 

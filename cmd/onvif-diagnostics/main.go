@@ -1700,7 +1700,7 @@ func writeTarEntry(tarWriter *tar.Writer, sourceDir, path string) error {
 	}
 
 	// Write file content
-	file, err := os.Open(path)
+	file, err := os.Open(path) //nolint:gosec // G304: path is validated from filepath.Walk, not user input
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
