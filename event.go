@@ -12,7 +12,10 @@ import (
 )
 
 // Event service namespace.
-const eventNamespace = "http://www.onvif.org/ver10/events/wsdl"
+const (
+	eventNamespace      = "http://www.onvif.org/ver10/events/wsdl"
+	oasisEventNamespace = "http://docs.oasis-open.org/wsn/b-2"
+)
 
 // Event service errors.
 var (
@@ -216,7 +219,7 @@ func (c *Client) CreatePullPointSubscription(
 
 	req := CreatePullPointSubscription{
 		XmlnsTev:  eventNamespace,
-		XmlnsWsnt: "http://docs.oasis-open.org/wsn/b-2",
+		XmlnsWsnt: oasisEventNamespace,
 	}
 
 	if filter != "" {

@@ -1,7 +1,6 @@
 # onvif-go - ONVIF Client and Server Library for Go
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/0x524a/onvif-go.svg)](https://pkg.go.dev/github.com/0x524a/onvif-go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/0x524a/onvif-go)](https://goreportcard.com/report/github.com/0x524a/onvif-go)
 [![codecov](https://codecov.io/gh/0x524a/onvif-go/branch/master/graph/badge.svg)](https://codecov.io/gh/0x524a/onvif-go)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=0x524a_onvif-go&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=0x524a_onvif-go)
 [![License](https://img.shields.io/github/license/0x524a/onvif-go)](LICENSE)

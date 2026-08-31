@@ -10,7 +10,10 @@ import (
 	"time"
 )
 
-const testEventXMLHeader = `<?xml version="1.0" encoding="UTF-8"?>`
+const (
+	testEventXMLHeader = `<?xml version="1.0" encoding="UTF-8"?>`
+	testEventBroker    = "mqtt"
+)
 
 func newMockEventServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -698,7 +701,7 @@ func TestSplitSpaceSeparated(t *testing.T) {
 		expected []string
 	}{
 		{"", nil},
-		{"mqtt", []string{"mqtt"}},
+		{testEventBroker, []string{testEventBroker}},
 		{"mqtt mqtts", []string{"mqtt", "mqtts"}},
 		{"  mqtt   mqtts  ", []string{"mqtt", "mqtts"}},
 		{"a b c", []string{"a", "b", "c"}},

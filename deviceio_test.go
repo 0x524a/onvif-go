@@ -9,7 +9,11 @@ import (
 	"testing"
 )
 
-const testDeviceIOXMLHeader = `<?xml version="1.0" encoding="UTF-8"?>`
+const (
+	testDeviceIOXMLHeader = `<?xml version="1.0" encoding="UTF-8"?>`
+	testVideoOutputToken  = "testVideoOutputToken"
+	testSerialPortToken   = "testSerialPortToken"
+)
 
 func newMockDeviceIOServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +82,7 @@ func newMockDeviceIOServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tmd:GetVideoOutputsResponse xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl">
-      <tmd:VideoOutputs token="video_out_001">
+      <tmd:VideoOutputs token="testVideoOutputToken">
         <tmd:Layout>
           <tt:Pane xmlns:tt="http://www.onvif.org/ver10/schema" Pane="main">
             <tt:Area bottom="1.0" top="0.0" right="1.0" left="0.0"/>
@@ -100,7 +104,7 @@ func newMockDeviceIOServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tmd:GetSerialPortConfigurationOptionsResponse xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl">
-      <tmd:SerialPortConfigurationOptions token="serial_001">
+      <tmd:SerialPortConfigurationOptions token="testSerialPortToken">
         <tmd:BaudRateList><tmd:Items>9600</tmd:Items><tmd:Items>19200</tmd:Items><tmd:Items>38400</tmd:Items></tmd:BaudRateList>
         <tmd:ParityBitList><tmd:Items>None</tmd:Items><tmd:Items>Odd</tmd:Items><tmd:Items>Even</tmd:Items></tmd:ParityBitList>
         <tmd:CharacterLengthList><tmd:Items>7</tmd:Items><tmd:Items>8</tmd:Items></tmd:CharacterLengthList>
@@ -115,7 +119,7 @@ func newMockDeviceIOServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tmd:GetSerialPortConfigurationResponse xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl">
-      <tmd:SerialPortConfiguration token="serial_001">
+      <tmd:SerialPortConfiguration token="testSerialPortToken">
         <tmd:Type>RS232</tmd:Type>
         <tmd:BaudRate>9600</tmd:BaudRate>
         <tmd:ParityBit>None</tmd:ParityBit>
@@ -131,7 +135,7 @@ func newMockDeviceIOServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tmd:GetSerialPortsResponse xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl">
-      <tmd:SerialPorts token="serial_001">
+      <tmd:SerialPorts token="testSerialPortToken">
         <tmd:Type>RS232</tmd:Type>
       </tmd:SerialPorts>
       <tmd:SerialPorts token="serial_002">
@@ -168,7 +172,7 @@ func newMockDeviceIOServer() *httptest.Server {
     <tmd:GetVideoOutputConfigurationOptionsResponse xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl">
       <tmd:VideoOutputConfigurationOptions>
         <tmd:Name Min="1" Max="64"/>
-        <tmd:OutputTokensAvailable>video_out_001</tmd:OutputTokensAvailable>
+        <tmd:OutputTokensAvailable>testVideoOutputToken</tmd:OutputTokensAvailable>
         <tmd:OutputTokensAvailable>video_out_002</tmd:OutputTokensAvailable>
       </tmd:VideoOutputConfigurationOptions>
     </tmd:GetVideoOutputConfigurationOptionsResponse>
@@ -183,7 +187,7 @@ func newMockDeviceIOServer() *httptest.Server {
       <tmd:VideoOutputConfiguration token="config_001">
         <tmd:Name>Main Output</tmd:Name>
         <tmd:UseCount>2</tmd:UseCount>
-        <tmd:OutputToken>video_out_001</tmd:OutputToken>
+        <tmd:OutputToken>testVideoOutputToken</tmd:OutputToken>
       </tmd:VideoOutputConfiguration>
     </tmd:GetVideoOutputConfigurationResponse>
   </SOAP-ENV:Body>
@@ -416,8 +420,8 @@ func TestGetVideoOutputs(t *testing.T) {
 		t.Fatalf("Expected 1 video output, got %d", len(outputs))
 	}
 
-	if outputs[0].Token != "video_out_001" {
-		t.Errorf("Expected video output token 'video_out_001', got '%s'", outputs[0].Token)
+	if outputs[0].Token != testVideoOutputToken {
+		t.Errorf("Expected video output token 'testVideoOutputToken', got '%s'", outputs[0].Token)
 	}
 
 	if outputs[0].Resolution == nil {
@@ -460,8 +464,8 @@ func TestGetSerialPorts(t *testing.T) {
 		t.Fatalf("Expected 2 serial ports, got %d", len(ports))
 	}
 
-	if ports[0].Token != "serial_001" {
-		t.Errorf("Expected first serial port token 'serial_001', got '%s'", ports[0].Token)
+	if ports[0].Token != testSerialPortToken {
+		t.Errorf("Expected first serial port token 'testSerialPortToken', got '%s'", ports[0].Token)
 	}
 
 	if ports[0].Type != SerialPortTypeRS232 {
@@ -483,13 +487,13 @@ func TestGetSerialPortConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetSerialPortConfiguration(ctx, "serial_001")
+	config, err := client.GetSerialPortConfiguration(ctx, testSerialPortToken)
 	if err != nil {
 		t.Fatalf("GetSerialPortConfiguration failed: %v", err)
 	}
 
-	if config.Token != "serial_001" {
-		t.Errorf("Expected token 'serial_001', got '%s'", config.Token)
+	if config.Token != testSerialPortToken {
+		t.Errorf("Expected token 'testSerialPortToken', got '%s'", config.Token)
 	}
 
 	if config.Type != SerialPortTypeRS232 {
@@ -539,7 +543,7 @@ func TestGetSerialPortConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetSerialPortConfigurationOptions(ctx, "serial_001")
+	options, err := client.GetSerialPortConfigurationOptions(ctx, testSerialPortToken)
 	if err != nil {
 		t.Fatalf("GetSerialPortConfigurationOptions failed: %v", err)
 	}
@@ -589,7 +593,7 @@ func TestSetSerialPortConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := &SerialPortConfiguration{
-		Token:           "serial_001",
+		Token:           testSerialPortToken,
 		Type:            SerialPortTypeRS232,
 		BaudRate:        19200,
 		ParityBit:       ParityNone,
@@ -639,7 +643,7 @@ func TestSendReceiveSerialCommand(t *testing.T) {
 
 	ctx := context.Background()
 
-	response, err := client.SendReceiveSerialCommand(ctx, "serial_001", []byte("HELLO"), 5, 10)
+	response, err := client.SendReceiveSerialCommand(ctx, testSerialPortToken, []byte("HELLO"), 5, 10)
 	if err != nil {
 		t.Fatalf("SendReceiveSerialCommand failed: %v", err)
 	}
@@ -667,7 +671,7 @@ func TestSendReceiveSerialCommandValidation(t *testing.T) {
 	}
 
 	// Test empty data.
-	_, err = client.SendReceiveSerialCommand(ctx, "serial_001", []byte{}, 5, 10)
+	_, err = client.SendReceiveSerialCommand(ctx, testSerialPortToken, []byte{}, 5, 10)
 	if !errors.Is(err, ErrInvalidSerialData) {
 		t.Errorf("Expected ErrInvalidSerialData, got %v", err)
 	}
@@ -733,7 +737,7 @@ func TestGetVideoOutputConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetVideoOutputConfiguration(ctx, "video_out_001")
+	config, err := client.GetVideoOutputConfiguration(ctx, testVideoOutputToken)
 	if err != nil {
 		t.Fatalf("GetVideoOutputConfiguration failed: %v", err)
 	}
@@ -750,8 +754,8 @@ func TestGetVideoOutputConfiguration(t *testing.T) {
 		t.Errorf("Expected use count 2, got %d", config.UseCount)
 	}
 
-	if config.OutputToken != "video_out_001" {
-		t.Errorf("Expected output token 'video_out_001', got '%s'", config.OutputToken)
+	if config.OutputToken != testVideoOutputToken {
+		t.Errorf("Expected output token 'testVideoOutputToken', got '%s'", config.OutputToken)
 	}
 }
 
@@ -781,7 +785,7 @@ func TestGetVideoOutputConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetVideoOutputConfigurationOptions(ctx, "video_out_001")
+	options, err := client.GetVideoOutputConfigurationOptions(ctx, testVideoOutputToken)
 	if err != nil {
 		t.Fatalf("GetVideoOutputConfigurationOptions failed: %v", err)
 	}
@@ -830,7 +834,7 @@ func TestSetVideoOutputConfiguration(t *testing.T) {
 		Token:            "config_001",
 		Name:             "Main Output",
 		UseCount:         2,
-		OutputToken:      "video_out_001",
+		OutputToken:      testVideoOutputToken,
 		ForcePersistence: true,
 	}
 

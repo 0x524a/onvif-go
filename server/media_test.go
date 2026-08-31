@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+// Shared test literals reused across media_test.go, server_test.go, and
+// types_test.go in this package.
+const (
+	testProfileName1   = "Profile 1"
+	testVideoSourceTok = "vs_1"
+	testZeroWidthName  = "Zero width"
+	testInvalidToken   = "invalid-token"
+	testPTZNodeToken   = "ptz_node"
+)
+
 func TestHandleGetProfiles(t *testing.T) {
 	config := createTestConfig()
 	server, _ := New(config)
@@ -130,12 +140,12 @@ func TestHandleGetVideoSources(t *testing.T) {
 
 func TestMediaProfileStructure(t *testing.T) {
 	profile := MediaProfile{
-		Token: "profile_1",
+		Token: defaultProfileToken,
 		Fixed: true,
-		Name:  "Profile 1",
+		Name:  testProfileName1,
 		VideoSourceConfiguration: &VideoSourceConfiguration{
-			Token:       "vs_1",
-			SourceToken: "vs_1",
+			Token:       testVideoSourceTok,
+			SourceToken: testVideoSourceTok,
 			Bounds: IntRectangle{
 				X:      0,
 				Y:      0,
@@ -145,7 +155,7 @@ func TestMediaProfileStructure(t *testing.T) {
 		},
 		VideoEncoderConfiguration: &VideoEncoderConfiguration{
 			Token:    "ve_1",
-			Encoding: "H264",
+			Encoding: h264,
 			Resolution: VideoResolution{
 				Width:  1920,
 				Height: 1080,
@@ -200,8 +210,8 @@ func TestGetProfilesResponseXML(t *testing.T) {
 	resp := &GetProfilesResponse{
 		Profiles: []MediaProfile{
 			{
-				Token: "profile_1",
-				Name:  "Profile 1",
+				Token: defaultProfileToken,
+				Name:  testProfileName1,
 			},
 		},
 	}
@@ -220,7 +230,7 @@ func TestGetProfilesResponseXML(t *testing.T) {
 	if !contains(xmlStr, "Profiles") {
 		t.Error("Profiles element not in XML")
 	}
-	if !contains(xmlStr, "profile_1") {
+	if !contains(xmlStr, defaultProfileToken) {
 		t.Error("Profile token not in XML")
 	}
 }
@@ -237,7 +247,7 @@ func TestIntRectangle(t *testing.T) {
 			expectValid: true,
 		},
 		{
-			name:        "Zero width",
+			name:        testZeroWidthName,
 			rect:        IntRectangle{X: 0, Y: 0, Width: 0, Height: 100},
 			expectValid: false,
 		},
@@ -290,7 +300,7 @@ func TestVideoResolution(t *testing.T) {
 			expectValid: true,
 		},
 		{
-			name:        "Zero width",
+			name:        testZeroWidthName,
 			resolution:  VideoResolution{Width: 0, Height: 1080},
 			expectValid: false,
 		},

@@ -11,7 +11,6 @@ import (
 // constants avoids goconst churn from the many happy-path/fault-path test pairs that reference
 // the same tokens.
 const (
-	testProfileToken      = "Profile1"
 	testVideoSrcCfgToken  = "VideoSrcCfg1"
 	testVideoSourceToken  = "VideoSource1"
 	testAudioSrcCfgToken  = "AudioSrcCfg1"
