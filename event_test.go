@@ -67,16 +67,18 @@ func newMockEventServer() *httptest.Server {
         <wsnt:ProducerReference>
           <wsa:Address xmlns:wsa="http://www.w3.org/2005/08/addressing">http://192.168.1.100</wsa:Address>
         </wsnt:ProducerReference>
-        <wsnt:Message PropertyOperation="Changed" UtcTime="2025-01-15T10:29:55Z">
-          <tt:Source xmlns:tt="http://www.onvif.org/ver10/schema">
-            <tt:SimpleItem Name="VideoSourceToken" Value="video_src_001"/>
-          </tt:Source>
-          <tt:Key xmlns:tt="http://www.onvif.org/ver10/schema">
-            <tt:SimpleItem Name="RuleToken" Value="rule_001"/>
-          </tt:Key>
-          <tt:Data xmlns:tt="http://www.onvif.org/ver10/schema">
-            <tt:SimpleItem Name="State" Value="true"/>
-          </tt:Data>
+        <wsnt:Message>
+          <tt:Message xmlns:tt="http://www.onvif.org/ver10/schema" PropertyOperation="Changed" UtcTime="2025-01-15T10:29:55Z">
+            <tt:Source>
+              <tt:SimpleItem Name="VideoSourceToken" Value="video_src_001"/>
+            </tt:Source>
+            <tt:Key>
+              <tt:SimpleItem Name="RuleToken" Value="rule_001"/>
+            </tt:Key>
+            <tt:Data>
+              <tt:SimpleItem Name="State" Value="true"/>
+            </tt:Data>
+          </tt:Message>
         </wsnt:Message>
       </wsnt:NotificationMessage>
     </tev:PullMessagesResponse>
