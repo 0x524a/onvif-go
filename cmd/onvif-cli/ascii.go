@@ -185,16 +185,16 @@ func FormatASCIIOutput(ascii string, imageInfo ImageInfo) string {
 
 	// Image info
 	if imageInfo.Width > 0 && imageInfo.Height > 0 {
-		result.WriteString(fmt.Sprintf("📊 Original: %dx%d pixels\n", imageInfo.Width, imageInfo.Height))
+		fmt.Fprintf(&result, "📊 Original: %dx%d pixels\n", imageInfo.Width, imageInfo.Height)
 	}
 	if imageInfo.SizeBytes > 0 {
-		result.WriteString(fmt.Sprintf("💾 Size: %s\n", formatBytes(imageInfo.SizeBytes)))
+		fmt.Fprintf(&result, "💾 Size: %s\n", formatBytes(imageInfo.SizeBytes))
 	}
 	if imageInfo.CaptureTime != "" {
-		result.WriteString(fmt.Sprintf("⏱️  Captured: %s\n", imageInfo.CaptureTime))
+		fmt.Fprintf(&result, "⏱️  Captured: %s\n", imageInfo.CaptureTime)
 	}
 	if imageInfo.Format != "" {
-		result.WriteString(fmt.Sprintf("📁 Format: %s\n", imageInfo.Format))
+		fmt.Fprintf(&result, "📁 Format: %s\n", imageInfo.Format)
 	}
 	result.WriteString("\n")
 

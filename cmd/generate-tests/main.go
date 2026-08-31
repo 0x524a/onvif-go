@@ -882,16 +882,16 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 	var sb strings.Builder
 
 	sb.WriteString("# ONVIF Operation Coverage Report\n\n")
-	sb.WriteString(fmt.Sprintf("Generated: %s\n\n", time.Now().Format("2006-01-02 15:04:05")))
+	fmt.Fprintf(&sb, "Generated: %s\n\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	// Summary
 	sb.WriteString("## Summary\n\n")
-	sb.WriteString(fmt.Sprintf("- **Total Cameras**: %d\n", len(registry.Cameras)))
+	fmt.Fprintf(&sb, "- **Total Cameras**: %d\n", len(registry.Cameras))
 
 	total, captured := registry.GetTotalCoverage()
 	if total > 0 {
-		sb.WriteString(fmt.Sprintf("- **Overall Coverage**: %.1f%% (%d/%d operations)\n\n",
-			float64(captured)/float64(total)*percentScale, captured, total))
+		fmt.Fprintf(&sb, "- **Overall Coverage**: %.1f%% (%d/%d operations)\n\n",
+			float64(captured)/float64(total)*percentScale, captured, total)
 	}
 
 	// Cameras
@@ -903,8 +903,8 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 		for i := range registry.Cameras {
 			cam := &registry.Cameras[i]
 			caps := strings.Join(cam.Capabilities, ", ")
-			sb.WriteString(fmt.Sprintf("| %s | %s | %s | %d | %s |\n",
-				cam.Manufacturer, cam.Model, cam.Firmware, cam.OperationsCaptured, caps))
+			fmt.Fprintf(&sb, "| %s | %s | %s | %d | %s |\n",
+				cam.Manufacturer, cam.Model, cam.Firmware, cam.OperationsCaptured, caps)
 		}
 		sb.WriteString("\n")
 	}
@@ -922,8 +922,8 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 				if cov.Total > 0 {
 					pct = float64(cov.Captured) / float64(cov.Total) * percentScale
 				}
-				sb.WriteString(fmt.Sprintf("| %s | %d | %d | %.1f%% |\n",
-					service, cov.Total, cov.Captured, pct))
+				fmt.Fprintf(&sb, "| %s | %d | %d | %.1f%% |\n",
+					service, cov.Total, cov.Captured, pct)
 			}
 		}
 		sb.WriteString("\n")
@@ -932,13 +932,13 @@ func generateCoverageMarkdown(registry *onviftesting.Registry) string {
 	// Missing operations
 	sb.WriteString("## Operation Specifications\n\n")
 	opCounts := onviftesting.GetOperationCount()
-	sb.WriteString(fmt.Sprintf("- Device: %d operations defined\n", opCounts.Device))
-	sb.WriteString(fmt.Sprintf("- Media: %d operations defined\n", opCounts.Media))
-	sb.WriteString(fmt.Sprintf("- PTZ: %d operations defined\n", opCounts.PTZ))
-	sb.WriteString(fmt.Sprintf("- Imaging: %d operations defined\n", opCounts.Imaging))
-	sb.WriteString(fmt.Sprintf("- Event: %d operations defined\n", opCounts.Event))
-	sb.WriteString(fmt.Sprintf("- DeviceIO: %d operations defined\n", opCounts.DeviceIO))
-	sb.WriteString(fmt.Sprintf("\n**Total**: %d read-only operations tracked\n", opCounts.Total))
+	fmt.Fprintf(&sb, "- Device: %d operations defined\n", opCounts.Device)
+	fmt.Fprintf(&sb, "- Media: %d operations defined\n", opCounts.Media)
+	fmt.Fprintf(&sb, "- PTZ: %d operations defined\n", opCounts.PTZ)
+	fmt.Fprintf(&sb, "- Imaging: %d operations defined\n", opCounts.Imaging)
+	fmt.Fprintf(&sb, "- Event: %d operations defined\n", opCounts.Event)
+	fmt.Fprintf(&sb, "- DeviceIO: %d operations defined\n", opCounts.DeviceIO)
+	fmt.Fprintf(&sb, "\n**Total**: %d read-only operations tracked\n", opCounts.Total)
 
 	return sb.String()
 }
