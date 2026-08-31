@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -27,12 +28,12 @@ func newMockDeviceStorageServer() *httptest.Server {
 
 		switch {
 		case strings.Contains(requestBody, "GetStorageConfigurations"):
-			response = `<?xml version="1.0" encoding="UTF-8"?>
+			response = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetStorageConfigurationsResponse>
-      <tds:StorageConfigurations token="testStorageToken">
-        <tt:Data type="testStorageType">
+      <tds:StorageConfigurations token="%s">
+        <tt:Data type="%s">
           <tt:LocalPath>/var/media/storage1</tt:LocalPath>
           <tt:StorageUri>file:///var/media/storage1</tt:StorageUri>
         </tt:Data>
@@ -45,22 +46,22 @@ func newMockDeviceStorageServer() *httptest.Server {
       </tds:StorageConfigurations>
     </tds:GetStorageConfigurationsResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`
+</SOAP-ENV:Envelope>`, testStorageToken, testStorageType)
 
 		case strings.Contains(requestBody, "GetStorageConfiguration"):
-			response = `<?xml version="1.0" encoding="UTF-8"?>
+			response = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetStorageConfigurationResponse>
-      <tds:StorageConfiguration token="testStorageToken">
-        <tt:Data type="testStorageType">
+      <tds:StorageConfiguration token="%s">
+        <tt:Data type="%s">
           <tt:LocalPath>/var/media/storage1</tt:LocalPath>
           <tt:StorageUri>file:///var/media/storage1</tt:StorageUri>
         </tt:Data>
       </tds:StorageConfiguration>
     </tds:GetStorageConfigurationResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`
+</SOAP-ENV:Envelope>`, testStorageToken, testStorageType)
 
 		case strings.Contains(requestBody, "CreateStorageConfiguration"):
 			response = `<?xml version="1.0" encoding="UTF-8"?>
@@ -131,16 +132,16 @@ func TestGetStorageConfigurations(t *testing.T) {
 		t.Fatalf("Expected 2 storage configurations, got %d", len(configs))
 	}
 
-	if configs[0].Token != "testStorageToken" {
-		t.Errorf("Expected first config token 'testStorageToken', got '%s'", configs[0].Token)
+	if configs[0].Token != testStorageToken {
+		t.Errorf("Expected first config token '%s', got '%s'", testStorageToken, configs[0].Token)
 	}
 
 	if configs[0].Data.LocalPath != "/var/media/storage1" {
 		t.Errorf("Expected first config path '/var/media/storage1', got '%s'", configs[0].Data.LocalPath)
 	}
 
-	if configs[0].Data.Type != "testStorageType" {
-		t.Errorf("Expected first config type 'testStorageType', got '%s'", configs[0].Data.Type)
+	if configs[0].Data.Type != testStorageType {
+		t.Errorf("Expected first config type '%s', got '%s'", testStorageType, configs[0].Data.Type)
 	}
 
 	if configs[1].Token != "storage-002" {
@@ -162,13 +163,13 @@ func TestGetStorageConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	config, err := client.GetStorageConfiguration(ctx, "testStorageToken")
+	config, err := client.GetStorageConfiguration(ctx, testStorageToken)
 	if err != nil {
 		t.Fatalf("GetStorageConfiguration failed: %v", err)
 	}
 
-	if config.Token != "testStorageToken" {
-		t.Errorf("Expected config token 'testStorageToken', got '%s'", config.Token)
+	if config.Token != testStorageToken {
+		t.Errorf("Expected config token '%s', got '%s'", testStorageToken, config.Token)
 	}
 
 	if config.Data.LocalPath != "/var/media/storage1" {
@@ -179,8 +180,8 @@ func TestGetStorageConfiguration(t *testing.T) {
 		t.Errorf("Expected config URI 'file:///var/media/storage1', got '%s'", config.Data.StorageURI)
 	}
 
-	if config.Data.Type != "testStorageType" {
-		t.Errorf("Expected config type 'testStorageType', got '%s'", config.Data.Type)
+	if config.Data.Type != testStorageType {
+		t.Errorf("Expected config type '%s', got '%s'", testStorageType, config.Data.Type)
 	}
 }
 
@@ -277,11 +278,11 @@ func TestSetStorageConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := &StorageConfiguration{
-		Token: "testStorageToken",
+		Token: testStorageToken,
 		Data: StorageConfigurationData{
 			LocalPath:  "/var/media/updated",
 			StorageURI: "file:///var/media/updated",
-			Type:       "testStorageType",
+			Type:       testStorageType,
 		},
 	}
 
@@ -319,11 +320,11 @@ func TestSetStorageConfigurationWireFormat(t *testing.T) {
 	}
 
 	config := &StorageConfiguration{
-		Token: "testStorageToken",
+		Token: testStorageToken,
 		Data: StorageConfigurationData{
 			LocalPath:  "/var/media/updated",
 			StorageURI: "file:///var/media/updated",
-			Type:       "testStorageType",
+			Type:       testStorageType,
 		},
 	}
 
@@ -332,8 +333,8 @@ func TestSetStorageConfigurationWireFormat(t *testing.T) {
 	}
 
 	for _, want := range []string{
-		`token="testStorageToken"`,
-		`type="testStorageType"`,
+		fmt.Sprintf("token=%q", testStorageToken),
+		fmt.Sprintf("type=%q", testStorageType),
 		"<StorageUri>file:///var/media/updated</StorageUri>",
 	} {
 		if !strings.Contains(requestBody, want) {

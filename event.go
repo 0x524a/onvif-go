@@ -13,8 +13,8 @@ import (
 
 // Event service namespace.
 const (
-	eventNamespace                  = "http://www.onvif.org/ver10/events/wsdl"
-	oasisEventNamespace             = "http://docs.oasis-open.org/wsn/b-2"
+	eventNamespace      = "http://www.onvif.org/ver10/events/wsdl"
+	oasisEventNamespace = "http://docs.oasis-open.org/wsn/b-2"
 )
 
 // Event service errors.

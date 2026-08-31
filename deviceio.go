@@ -11,8 +11,8 @@ import (
 
 // Device IO service namespace.
 const (
-	deviceIONamespace     = "http://www.onvif.org/ver10/deviceIO/wsdl"
-	onvifSchemaNamespace  = "http://www.onvif.org/ver10/schema"
+	deviceIONamespace    = "http://www.onvif.org/ver10/deviceIO/wsdl"
+	onvifSchemaNamespace = "http://www.onvif.org/ver10/schema"
 )
 
 // Device IO service errors.

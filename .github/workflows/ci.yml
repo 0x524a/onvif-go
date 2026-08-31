@@ -193,7 +193,13 @@ jobs:
           fi
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216 # v3.1.0
+        # sonarcloud-github-action is deprecated in favor of this action, which
+        # is what both SonarCloud and self-hosted SonarQube now use. Needed the
+        # switch anyway: v3.1.0's bundled scanner CLI requires Java 17, which
+        # SonarCloud's server no longer accepts ("Java 17 is not supported.
+        # Please upgrade to Java 21 or newer"). This one defaults to a scanner
+        # built against a current JRE.
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
