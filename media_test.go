@@ -390,16 +390,16 @@ func TestGetVideoEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetVideoEncoderConfiguration(ctx, "VideoEnc1")
+	config, err := client.GetVideoEncoderConfiguration(ctx, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("GetVideoEncoderConfiguration() failed: %v", err)
 	}
 
-	if config.Token != "VideoEnc1" {
+	if config.Token != testVideoEncToken {
 		t.Errorf("Expected token VideoEnc1, got %s", config.Token)
 	}
 
-	if config.Encoding != "H264" {
+	if config.Encoding != encodingH264 {
 		t.Errorf("Expected encoding H264, got %s", config.Encoding)
 	}
 }
@@ -420,9 +420,9 @@ func TestSetVideoEncoderConfiguration(t *testing.T) {
 
 	ctx := context.Background()
 	config := &VideoEncoderConfiguration{
-		Token:    "VideoEnc1",
+		Token:    testVideoEncToken,
 		Name:     "H264 Config",
-		Encoding: "H264",
+		Encoding: encodingH264,
 		Resolution: &VideoResolution{
 			Width:  1920,
 			Height: 1080,
@@ -511,7 +511,7 @@ func TestGetVideoEncoderConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetVideoEncoderConfigurationOptions(ctx, "VideoEnc1")
+	options, err := client.GetVideoEncoderConfigurationOptions(ctx, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("GetVideoEncoderConfigurationOptions() failed: %v", err)
 	}
@@ -553,16 +553,16 @@ func TestGetAudioEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetAudioEncoderConfiguration(ctx, "AudioEnc1")
+	config, err := client.GetAudioEncoderConfiguration(ctx, testAudioEncToken)
 	if err != nil {
 		t.Fatalf("GetAudioEncoderConfiguration() failed: %v", err)
 	}
 
-	if config.Token != "AudioEnc1" {
+	if config.Token != testAudioEncToken {
 		t.Errorf("Expected token AudioEnc1, got %s", config.Token)
 	}
 
-	if config.Encoding != "AAC" {
+	if config.Encoding != testEncodingAAC {
 		t.Errorf("Expected encoding AAC, got %s", config.Encoding)
 	}
 }
@@ -583,9 +583,9 @@ func TestSetAudioEncoderConfiguration(t *testing.T) {
 
 	ctx := context.Background()
 	config := &AudioEncoderConfiguration{
-		Token:      "AudioEnc1",
+		Token:      testAudioEncToken,
 		Name:       "AAC Config",
-		Encoding:   "AAC",
+		Encoding:   testEncodingAAC,
 		Bitrate:    128000,
 		SampleRate: 48000,
 	}
@@ -959,7 +959,7 @@ func TestAddVideoEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddVideoEncoderConfiguration(ctx, "Profile1", "VideoEnc1")
+	err = client.AddVideoEncoderConfiguration(ctx, "Profile1", testVideoEncToken)
 	if err != nil {
 		t.Fatalf("AddVideoEncoderConfiguration() failed: %v", err)
 	}
@@ -1001,7 +1001,7 @@ func TestAddAudioEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddAudioEncoderConfiguration(ctx, "Profile1", "AudioEnc1")
+	err = client.AddAudioEncoderConfiguration(ctx, "Profile1", testAudioEncToken)
 	if err != nil {
 		t.Fatalf("AddAudioEncoderConfiguration() failed: %v", err)
 	}
@@ -1226,7 +1226,7 @@ func TestGetAudioEncoderConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetAudioEncoderConfigurationOptions(ctx, "AudioEnc1", "")
+	options, err := client.GetAudioEncoderConfigurationOptions(ctx, testAudioEncToken, "")
 	if err != nil {
 		t.Fatalf("GetAudioEncoderConfigurationOptions() failed: %v", err)
 	}
@@ -1439,7 +1439,7 @@ func TestGetGuaranteedNumberOfVideoEncoderInstances(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	instances, err := client.GetGuaranteedNumberOfVideoEncoderInstances(ctx, "VideoEnc1")
+	instances, err := client.GetGuaranteedNumberOfVideoEncoderInstances(ctx, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("GetGuaranteedNumberOfVideoEncoderInstances() failed: %v", err)
 	}
