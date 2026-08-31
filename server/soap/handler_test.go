@@ -2,6 +2,7 @@ package soap
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/xml"
@@ -13,6 +14,21 @@ import (
 )
 
 const testXMLHeader = `<?xml version="1.0"?>`
+
+const testResultSuccess = "Success"
+
+const (
+	testNonce   = "test_nonce_12345"
+	testCreated = "2024-01-01T00:00:00Z"
+)
+
+// testActionResponse is the response body shared by the handler tests. It has to
+// be a struct rather than a map: encoding/xml cannot marshal maps, so a map would
+// surface as a Receiver fault instead of reaching any assertion.
+type testActionResponse struct {
+	XMLName xml.Name `xml:"TestActionResponse"`
+	Result  string   `xml:"Result"`
+}
 
 func TestNewHandler(t *testing.T) {
 	handler := NewHandler("admin", "password")
@@ -65,12 +81,12 @@ func TestServeHTTPValidSOAPRequest(t *testing.T) {
 
 	// Create test handler
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
-		return map[string]string{"Result": "Success"}, nil
+		return &testActionResponse{Result: testResultSuccess}, nil
 	})
 
 	// Create SOAP request
 	soapBody := testXMLHeader + `
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <TestAction/>
   </soap:Body>
@@ -81,8 +97,19 @@ func TestServeHTTPValidSOAPRequest(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	if w.Code == http.StatusInternalServerError {
-		t.Errorf("Handler returned error: %s", w.Body.String())
+	// Assert the registered handler was actually reached. Checking only for
+	// "not 500" passed while the request was being rejected as a 400 fault.
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	body := w.Body.String()
+	if !strings.Contains(body, "TestActionResponse") {
+		t.Errorf("Response should contain TestActionResponse element, got: %s", body)
+	}
+
+	if strings.Contains(body, "Fault") {
+		t.Errorf("Response should not be a SOAP fault, got: %s", body)
 	}
 }
 
@@ -109,7 +136,7 @@ func TestServeHTTPUnknownAction(t *testing.T) {
 	handler := NewHandler("", "")
 
 	soapBody := `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <UnknownAction/>
   </soap:Body>
@@ -136,7 +163,7 @@ func TestExtractAction(t *testing.T) {
 		{
 			name: "Simple action",
 			soapBody: `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <GetDeviceInformation/>
   </soap:Body>
@@ -146,7 +173,7 @@ func TestExtractAction(t *testing.T) {
 		{
 			name: "Action with namespace",
 			soapBody: `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <tds:GetDeviceInformation xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
   </soap:Body>
@@ -156,7 +183,7 @@ func TestExtractAction(t *testing.T) {
 		{
 			name: "Action with attributes",
 			soapBody: `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <GetProfiles>
       <param>value</param>
@@ -212,11 +239,7 @@ func TestSendResponse(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	response := map[string]string{
-		"Result": "Success",
-	}
-
-	handler.sendResponse(w, response)
+	handler.sendResponse(w, &testActionResponse{Result: testResultSuccess})
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -228,30 +251,27 @@ func TestSendResponse(t *testing.T) {
 	}
 }
 
-func TestAuthenticate(t *testing.T) {
-	handler := NewHandler("admin", "password")
-
-	// Create a proper WS-Security header
-	nonce := "test_nonce_12345"
-	created := "2024-01-01T00:00:00Z"
-
-	// Calculate digest
+// securitySOAPRequest builds a SOAP request carrying a WS-Security UsernameToken.
+// The digest is computed over digestPassword, so a caller can send either a
+// correct digest or a deliberately wrong one.
+func securitySOAPRequest(username, digestPassword, nonce, created string) string {
 	hash := sha1.New()
 	hash.Write([]byte(nonce))
 	hash.Write([]byte(created))
-	hash.Write([]byte("password"))
+	hash.Write([]byte(digestPassword))
 	digest := base64.StdEncoding.EncodeToString(hash.Sum(nil))
 
-	soapBody := `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+	return testXMLHeader + `
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+               xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+               xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
   <soap:Header>
     <wsse:Security>
       <wsse:UsernameToken>
-        <wsse:Username>admin</wsse:Username>
+        <wsse:Username>` + username + `</wsse:Username>
         <wsse:Password>` + digest + `</wsse:Password>
         <wsse:Nonce>` + base64.StdEncoding.EncodeToString([]byte(nonce)) + `</wsse:Nonce>
-        <wsse:Created>` + created + `</wsse:Created>
+        <wsu:Created>` + created + `</wsu:Created>
       </wsse:UsernameToken>
     </wsse:Security>
   </soap:Header>
@@ -259,59 +279,40 @@ func TestAuthenticate(t *testing.T) {
     <TestAction/>
   </soap:Body>
 </soap:Envelope>`
+}
 
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
-	w := httptest.NewRecorder()
-
+func TestAuthenticate(t *testing.T) {
+	handler := NewHandler("admin", "password")
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
-		return "authenticated", nil
+		return &testActionResponse{Result: testResultSuccess}, nil
 	})
+
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/",
+		strings.NewReader(securitySOAPRequest("admin", "password", testNonce, testCreated)))
+	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	// Should succeed or indicate authentication was checked
-	if w.Code == http.StatusInternalServerError && strings.Contains(w.Body.String(), "Authentication") {
-		t.Logf("Authentication check passed (expected behavior)")
+	// A correct digest must actually authenticate. The previous version only
+	// logged inside a conditional, so it could never fail.
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200 for a valid digest, got %d: %s", w.Code, w.Body.String())
+	}
+
+	if strings.Contains(w.Body.String(), "Fault") {
+		t.Errorf("Valid credentials should not produce a fault, got: %s", w.Body.String())
 	}
 }
 
 func TestAuthenticateFailsWithWrongPassword(t *testing.T) {
 	handler := NewHandler("admin", "correct_password")
-
-	// Calculate digest with wrong password
-	nonce := "test_nonce_12345"
-	created := "2024-01-01T00:00:00Z"
-
-	hash := sha1.New()
-	hash.Write([]byte(nonce))
-	hash.Write([]byte(created))
-	hash.Write([]byte("wrong_password")) // Wrong password
-	digest := base64.StdEncoding.EncodeToString(hash.Sum(nil))
-
-	soapBody := `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-  <soap:Header>
-    <wsse:Security>
-      <wsse:UsernameToken>
-        <wsse:Username>admin</wsse:Username>
-        <wsse:Password>` + digest + `</wsse:Password>
-        <wsse:Nonce>` + base64.StdEncoding.EncodeToString([]byte(nonce)) + `</wsse:Nonce>
-        <wsse:Created>` + created + `</wsse:Created>
-      </wsse:UsernameToken>
-    </wsse:Security>
-  </soap:Header>
-  <soap:Body>
-    <TestAction/>
-  </soap:Body>
-</soap:Envelope>`
-
-	req := httptest.NewRequest("POST", "/", strings.NewReader(soapBody))
-	w := httptest.NewRecorder()
-
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
-		return "should not reach here", nil
+		return &testActionResponse{Result: "should not reach here"}, nil
 	})
+
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/",
+		strings.NewReader(securitySOAPRequest("admin", "wrong_password", testNonce, testCreated)))
+	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
@@ -325,7 +326,7 @@ func TestHandlerWithoutAuthentication(t *testing.T) {
 	handler := NewHandler("", "") // No authentication
 
 	soapBody := testXMLHeader + `
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <TestAction/>
   </soap:Body>
@@ -371,17 +372,12 @@ func (f *failingReader) Read(p []byte) (n int, err error) {
 func TestResponseHandling(t *testing.T) {
 	handler := NewHandler("", "")
 
-	type TestResponse struct {
-		XMLName xml.Name `xml:"TestActionResponse"`
-		Result  string   `xml:"Result"`
-	}
-
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
-		return &TestResponse{Result: "Success"}, nil
+		return &testActionResponse{Result: testResultSuccess}, nil
 	})
 
 	soapBody := `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <TestAction/>
   </soap:Body>
@@ -423,7 +419,7 @@ func TestContentType(t *testing.T) {
 	})
 
 	soapBody := `<?xml version="1.0"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>
     <TestAction/>
   </soap:Body>
