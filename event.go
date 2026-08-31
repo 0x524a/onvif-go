@@ -307,17 +307,22 @@ func (c *Client) PullMessages(
 				Address string `xml:"Address"`
 			} `xml:"ProducerReference"`
 			Message struct {
-				PropertyOperation string `xml:"PropertyOperation,attr"`
-				UtcTime           string `xml:"UtcTime,attr"`
-				Source            struct {
-					SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-				} `xml:"Source"`
-				Key struct {
-					SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-				} `xml:"Key"`
-				Data struct {
-					SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-				} `xml:"Data"`
+				// wsnt:Message is a wrapper (b-2.xsd declares it as xsd:any with
+				// no attributes); the ONVIF tt:Message inside it carries the
+				// attributes and the item lists.
+				Inner struct {
+					PropertyOperation string `xml:"PropertyOperation,attr"`
+					UtcTime           string `xml:"UtcTime,attr"`
+					Source            struct {
+						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
+					} `xml:"Source"`
+					Key struct {
+						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
+					} `xml:"Key"`
+					Data struct {
+						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
+					} `xml:"Data"`
+				} `xml:"Message"`
 			} `xml:"Message"`
 		} `xml:"NotificationMessage"`
 	}
@@ -345,29 +350,29 @@ func (c *Client) PullMessages(
 			ProducerAddress: nm.ProducerReference.Address,
 		}
 
-		msg.Message.PropertyOperation = nm.Message.PropertyOperation
+		msg.Message.PropertyOperation = nm.Message.Inner.PropertyOperation
 
-		if nm.Message.UtcTime != "" {
-			if t, err := time.Parse(time.RFC3339, nm.Message.UtcTime); err == nil {
+		if nm.Message.Inner.UtcTime != "" {
+			if t, err := time.Parse(time.RFC3339, nm.Message.Inner.UtcTime); err == nil {
 				msg.Message.UtcTime = t
 			}
 		}
 
 		// Convert source items.
-		msg.Message.Source = make([]SimpleItem, len(nm.Message.Source.SimpleItems))
-		for j, item := range nm.Message.Source.SimpleItems {
+		msg.Message.Source = make([]SimpleItem, len(nm.Message.Inner.Source.SimpleItems))
+		for j, item := range nm.Message.Inner.Source.SimpleItems {
 			msg.Message.Source[j] = SimpleItem(item)
 		}
 
 		// Convert key items.
-		msg.Message.Key = make([]SimpleItem, len(nm.Message.Key.SimpleItems))
-		for j, item := range nm.Message.Key.SimpleItems {
+		msg.Message.Key = make([]SimpleItem, len(nm.Message.Inner.Key.SimpleItems))
+		for j, item := range nm.Message.Inner.Key.SimpleItems {
 			msg.Message.Key[j] = SimpleItem(item)
 		}
 
 		// Convert data items.
-		msg.Message.Data = make([]SimpleItem, len(nm.Message.Data.SimpleItems))
-		for j, item := range nm.Message.Data.SimpleItems {
+		msg.Message.Data = make([]SimpleItem, len(nm.Message.Inner.Data.SimpleItems))
+		for j, item := range nm.Message.Inner.Data.SimpleItems {
 			msg.Message.Data[j] = SimpleItem(item)
 		}
 
