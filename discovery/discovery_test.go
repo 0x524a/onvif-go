@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	testCameraNameScope   = "onvif://www.onvif.org/name/TestCamera"
-	testCameraHardware    = "onvif://www.onvif.org/hardware/Model123"
-	testDiscoveryValue    = "value1"
+	testCameraNameScope = "onvif://www.onvif.org/name/TestCamera"
+	testCameraHardware  = "onvif://www.onvif.org/hardware/Model123"
+	testDiscoveryValue  = "value1"
 )
 
 func TestDevice_GetName(t *testing.T) {
@@ -98,7 +98,7 @@ func TestDevice_GetLocation(t *testing.T) {
 			device: &Device{
 				Scopes: []string{
 					"onvif://www.onvif.org/location/Building1",
-					"testCameraHardware",
+					testCameraHardware,
 				},
 			},
 			want: "Building1",
@@ -107,7 +107,7 @@ func TestDevice_GetLocation(t *testing.T) {
 			name: "device without location in scopes",
 			device: &Device{
 				Scopes: []string{
-					"testCameraHardware",
+					testCameraHardware,
 				},
 			},
 			want: "",
@@ -164,8 +164,8 @@ func TestParseSpaceSeparated(t *testing.T) {
 	}{
 		{
 			name:  "multiple values",
-			input: "testDiscoveryValue value2 value3",
-			want:  []string{"testDiscoveryValue", "value2", "value3"},
+			input: testDiscoveryValue + " value2 value3",
+			want:  []string{testDiscoveryValue, "value2", "value3"},
 		},
 		{
 			name:  "empty string",
@@ -174,8 +174,8 @@ func TestParseSpaceSeparated(t *testing.T) {
 		},
 		{
 			name:  "single value",
-			input: "testDiscoveryValue",
-			want:  []string{"testDiscoveryValue"},
+			input: testDiscoveryValue,
+			want:  []string{testDiscoveryValue},
 		},
 	}
 
@@ -205,9 +205,9 @@ func TestDevice_GetTypes(t *testing.T) {
 
 func TestDevice_GetScopes(t *testing.T) {
 	scopes := []string{
-		"testCameraNameScope",
+		testCameraNameScope,
 		"onvif://www.onvif.org/location/Building1",
-		"testCameraHardware",
+		testCameraHardware,
 	}
 
 	device := &Device{
@@ -236,8 +236,8 @@ func TestDevice_GetScopes(t *testing.T) {
 func BenchmarkDeviceGetName(b *testing.B) {
 	device := &Device{
 		Scopes: []string{
-			"testCameraNameScope",
-			"testCameraHardware",
+			testCameraNameScope,
+			testCameraHardware,
 		},
 	}
 

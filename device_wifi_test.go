@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -58,25 +59,25 @@ func newMockDeviceWiFiServer() *httptest.Server {
 </SOAP-ENV:Envelope>`
 
 		case strings.Contains(requestBody, "GetDot1XConfiguration") && !strings.Contains(requestBody, "GetDot1XConfigurations"):
-			response = `<?xml version="1.0" encoding="UTF-8"?>
+			response = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetDot1XConfigurationResponse>
-      <tds:Dot1XConfiguration token="testDot1XConfigToken">
-        <tt:Dot1XConfigurationToken>testDot1XConfigToken</tt:Dot1XConfigurationToken>
+      <tds:Dot1XConfiguration token="%s">
+        <tt:Dot1XConfigurationToken>%s</tt:Dot1XConfigurationToken>
         <tt:Identity>device@example.com</tt:Identity>
       </tds:Dot1XConfiguration>
     </tds:GetDot1XConfigurationResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`
+</SOAP-ENV:Envelope>`, testDot1XConfigToken, testDot1XConfigToken)
 
 		case strings.Contains(requestBody, "GetDot1XConfigurations"):
-			response = `<?xml version="1.0" encoding="UTF-8"?>
+			response = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetDot1XConfigurationsResponse>
-      <tds:Dot1XConfiguration token="testDot1XConfigToken">
-        <tt:Dot1XConfigurationToken>testDot1XConfigToken</tt:Dot1XConfigurationToken>
+      <tds:Dot1XConfiguration token="%s">
+        <tt:Dot1XConfigurationToken>%s</tt:Dot1XConfigurationToken>
         <tt:Identity>device1@example.com</tt:Identity>
       </tds:Dot1XConfiguration>
       <tds:Dot1XConfiguration token="dot1x-config-002">
@@ -85,7 +86,7 @@ func newMockDeviceWiFiServer() *httptest.Server {
       </tds:Dot1XConfiguration>
     </tds:GetDot1XConfigurationsResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`
+</SOAP-ENV:Envelope>`, testDot1XConfigToken, testDot1XConfigToken)
 
 		case strings.Contains(requestBody, "SetDot1XConfiguration"):
 			response = `<?xml version="1.0" encoding="UTF-8"?>
@@ -234,13 +235,13 @@ func TestGetDot1XConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	config, err := client.GetDot1XConfiguration(ctx, "testDot1XConfigToken")
+	config, err := client.GetDot1XConfiguration(ctx, testDot1XConfigToken)
 	if err != nil {
 		t.Fatalf("GetDot1XConfiguration failed: %v", err)
 	}
 
-	if config.Dot1XConfigurationToken != "testDot1XConfigToken" {
-		t.Errorf("Expected Dot1XConfigurationToken 'testDot1XConfigToken', got '%s'", config.Dot1XConfigurationToken)
+	if config.Dot1XConfigurationToken != testDot1XConfigToken {
+		t.Errorf("Expected Dot1XConfigurationToken '%s', got '%s'", testDot1XConfigToken, config.Dot1XConfigurationToken)
 	}
 
 	if config.Identity != "device@example.com" {
@@ -267,8 +268,8 @@ func TestGetDot1XConfigurations(t *testing.T) {
 		t.Fatalf("Expected 2 configurations, got %d", len(configs))
 	}
 
-	if configs[0].Dot1XConfigurationToken != "testDot1XConfigToken" {
-		t.Errorf("Expected first config token 'testDot1XConfigToken', got '%s'", configs[0].Dot1XConfigurationToken)
+	if configs[0].Dot1XConfigurationToken != testDot1XConfigToken {
+		t.Errorf("Expected first config token '%s', got '%s'", testDot1XConfigToken, configs[0].Dot1XConfigurationToken)
 	}
 
 	if configs[0].Identity != "device1@example.com" {
@@ -295,7 +296,7 @@ func TestSetDot1XConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := &Dot1XConfiguration{
-		Dot1XConfigurationToken: "testDot1XConfigToken",
+		Dot1XConfigurationToken: testDot1XConfigToken,
 		Identity:                "updated@example.com",
 	}
 
@@ -336,7 +337,7 @@ func TestDeleteDot1XConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	err = client.DeleteDot1XConfiguration(ctx, "testDot1XConfigToken")
+	err = client.DeleteDot1XConfiguration(ctx, testDot1XConfigToken)
 	if err != nil {
 		t.Fatalf("DeleteDot1XConfiguration failed: %v", err)
 	}

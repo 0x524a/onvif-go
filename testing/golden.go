@@ -116,6 +116,7 @@ func buildGoldenKey(g *GoldenFile) string {
 			key += "_" + k + "_" + v
 		}
 	}
+
 	return key
 }
 
@@ -212,6 +213,7 @@ func isVariableField(field string, variableFields []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -278,6 +280,7 @@ func GenerateGoldenFileName(operation string, params map[string]string) string {
 		v = strings.ReplaceAll(v, "\\", "_")
 		name += "_" + k + "_" + v
 	}
+
 	return name + ".json"
 }
 
