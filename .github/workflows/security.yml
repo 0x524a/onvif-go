@@ -8,15 +8,14 @@ on:
   schedule:
     - cron: '0 0 * * 0'  # Weekly on Sunday
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   gosec:
     name: Security Scan (gosec)
     runs-on: ubuntu-latest
-    
+    # No SARIF upload step, so no security-events permission is needed here.
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -53,7 +52,9 @@ jobs:
   govulncheck:
     name: Vulnerability Check (govulncheck)
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

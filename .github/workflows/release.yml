@@ -10,13 +10,13 @@ on:
         description: 'Release version (e.g., v1.2.3)'
         required: true
 
-permissions:
-  contents: write
-
 jobs:
   build:
     name: Build Release Binaries
     runs-on: ubuntu-latest
+    # Only builds and uploads a workflow artifact; doesn't touch releases or packages.
+    permissions:
+      contents: read
     strategy:
       matrix:
         include:
@@ -153,6 +153,8 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -244,6 +246,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+    # packages: write is required to push to ghcr.io with GITHUB_TOKEN. The
+    # workflow-level block this replaced only granted contents: write, which
+    # left packages at the implicit "none" default — every push here would
+    # have been rejected regardless of Docker Hub/GHCR auth.
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
