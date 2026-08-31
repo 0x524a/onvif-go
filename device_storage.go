@@ -64,13 +64,14 @@ func (c *Client) GetStorageConfiguration(ctx context.Context, token string) (*St
 	return response.StorageConfiguration, nil
 }
 
-// CreateStorageConfiguration creates a storage configuration.
+// CreateStorageConfiguration creates a storage configuration. The device assigns
+// the token and returns it; the request must not carry one.
 // ONVIF Specification: CreateStorageConfiguration operation.
-func (c *Client) CreateStorageConfiguration(ctx context.Context, config *StorageConfiguration) (string, error) {
+func (c *Client) CreateStorageConfiguration(ctx context.Context, data *StorageConfigurationData) (string, error) {
 	type CreateStorageConfigurationBody struct {
-		XMLName              xml.Name              `xml:"tds:CreateStorageConfiguration"`
-		Xmlns                string                `xml:"xmlns:tds,attr"`
-		StorageConfiguration *StorageConfiguration `xml:"tds:StorageConfiguration"`
+		XMLName xml.Name                  `xml:"tds:CreateStorageConfiguration"`
+		Xmlns   string                    `xml:"xmlns:tds,attr"`
+		Data    *StorageConfigurationData `xml:"tds:StorageConfiguration"`
 	}
 
 	type CreateStorageConfigurationResponse struct {
@@ -79,8 +80,8 @@ func (c *Client) CreateStorageConfiguration(ctx context.Context, config *Storage
 	}
 
 	request := CreateStorageConfigurationBody{
-		Xmlns:                deviceNamespace,
-		StorageConfiguration: config,
+		Xmlns: deviceNamespace,
+		Data:  data,
 	}
 	var response CreateStorageConfigurationResponse
 

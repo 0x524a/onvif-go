@@ -189,22 +189,75 @@ func TestCreateStorageConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	config := &StorageConfiguration{
-		Token: "storage-new",
-		Data: StorageConfigurationData{
-			LocalPath:  "/var/media/storage3",
-			StorageURI: "file:///var/media/storage3",
-			Type:       "Local",
-		},
+	data := &StorageConfigurationData{
+		LocalPath:  "/var/media/storage3",
+		StorageURI: "file:///var/media/storage3",
+		Type:       "Local",
 	}
 
-	token, err := client.CreateStorageConfiguration(ctx, config)
+	token, err := client.CreateStorageConfiguration(ctx, data)
 	if err != nil {
 		t.Fatalf("CreateStorageConfiguration failed: %v", err)
 	}
 
 	if token != "storage-new" {
 		t.Errorf("Expected token 'storage-new', got '%s'", token)
+	}
+}
+
+// TestCreateStorageConfigurationWireFormat asserts the outbound payload matches the
+// ONVIF schema: the device assigns the token, so the request must carry only
+// StorageConfigurationData, never a token attribute.
+func TestCreateStorageConfigurationWireFormat(t *testing.T) {
+	var requestBody string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("reading request body: %v", err)
+		}
+		requestBody = string(body)
+
+		w.Header().Set("Content-Type", "application/soap+xml")
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
+  <SOAP-ENV:Body>
+    <tds:CreateStorageConfigurationResponse>
+      <tds:Token>storage-new</tds:Token>
+    </tds:CreateStorageConfigurationResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("NewClient failed: %v", err)
+	}
+
+	data := &StorageConfigurationData{
+		LocalPath:  "/var/media/storage3",
+		StorageURI: "file:///var/media/storage3",
+		Type:       "Local",
+	}
+
+	if _, err := client.CreateStorageConfiguration(context.Background(), data); err != nil {
+		t.Fatalf("CreateStorageConfiguration failed: %v", err)
+	}
+
+	for _, want := range []string{
+		`type="Local"`,
+		`<StorageUri>file:///var/media/storage3</StorageUri>`,
+	} {
+		if !strings.Contains(requestBody, want) {
+			t.Errorf("request body missing %q, got: %s", want, requestBody)
+		}
+	}
+
+	for _, unwanted := range []string{`token=`, `<Token>`} {
+		if strings.Contains(requestBody, unwanted) {
+			t.Errorf("request body should not contain %q (device assigns the token), got: %s", unwanted, requestBody)
+		}
 	}
 }
 
