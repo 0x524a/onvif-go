@@ -663,7 +663,7 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 	}
 
 	// Fallback: try basic TCP connection to RTSP port for connectivity check
-	if details := c.tryRTSPConnection(streamURI); details != nil {
+	if details := c.tryRTSPConnection(ctx, streamURI); details != nil {
 		return details
 	}
 
@@ -671,7 +671,7 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 }
 
 // tryRTSPConnection attempts to connect to RTSP port and grab basic info.
-func (c *CLI) tryRTSPConnection(streamURI string) map[string]interface{} {
+func (c *CLI) tryRTSPConnection(ctx context.Context, streamURI string) map[string]interface{} {
 	details := map[string]interface{}{
 		"uri":       streamURI,
 		"reachable": false,
@@ -694,7 +694,8 @@ func (c *CLI) tryRTSPConnection(streamURI string) map[string]interface{} {
 	}
 
 	// Try to connect
-	conn, err := net.DialTimeout("tcp", hostPort, maxRetries*time.Second)
+	dialer := &net.Dialer{Timeout: maxRetries * time.Second}
+	conn, err := dialer.DialContext(ctx, "tcp", hostPort)
 	if err == nil {
 		_ = conn.Close()
 		details["reachable"] = true

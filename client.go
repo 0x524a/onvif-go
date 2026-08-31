@@ -68,8 +68,7 @@ func WithInsecureSkipVerify() ClientOption {
 	return func(c *Client) {
 		if transport, ok := c.httpClient.Transport.(*http.Transport); ok {
 			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{ //nolint:gosec // InsecureSkipVerify is intentional for testing
-				}
+				transport.TLSClientConfig = &tls.Config{}
 			}
 			transport.TLSClientConfig.InsecureSkipVerify = true
 		}
@@ -332,10 +331,10 @@ func (c *Client) downloadWithDigestAuth(ctx context.Context, downloadURL string)
 
 	// Create a custom transport with digest auth
 	tr := &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout:   DefaultTimeout,
 			KeepAlive: DefaultTimeout,
-		}).Dial,
+		}).DialContext,
 		MaxIdleConns:        DefaultMaxIdleConns,
 		MaxIdleConnsPerHost: DefaultMaxIdleConnsPerHost,
 		IdleConnTimeout:     DefaultIdleConnTimeout,
