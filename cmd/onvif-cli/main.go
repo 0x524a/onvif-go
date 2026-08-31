@@ -24,6 +24,7 @@ const (
 	maxRetries            = 3
 	readBufferSize        = 5
 	defaultBrightness     = "50.0"
+	unknownValue          = "unknown"
 )
 
 type CLI struct {
@@ -614,8 +615,8 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 	details := map[string]interface{}{
 		"uri":        streamURI,
 		"reachable":  false,
-		"codec":      "unknown",
-		"resolution": "unknown",
+		"codec":      unknownValue,
+		"resolution": unknownValue,
 	}
 
 	// Use rtspeek library for detailed stream inspection
@@ -753,11 +754,11 @@ func (c *CLI) getStreamURIs(ctx context.Context) {
 				fmt.Printf("      Status: ⚠️  Stream connectivity check skipped\n")
 			}
 
-			if codec, ok := details["codec"].(string); ok && codec != "unknown" {
+			if codec, ok := details["codec"].(string); ok && codec != unknownValue {
 				fmt.Printf("      Video Codec: %s\n", codec)
 			}
 
-			if resolution, ok := details["resolution"].(string); ok && resolution != "unknown" {
+			if resolution, ok := details["resolution"].(string); ok && resolution != unknownValue {
 				fmt.Printf("      Resolution: %s\n", resolution)
 			}
 

@@ -207,12 +207,12 @@ func (s *Server) HandleGetProfiles(body interface{}) (interface{}, error) {
 					EncodingInterval: 1,
 					BitrateLimit:     profileCfg.VideoEncoder.Bitrate,
 				},
-				SessionTimeout: "PT60S",
+				SessionTimeout: sessionTimeout,
 			},
 		}
 
 		// Add H264 configuration if encoding is H264
-		if profileCfg.VideoEncoder.Encoding == "H264" {
+		if profileCfg.VideoEncoder.Encoding == h264 {
 			profile.VideoEncoderConfiguration.H264 = &H264Configuration{
 				GovLength:   profileCfg.VideoEncoder.GovLength,
 				H264Profile: "Main",
@@ -237,7 +237,7 @@ func (s *Server) HandleGetProfiles(body interface{}) (interface{}, error) {
 				Encoding:       profileCfg.AudioEncoder.Encoding,
 				Bitrate:        profileCfg.AudioEncoder.Bitrate,
 				SampleRate:     profileCfg.AudioEncoder.SampleRate,
-				SessionTimeout: "PT60S",
+				SessionTimeout: sessionTimeout,
 			}
 		}
 

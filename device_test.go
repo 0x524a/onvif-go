@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+const (
+	testDevicePassword = "password123"
+)
+
 func TestGetDeviceInformation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -306,7 +310,7 @@ func TestCreateUsers(t *testing.T) {
 	users := []*User{
 		{
 			Username:  "newuser",
-			Password:  "password123",
+			Password:  testDevicePassword,
 			UserLevel: "User",
 		},
 	}

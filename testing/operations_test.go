@@ -105,14 +105,14 @@ func TestDependentOperations(t *testing.T) {
 
 func TestOperationsByDependency(t *testing.T) {
 	// GetProfiles is a common dependency
-	ops := OperationsByDependency("GetProfiles")
+	ops := OperationsByDependency(opGetProfiles)
 
 	if len(ops) == 0 {
 		t.Error("Operations depending on GetProfiles should exist")
 	}
 
 	for _, op := range ops {
-		if op.DependsOn != "GetProfiles" {
+		if op.DependsOn != opGetProfiles {
 			t.Errorf("Operation %s has DependsOn=%s, want GetProfiles",
 				op.Name, op.DependsOn)
 		}
@@ -124,9 +124,9 @@ func TestGetOperationSpec(t *testing.T) {
 		name     string
 		expected bool
 	}{
-		{"GetDeviceInformation", true},
-		{"GetProfiles", true},
-		{"GetStreamURI", true},
+		{opGetDeviceInformation, true},
+		{opGetProfiles, true},
+		{opGetStreamURI, true},
 		{"GetStatus", true},
 		{"NonExistentOperation", false},
 	}
@@ -160,7 +160,7 @@ func TestOperationSpec_DependencyChain(t *testing.T) {
 func TestDeviceReadOperations(t *testing.T) {
 	// Check for expected core operations
 	expectedOps := []string{
-		"GetDeviceInformation",
+		opGetDeviceInformation,
 		"GetCapabilities",
 		"GetSystemDateAndTime",
 		"GetHostname",
@@ -187,11 +187,11 @@ func TestDeviceReadOperations(t *testing.T) {
 func TestMediaReadOperations(t *testing.T) {
 	// Check for expected core operations
 	expectedOps := []string{
-		"GetProfiles",
+		opGetProfiles,
 		"GetProfile",
 		"GetVideoSources",
 		"GetAudioSources",
-		"GetStreamURI",
+		opGetStreamURI,
 		"GetSnapshotURI",
 		"GetVideoEncoderConfigurations",
 	}

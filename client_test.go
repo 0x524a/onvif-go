@@ -14,10 +14,22 @@ import (
 )
 
 const (
-	testEndpoint = "http://192.168.1.100/onvif"
-	testUsername = "admin"
-	testRealm    = "test-realm"
-	testOpaque   = "test-opaque"
+	testEndpoint                 = "http://192.168.1.100/onvif"
+	testUsername                 = "admin"
+	testRealm                    = "test-realm"
+	testOpaque                   = "test-opaque"
+	testCameraIP                 = "192.168.1.100"
+	testCameraPort               = "8080"
+	testCameraDeviceServicePath  = "/onvif/device_service"
+	testCameraMediaServicePath   = "/onvif/media_service"
+	testDeviceServiceURL         = "http://192.168.1.100/onvif/device_service"
+	testDeviceServiceWithPortURL = "http://192.168.1.100:8080/onvif/device_service"
+	testDeviceServiceHTTPSURL    = "https://192.168.1.100/onvif/device_service"
+	testMediaServiceURL          = "http://192.168.1.100/onvif/media_service"
+	testPasswordLiteral          = "password"
+	testPassword                 = "test123"
+	testHTTPScheme               = "http"
+	testInvalidSchemeMarker      = "://invalid"
 )
 
 func TestNormalizeEndpoint(t *testing.T) {
@@ -29,44 +41,44 @@ func TestNormalizeEndpoint(t *testing.T) {
 	}{
 		{
 			name:     "full URL with path",
-			input:    "http://192.168.1.100/onvif/device_service",
-			expected: "http://192.168.1.100/onvif/device_service",
+			input:    testDeviceServiceURL,
+			expected: testDeviceServiceURL,
 			wantErr:  false,
 		},
 		{
 			name:     "full URL with port and path",
-			input:    "http://192.168.1.100:8080/onvif/device_service",
-			expected: "http://192.168.1.100:8080/onvif/device_service",
+			input:    testDeviceServiceWithPortURL,
+			expected: testDeviceServiceWithPortURL,
 			wantErr:  false,
 		},
 		{
 			name:     "full URL without path",
-			input:    "http://192.168.1.100",
-			expected: "http://192.168.1.100/onvif/device_service",
+			input:    "http://" + testCameraIP,
+			expected: testDeviceServiceURL,
 			wantErr:  false,
 		},
 		{
 			name:     "full URL with just slash",
-			input:    "http://192.168.1.100/",
-			expected: "http://192.168.1.100/onvif/device_service",
+			input:    "http://" + testCameraIP + "/",
+			expected: testDeviceServiceURL,
 			wantErr:  false,
 		},
 		{
 			name:     "IP address only",
-			input:    "192.168.1.100",
-			expected: "http://192.168.1.100/onvif/device_service",
+			input:    testCameraIP,
+			expected: testDeviceServiceURL,
 			wantErr:  false,
 		},
 		{
 			name:     "IP with port",
-			input:    "192.168.1.100:8080",
-			expected: "http://192.168.1.100:8080/onvif/device_service",
+			input:    testCameraIP + ":" + testCameraPort,
+			expected: testDeviceServiceWithPortURL,
 			wantErr:  false,
 		},
 		{
 			name:     "IP with default HTTP port",
-			input:    "192.168.1.100:80",
-			expected: "http://192.168.1.100:80/onvif/device_service",
+			input:    testCameraIP + ":80",
+			expected: testHTTPScheme + "://" + testCameraIP + ":80" + testCameraDeviceServicePath,
 			wantErr:  false,
 		},
 		{
@@ -83,8 +95,8 @@ func TestNormalizeEndpoint(t *testing.T) {
 		},
 		{
 			name:     "HTTPS URL",
-			input:    "https://192.168.1.100/onvif/device_service",
-			expected: "https://192.168.1.100/onvif/device_service",
+			input:    testDeviceServiceHTTPSURL,
+			expected: testDeviceServiceHTTPSURL,
 			wantErr:  false,
 		},
 		{
@@ -136,24 +148,24 @@ func TestNewClientWithVariousEndpoints(t *testing.T) {
 	}{
 		{
 			name:         "IP only",
-			endpoint:     "192.168.1.100",
-			expectScheme: "http",
-			expectHost:   "192.168.1.100",
-			expectPath:   "/onvif/device_service",
+			endpoint:     testCameraIP,
+			expectScheme: testHTTPScheme,
+			expectHost:   testCameraIP,
+			expectPath:   testCameraDeviceServicePath,
 		},
 		{
 			name:         "IP with port",
-			endpoint:     "192.168.1.100:8080",
-			expectScheme: "http",
-			expectHost:   "192.168.1.100:8080",
-			expectPath:   "/onvif/device_service",
+			endpoint:     testCameraIP + ":" + testCameraPort,
+			expectScheme: testHTTPScheme,
+			expectHost:   testCameraIP + ":" + testCameraPort,
+			expectPath:   testCameraDeviceServicePath,
 		},
 		{
 			name:         "Full URL",
-			endpoint:     "http://192.168.1.100/onvif/device_service",
-			expectScheme: "http",
-			expectHost:   "192.168.1.100",
-			expectPath:   "/onvif/device_service",
+			endpoint:     testDeviceServiceURL,
+			expectScheme: testHTTPScheme,
+			expectHost:   testCameraIP,
+			expectPath:   testCameraDeviceServicePath,
 		},
 	}
 
@@ -192,7 +204,7 @@ func NewMockONVIFServer() *MockONVIFServer {
 	mock := &MockONVIFServer{
 		responses: make(map[string]string),
 		username:  testUsername,
-		password:  "password",
+		password:  testPasswordLiteral,
 	}
 
 	mux := http.NewServeMux()
@@ -297,7 +309,7 @@ func (m *MockONVIFServer) setupDefaultResponses() {
                     <tt:XAddr>` + m.server.URL + `/onvif/device_service</tt:XAddr>
                 </tt:Device>
                 <tt:Media xmlns:tt="http://www.onvif.org/ver10/schema">
-                    <tt:XAddr>` + m.server.URL + `/onvif/media_service</tt:XAddr>
+                    <tt:XAddr>` + m.server.URL + testCameraMediaServicePath + `</tt:XAddr>
                 </tt:Media>
                 <tt:PTZ xmlns:tt="http://www.onvif.org/ver10/schema">
                     <tt:XAddr>` + m.server.URL + `/onvif/ptz_service</tt:XAddr>
@@ -350,7 +362,7 @@ func TestNewClient(t *testing.T) {
 	}{
 		{
 			name:      "valid http endpoint",
-			endpoint:  "http://192.168.1.100/onvif/device_service",
+			endpoint:  testDeviceServiceURL,
 			wantError: false,
 		},
 		{
@@ -441,7 +453,7 @@ func TestClientEndpoint(t *testing.T) {
 }
 
 func TestClientSetCredentials(t *testing.T) {
-	client, err := NewClient("http://192.168.1.100/onvif")
+	client, err := NewClient(testEndpoint)
 	if err != nil {
 		t.Fatalf("NewClient() error = %v", err)
 	}
@@ -532,7 +544,7 @@ func TestInitializeEndpointDiscovery(t *testing.T) {
 
 func TestGetProfilesRequiresInitialization(t *testing.T) {
 	client, err := NewClient(
-		"http://192.168.1.100/onvif/device_service",
+		testDeviceServiceURL,
 		WithCredentials(testUsername, "password"),
 	)
 	if err != nil {
@@ -635,7 +647,7 @@ func BenchmarkGetDeviceInformation(b *testing.B) {
 func ExampleClient_GetDeviceInformation() {
 	// Create client
 	client, err := NewClient(
-		"http://192.168.1.100/onvif/device_service",
+		testDeviceServiceURL,
 		WithCredentials(testUsername, "password"),
 		WithTimeout(30*time.Second),
 	)
@@ -663,9 +675,9 @@ func TestFixLocalhostURL(t *testing.T) {
 	}{
 		{
 			name:        "localhost hostname",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
+			clientURL:   testDeviceServiceURL,
 			serviceURL:  "http://localhost/onvif/media_service",
-			expectedURL: "http://192.168.1.100/onvif/media_service",
+			expectedURL: testMediaServiceURL,
 		},
 		{
 			name:        "127.0.0.1 loopback",
@@ -675,31 +687,31 @@ func TestFixLocalhostURL(t *testing.T) {
 		},
 		{
 			name:        "0.0.0.0 address",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
+			clientURL:   testDeviceServiceURL,
 			serviceURL:  "http://0.0.0.0/onvif/imaging_service",
 			expectedURL: "http://192.168.1.100/onvif/imaging_service",
 		},
 		{
 			name:        "IPv6 loopback",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
+			clientURL:   testDeviceServiceURL,
 			serviceURL:  "http://[::1]/onvif/events_service",
 			expectedURL: "http://192.168.1.100/onvif/events_service",
 		},
 		{
 			name:        "localhost with different port",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
+			clientURL:   testDeviceServiceURL,
 			serviceURL:  "http://localhost:8080/onvif/media_service",
 			expectedURL: "http://192.168.1.100:8080/onvif/media_service",
 		},
 		{
 			name:        "valid IP address unchanged",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
-			serviceURL:  "http://192.168.1.100/onvif/media_service",
-			expectedURL: "http://192.168.1.100/onvif/media_service",
+			clientURL:   testDeviceServiceURL,
+			serviceURL:  testMediaServiceURL,
+			expectedURL: testMediaServiceURL,
 		},
 		{
 			name:        "different valid IP unchanged",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
+			clientURL:   testDeviceServiceURL,
 			serviceURL:  "http://192.168.1.50/onvif/media_service",
 			expectedURL: "http://192.168.1.50/onvif/media_service",
 		},
@@ -717,7 +729,7 @@ func TestFixLocalhostURL(t *testing.T) {
 		},
 		{
 			name:        "empty service URL",
-			clientURL:   "http://192.168.1.100/onvif/device_service",
+			clientURL:   testDeviceServiceURL,
 			serviceURL:  "",
 			expectedURL: "",
 		},
@@ -1203,7 +1215,7 @@ func TestNormalizeEndpointErrorCases(t *testing.T) {
 		},
 		{
 			name:    "invalid URL",
-			input:   "://invalid",
+			input:   testInvalidSchemeMarker,
 			wantErr: false, // normalizeEndpoint treats this as IP without scheme
 		},
 		{
@@ -1233,13 +1245,13 @@ func TestFixLocalhostURLEdgeCases(t *testing.T) {
 	}{
 		{
 			name:        "invalid service URL",
-			clientURL:   "http://192.168.1.100/onvif",
-			serviceURL:  "://invalid",
-			expectedURL: "://invalid", // Should return original on parse error
+			clientURL:   testEndpoint,
+			serviceURL:  testInvalidSchemeMarker,
+			expectedURL: testInvalidSchemeMarker, // Should return original on parse error
 		},
 		{
 			name:        "invalid client URL",
-			clientURL:   "://invalid",
+			clientURL:   testInvalidSchemeMarker,
 			serviceURL:  "http://localhost/path",
 			expectedURL: "http://localhost/path", // Should return original on parse error
 		},
@@ -1268,7 +1280,7 @@ func TestFixLocalhostURLEdgeCases(t *testing.T) {
 // TestWithInsecureSkipVerify tests the WithInsecureSkipVerify option.
 func TestWithInsecureSkipVerify(t *testing.T) {
 	client, err := NewClient(
-		"https://192.168.1.100/onvif",
+		"https://"+testCameraIP+"/onvif",
 		WithInsecureSkipVerify(),
 	)
 	if err != nil {
@@ -1350,7 +1362,7 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 	digestTransport := &digestAuthTransport{
 		transport: tr,
 		username:  testUsername,
-		password:  "password",
+		password:  testPasswordLiteral,
 	}
 
 	digestClient := &http.Client{

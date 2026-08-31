@@ -8,26 +8,41 @@ import (
 )
 
 const (
-	defaultPort       = 8080
-	defaultTimeoutSec = 30
-	defaultWidth      = 1920
-	defaultHeight     = 1080
-	defaultFramerate  = 30
-	defaultQuality    = 80
-	defaultBitrate    = 4096
-	maxPan            = 180
-	maxTilt           = 90
-	defaultPTZSpeed   = 0.5
-	mediumWidth       = 1280
-	mediumHeight      = 720
-	mediumQuality     = 75
-	highQuality       = 85
-	mediumBitrate     = 2048
-	lowFramerate      = 25
-	highBitrate       = 6144
-	maxZoom           = 3
-	lowPTZSpeed       = 0.3
-	presetZoom        = 2
+	defaultPort         = 8080
+	defaultTimeoutSec   = 30
+	defaultWidth        = 1920
+	defaultHeight       = 1080
+	defaultFramerate    = 30
+	defaultQuality      = 80
+	defaultBitrate      = 4096
+	maxPan              = 180
+	maxTilt             = 90
+	defaultPTZSpeed     = 0.5
+	mediumWidth         = 1280
+	mediumHeight        = 720
+	mediumQuality       = 75
+	highQuality         = 85
+	mediumBitrate       = 2048
+	lowFramerate        = 25
+	highBitrate         = 6144
+	maxZoom             = 3
+	lowPTZSpeed         = 0.3
+	presetZoom          = 2
+	h264                = "H264"
+	autoMode            = "AUTO"
+	manualMode          = "MANUAL"
+	offMode             = "OFF"
+	onvifBasePath       = "/onvif"
+	sessionTimeout      = "PT60S"
+	homePresetName      = "Home"
+	invalidModeError    = "Invalid mode"
+	invalidModeValue    = "INVALID"
+	defaultProfileToken = "profile_1"
+	defaultPresetToken  = "preset_1"
+	deviceServiceKey    = "device"
+	imagingServiceKey   = "imaging"
+	mediaServiceKey     = "media"
+	ptzServiceKey       = "ptz"
 )
 
 // Config represents the ONVIF server configuration.
@@ -255,7 +270,7 @@ type WDRSettings struct {
 //nolint:funlen // DefaultConfig has many statements due to comprehensive default configuration
 func DefaultConfig() *Config {
 	return &Config{
-		Host:     "0.0.0.0",
+		Host:     defaultHost,
 		Port:     defaultPort,
 		BasePath: "/onvif",
 		Timeout:  defaultTimeoutSec * time.Second,
@@ -283,7 +298,7 @@ func DefaultConfig() *Config {
 					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
 					Quality:    defaultQuality,
 					Framerate:  defaultFramerate,
@@ -302,9 +317,9 @@ func DefaultConfig() *Config {
 					SupportsAbsolute:   true,
 					SupportsRelative:   true,
 					Presets: []Preset{
-						{Token: "preset_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
+						{Token: "preset_0", Name: homePresetName, Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
 						{
-							Token: "preset_1", Name: "Entrance",
+							Token: defaultPresetToken, Name: "Entrance",
 							Position: PTZPosition{Pan: -45, Tilt: -10, Zoom: defaultPTZSpeed},
 						},
 					},
@@ -316,7 +331,7 @@ func DefaultConfig() *Config {
 				},
 			},
 			{
-				Token: "profile_1",
+				Token: defaultProfileToken,
 				Name:  "Wide Angle Camera",
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_1",
@@ -326,7 +341,7 @@ func DefaultConfig() *Config {
 					Bounds:     Bounds{X: 0, Y: 0, Width: mediumWidth, Height: mediumHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
 					Quality:    mediumQuality,
 					Framerate:  defaultFramerate,
@@ -350,7 +365,7 @@ func DefaultConfig() *Config {
 					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
 					Quality:    highQuality,
 					Framerate:  lowFramerate,
@@ -369,7 +384,7 @@ func DefaultConfig() *Config {
 					SupportsAbsolute:   true,
 					SupportsRelative:   true,
 					Presets: []Preset{
-						{Token: "preset_2_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
+						{Token: "preset_2_0", Name: homePresetName, Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
 						{
 							Token: "preset_2_1", Name: "Zoom In",
 							Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: presetZoom},
@@ -405,13 +420,13 @@ func (c *Config) ServiceEndpoints(host string) map[string]string {
 	}
 
 	endpoints := map[string]string{
-		"device":  baseURL + "/device_service",
-		"media":   baseURL + "/media_service",
-		"imaging": baseURL + "/imaging_service",
+		deviceServiceKey:  baseURL + "/device_service",
+		mediaServiceKey:   baseURL + "/media_service",
+		imagingServiceKey: baseURL + "/imaging_service",
 	}
 
 	if c.SupportPTZ {
-		endpoints["ptz"] = baseURL + "/ptz_service"
+		endpoints[ptzServiceKey] = baseURL + "/ptz_service"
 	}
 
 	if c.SupportEvents {

@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+const (
+	testSoapUsername = "admin"
+	testSoapPassword = "password"
+	testSoapValue    = "test"
+)
+
 func TestNewClient(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -16,7 +22,7 @@ func TestNewClient(t *testing.T) {
 	}{
 		{
 			name:     "with credentials",
-			username: "admin",
+			username: testSoapUsername,
 			password: "password123",
 		},
 		{
@@ -64,14 +70,14 @@ func TestBuildEnvelope(t *testing.T) {
 	}{
 		{
 			name:     "with authentication",
-			body:     &testRequest{Value: "test"},
-			username: "admin",
-			password: "password",
+			body:     &testRequest{Value: testSoapValue},
+			username: testSoapUsername,
+			password: testSoapPassword,
 			wantErr:  false,
 		},
 		{
 			name:     "without authentication",
-			body:     &testRequest{Value: "test"},
+			body:     &testRequest{Value: testSoapValue},
 			username: "",
 			password: "",
 			wantErr:  false,
@@ -144,7 +150,7 @@ func TestClientCall(t *testing.T) {
 					w.WriteHeader(http.StatusUnauthorized)
 				}))
 			},
-			username: "admin",
+			username: testSoapUsername,
 			password: "wrong",
 			wantErr:  true,
 		},
@@ -158,8 +164,8 @@ func TestClientCall(t *testing.T) {
 					_, _ = w.Write([]byte("Internal Server Error"))
 				}))
 			},
-			username: "admin",
-			password: "password",
+			username: testSoapUsername,
+			password: testSoapPassword,
 			wantErr:  true,
 		},
 	}
@@ -180,7 +186,7 @@ func TestClientCall(t *testing.T) {
 				Value string `xml:"Value"`
 			}
 
-			req := &testRequest{Value: "test"}
+			req := &testRequest{Value: testSoapValue}
 			var resp testResponse
 
 			ctx := context.Background()
@@ -208,7 +214,7 @@ func TestClientCallWithTimeout(t *testing.T) {
 		Value string `xml:"Value"`
 	}
 
-	req := &testRequest{Value: "test"}
+	req := &testRequest{Value: testSoapValue}
 	var resp interface{}
 
 	// Context with very short timeout
@@ -272,7 +278,7 @@ func BenchmarkBuildEnvelope(b *testing.B) {
 	type testRequest struct {
 		Value string `xml:"Value"`
 	}
-	req := &testRequest{Value: "test"}
+	req := &testRequest{Value: testSoapValue}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
