@@ -16,6 +16,14 @@ const testXMLHeader = `<?xml version="1.0"?>`
 
 const testResultSuccess = "Success"
 
+// testActionResponse is the response body shared by the handler tests. It has to
+// be a struct rather than a map: encoding/xml cannot marshal maps, so a map would
+// surface as a Receiver fault instead of reaching any assertion.
+type testActionResponse struct {
+	XMLName xml.Name `xml:"TestActionResponse"`
+	Result  string   `xml:"Result"`
+}
+
 func TestNewHandler(t *testing.T) {
 	handler := NewHandler("admin", "password")
 
@@ -65,17 +73,9 @@ func TestServeHTTPMethodNotAllowed(t *testing.T) {
 func TestServeHTTPValidSOAPRequest(t *testing.T) {
 	handler := NewHandler("", "") // No authentication
 
-	// The response must be a struct: encoding/xml cannot marshal maps, so a
-	// map here would be reported as a Receiver fault rather than reaching the
-	// assertions below.
-	type TestActionResponse struct {
-		XMLName xml.Name `xml:"TestActionResponse"`
-		Result  string   `xml:"Result"`
-	}
-
 	// Create test handler
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
-		return &TestActionResponse{Result: testResultSuccess}, nil
+		return &testActionResponse{Result: testResultSuccess}, nil
 	})
 
 	// Create SOAP request
@@ -233,12 +233,7 @@ func TestSendResponse(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	type TestActionResponse struct {
-		XMLName xml.Name `xml:"TestActionResponse"`
-		Result  string   `xml:"Result"`
-	}
-
-	handler.sendResponse(w, &TestActionResponse{Result: testResultSuccess})
+	handler.sendResponse(w, &testActionResponse{Result: testResultSuccess})
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -393,13 +388,8 @@ func (f *failingReader) Read(p []byte) (n int, err error) {
 func TestResponseHandling(t *testing.T) {
 	handler := NewHandler("", "")
 
-	type TestResponse struct {
-		XMLName xml.Name `xml:"TestActionResponse"`
-		Result  string   `xml:"Result"`
-	}
-
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
-		return &TestResponse{Result: testResultSuccess}, nil
+		return &testActionResponse{Result: testResultSuccess}, nil
 	})
 
 	soapBody := `<?xml version="1.0"?>
