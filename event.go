@@ -307,11 +307,12 @@ func (c *Client) PullMessages(
 				Address string `xml:"Address"`
 			} `xml:"ProducerReference"`
 			Message struct {
-				XMLName xml.Name `xml:"Message"`
-				Inner   struct {
-					XMLName           xml.Name `xml:"Message"`
-					PropertyOperation string   `xml:"PropertyOperation,attr"`
-					UtcTime           string   `xml:"UtcTime,attr"`
+				// wsnt:Message is a wrapper (b-2.xsd declares it as xsd:any with
+				// no attributes); the ONVIF tt:Message inside it carries the
+				// attributes and the item lists.
+				Inner struct {
+					PropertyOperation string `xml:"PropertyOperation,attr"`
+					UtcTime           string `xml:"UtcTime,attr"`
 					Source            struct {
 						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
 					} `xml:"Source"`
