@@ -27,7 +27,7 @@ jobs:
         continue-on-error: true
       
       - name: Validate markdown
-        uses: DavidAnson/markdownlint-cli2-action@05f32210e84442804257b2c8a4c84aa7067b5e06 # v19.0.0
+        uses: DavidAnson/markdownlint-cli2-action@a23dae216ce3fee4db69da41fed90d2a4af801cf # v19.0.0
         with:
           globs: 'docs/**/*.md'
         continue-on-error: true
