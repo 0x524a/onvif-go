@@ -6,8 +6,13 @@ import (
 )
 
 const (
-	exposureModeAuto   = "AUTO"
-	exposureModeManual = "MANUAL"
+	exposureModeAuto    = "AUTO"
+	exposureModeManual  = "MANUAL"
+	backlightCompOFF    = "OFF"
+	backlightCompOn     = "ON"
+	backlightCompAuto   = "AUTO"
+	backlightCompInvExp = "Invalid mode"
+	backlightCompInvVal = "INVALID"
 )
 
 func TestHandleGetImagingSettings(t *testing.T) {
@@ -238,12 +243,12 @@ func TestBacklightCompensation(t *testing.T) {
 		},
 		{
 			name:        "Backlight OFF",
-			comp:        BacklightCompensation{Mode: "OFF", Level: 0},
+			comp:        BacklightCompensation{Mode: backlightCompOFF, Level: 0},
 			expectValid: true,
 		},
 		{
-			name:        "Invalid mode",
-			comp:        BacklightCompensation{Mode: "INVALID", Level: 50},
+			name:        backlightCompInvExp,
+			comp:        BacklightCompensation{Mode: backlightCompInvVal, Level: 50},
 			expectValid: false,
 		},
 		{
@@ -418,7 +423,7 @@ func TestWideDynamicRange(t *testing.T) {
 			expectValid: true,
 		},
 		{
-			name:        "Invalid mode",
+			name:        backlightCompInvExp,
 			wdr:         WDRSettings{Mode: "INVALID", Level: 50},
 			expectValid: false,
 		},

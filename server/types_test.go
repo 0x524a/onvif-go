@@ -270,7 +270,7 @@ func TestPreset(t *testing.T) {
 			name: "Valid preset",
 			preset: Preset{
 				Token:    "preset_1",
-				Name:     "Home",
+				Name:     homePresetName,
 				Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0},
 			},
 			expectValid: true,
@@ -363,7 +363,7 @@ func TestVideoEncoderConfig(t *testing.T) {
 		{
 			name: "Valid H264 encoder",
 			encoderConfig: VideoEncoderConfig{
-				Encoding:   "H264",
+				Encoding:   h264,
 				Resolution: Resolution{Width: 1920, Height: 1080},
 				Quality:    80,
 				Framerate:  30,
@@ -395,7 +395,7 @@ func TestVideoEncoderConfig(t *testing.T) {
 		{
 			name: "Invalid quality (too high)",
 			encoderConfig: VideoEncoderConfig{
-				Encoding:   "H264",
+				Encoding:   h264,
 				Resolution: Resolution{Width: 1920, Height: 1080},
 				Quality:    101,
 				Framerate:  30,
@@ -405,7 +405,7 @@ func TestVideoEncoderConfig(t *testing.T) {
 		{
 			name: "Invalid quality (negative)",
 			encoderConfig: VideoEncoderConfig{
-				Encoding:   "H264",
+				Encoding:   h264,
 				Resolution: Resolution{Width: 1920, Height: 1080},
 				Quality:    -1,
 				Framerate:  30,
@@ -444,7 +444,7 @@ func TestProfileConfig(t *testing.T) {
 					Framerate:  30,
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: 1920, Height: 1080},
 					Quality:    80,
 					Framerate:  30,
@@ -557,7 +557,7 @@ func TestServiceEndpoints(t *testing.T) {
 			config: &Config{
 				Host:          "192.168.1.100",
 				Port:          8080,
-				BasePath:      "/onvif",
+				BasePath:      onvifBasePath,
 				SupportPTZ:    true,
 				SupportEvents: true,
 			},
@@ -569,7 +569,7 @@ func TestServiceEndpoints(t *testing.T) {
 			config: &Config{
 				Host:          "192.168.1.100",
 				Port:          8080,
-				BasePath:      "/onvif",
+				BasePath:      onvifBasePath,
 				SupportPTZ:    false,
 				SupportEvents: false,
 			},
@@ -656,7 +656,7 @@ func TestToONVIFProfile(t *testing.T) {
 			Resolution: Resolution{Width: 1920, Height: 1080},
 		},
 		VideoEncoder: VideoEncoderConfig{
-			Encoding:   "H264",
+			Encoding:   h264,
 			Bitrate:    4096,
 			Framerate:  30,
 			Resolution: Resolution{Width: 1920, Height: 1080},

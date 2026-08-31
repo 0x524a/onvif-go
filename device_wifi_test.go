@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+const (
+	testDot1XConfigToken = "dot1x-config-001"
+)
+
 func newMockDeviceWiFiServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/soap+xml")
@@ -58,8 +62,8 @@ func newMockDeviceWiFiServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetDot1XConfigurationResponse>
-      <tds:Dot1XConfiguration token="dot1x-config-001">
-        <tt:Dot1XConfigurationToken>dot1x-config-001</tt:Dot1XConfigurationToken>
+      <tds:Dot1XConfiguration token="testDot1XConfigToken">
+        <tt:Dot1XConfigurationToken>testDot1XConfigToken</tt:Dot1XConfigurationToken>
         <tt:Identity>device@example.com</tt:Identity>
       </tds:Dot1XConfiguration>
     </tds:GetDot1XConfigurationResponse>
@@ -71,8 +75,8 @@ func newMockDeviceWiFiServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetDot1XConfigurationsResponse>
-      <tds:Dot1XConfiguration token="dot1x-config-001">
-        <tt:Dot1XConfigurationToken>dot1x-config-001</tt:Dot1XConfigurationToken>
+      <tds:Dot1XConfiguration token="testDot1XConfigToken">
+        <tt:Dot1XConfigurationToken>testDot1XConfigToken</tt:Dot1XConfigurationToken>
         <tt:Identity>device1@example.com</tt:Identity>
       </tds:Dot1XConfiguration>
       <tds:Dot1XConfiguration token="dot1x-config-002">
@@ -230,13 +234,13 @@ func TestGetDot1XConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	config, err := client.GetDot1XConfiguration(ctx, "dot1x-config-001")
+	config, err := client.GetDot1XConfiguration(ctx, "testDot1XConfigToken")
 	if err != nil {
 		t.Fatalf("GetDot1XConfiguration failed: %v", err)
 	}
 
-	if config.Dot1XConfigurationToken != "dot1x-config-001" {
-		t.Errorf("Expected Dot1XConfigurationToken 'dot1x-config-001', got '%s'", config.Dot1XConfigurationToken)
+	if config.Dot1XConfigurationToken != "testDot1XConfigToken" {
+		t.Errorf("Expected Dot1XConfigurationToken 'testDot1XConfigToken', got '%s'", config.Dot1XConfigurationToken)
 	}
 
 	if config.Identity != "device@example.com" {
@@ -263,8 +267,8 @@ func TestGetDot1XConfigurations(t *testing.T) {
 		t.Fatalf("Expected 2 configurations, got %d", len(configs))
 	}
 
-	if configs[0].Dot1XConfigurationToken != "dot1x-config-001" {
-		t.Errorf("Expected first config token 'dot1x-config-001', got '%s'", configs[0].Dot1XConfigurationToken)
+	if configs[0].Dot1XConfigurationToken != "testDot1XConfigToken" {
+		t.Errorf("Expected first config token 'testDot1XConfigToken', got '%s'", configs[0].Dot1XConfigurationToken)
 	}
 
 	if configs[0].Identity != "device1@example.com" {
@@ -291,7 +295,7 @@ func TestSetDot1XConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := &Dot1XConfiguration{
-		Dot1XConfigurationToken: "dot1x-config-001",
+		Dot1XConfigurationToken: "testDot1XConfigToken",
 		Identity:                "updated@example.com",
 	}
 
@@ -332,7 +336,7 @@ func TestDeleteDot1XConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	err = client.DeleteDot1XConfiguration(ctx, "dot1x-config-001")
+	err = client.DeleteDot1XConfiguration(ctx, "testDot1XConfigToken")
 	if err != nil {
 		t.Fatalf("DeleteDot1XConfiguration failed: %v", err)
 	}

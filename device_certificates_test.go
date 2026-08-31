@@ -33,7 +33,7 @@ func newMockDeviceCertificatesServer() *httptest.Server {
   <SOAP-ENV:Body>
     <tds:GetCertificatesStatusResponse>
       <tds:CertificateStatus>
-        <tt:CertificateID>cert-001</tt:CertificateID>
+        <tt:CertificateID>` + testCertID + `</tt:CertificateID>
         <tt:Status>true</tt:Status>
       </tds:CertificateStatus>
     </tds:GetCertificatesStatusResponse>
@@ -54,7 +54,7 @@ func newMockDeviceCertificatesServer() *httptest.Server {
   <SOAP-ENV:Body>
     <tds:GetCertificateInformationResponse>
       <tds:CertificateInformation>
-        <tt:CertificateID>cert-001</tt:CertificateID>
+        <tt:CertificateID>` + testCertID + `</tt:CertificateID>
         <tt:IssuerDN>CN=Test CA</tt:IssuerDN>
         <tt:SubjectDN>CN=Device Certificate</tt:SubjectDN>
         <tt:ValidNotBefore>2024-01-01T00:00:00Z</tt:ValidNotBefore>
@@ -109,7 +109,7 @@ func newMockDeviceCertificatesServer() *httptest.Server {
   <SOAP-ENV:Body>
     <tds:GetCertificatesResponse>
       <tds:Certificate>
-        <tt:CertificateID>cert-001</tt:CertificateID>
+        <tt:CertificateID>` + testCertID + `</tt:CertificateID>
         <tt:Certificate>
           <tt:Data>` + base64.StdEncoding.EncodeToString([]byte("CERTIFICATE DATA")) + `</tt:Data>
         </tt:Certificate>
@@ -315,7 +315,7 @@ func TestDeleteCertificates(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	err = client.DeleteCertificates(ctx, []string{"cert-001", "cert-002"})
+	err = client.DeleteCertificates(ctx, []string{"testCertID", "cert-002"})
 	if err != nil {
 		t.Fatalf("DeleteCertificates failed: %v", err)
 	}
@@ -331,13 +331,13 @@ func TestGetCertificateInformation(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	info, err := client.GetCertificateInformation(ctx, "cert-001")
+	info, err := client.GetCertificateInformation(ctx, testCertID)
 	if err != nil {
 		t.Fatalf("GetCertificateInformation failed: %v", err)
 	}
 
-	if info.CertificateID != "cert-001" {
-		t.Errorf("Expected certificate ID 'cert-001', got '%s'", info.CertificateID)
+	if info.CertificateID != testCertID {
+		t.Errorf("Expected certificate ID '%s', got '%s'", testCertID, info.CertificateID)
 	}
 
 	if info.IssuerDN != "CN=Test CA" {
@@ -368,8 +368,8 @@ func TestGetCertificatesStatus(t *testing.T) {
 		t.Error("Expected at least one certificate status")
 	}
 
-	if statuses[0].CertificateID != "cert-001" {
-		t.Errorf("Expected certificate ID 'cert-001', got '%s'", statuses[0].CertificateID)
+	if statuses[0].CertificateID != testCertID {
+		t.Errorf("Expected certificate ID '%s', got '%s'", testCertID, statuses[0].CertificateID)
 	}
 
 	if !statuses[0].Status {
@@ -389,7 +389,7 @@ func TestSetCertificatesStatus(t *testing.T) {
 
 	statuses := []*CertificateStatus{
 		{
-			CertificateID: "cert-001",
+			CertificateID: testCertID,
 			Status:        true,
 		},
 	}

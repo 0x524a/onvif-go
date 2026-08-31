@@ -354,13 +354,13 @@ func (s *Server) HandleGetOptions(body interface{}) (interface{}, error) {
 		ColorSaturation:  &FloatRange{Min: 0, Max: maxImagingValue},
 		Contrast:         &FloatRange{Min: 0, Max: maxImagingValue},
 		Sharpness:        &FloatRange{Min: 0, Max: maxImagingValue},
-		IrCutFilterModes: []string{"ON", "OFF", "AUTO"},
+		IrCutFilterModes: []string{"ON", offMode, autoMode},
 		BacklightCompensation: &BacklightCompensationOptions{
 			Mode:  []string{"OFF", "ON"},
 			Level: &FloatRange{Min: 0, Max: maxImagingValue},
 		},
 		Exposure: &ExposureOptions{
-			Mode:            []string{"AUTO", "MANUAL"},
+			Mode:            []string{autoMode, manualMode},
 			Priority:        []string{"LowNoise", "FrameRate"},
 			MinExposureTime: &FloatRange{Min: 1, Max: maxExposureTime},
 			MaxExposureTime: &FloatRange{Min: 1, Max: maxExposureTime},

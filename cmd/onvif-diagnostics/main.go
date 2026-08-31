@@ -542,7 +542,7 @@ func testGetProfiles(ctx context.Context, client *onvif.Client, report *CameraRe
 }
 
 func testGetStreamURIs(ctx context.Context, client *onvif.Client, profiles []*onvif.Profile, report *CameraReport) []StreamURIResult {
-	results := make([]StreamURIResult, 0)
+	results := make([]StreamURIResult, 0, len(profiles))
 
 	for _, profile := range profiles {
 		start := time.Now()
@@ -588,7 +588,7 @@ func testGetStreamURIs(ctx context.Context, client *onvif.Client, profiles []*on
 }
 
 func testGetSnapshotURIs(ctx context.Context, client *onvif.Client, profiles []*onvif.Profile, report *CameraReport) []SnapshotURIResult {
-	results := make([]SnapshotURIResult, 0)
+	results := make([]SnapshotURIResult, 0, len(profiles))
 
 	for _, profile := range profiles {
 		start := time.Now()
@@ -1016,9 +1016,21 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 			return fmt.Errorf("GetNetworkDefaultGateway: %w", err)
 		}},
-		{"GetScopes", func() error { _, err := client.GetScopes(ctx); return err }},
-		{"GetUsers", func() error { _, err := client.GetUsers(ctx); return err }},
-		{"GetDiscoveryMode", func() error { _, err := client.GetDiscoveryMode(ctx); return err }},
+		{"GetScopes", func() error {
+			_, err := client.GetScopes(ctx)
+
+			return fmt.Errorf("GetScopes: %w", err)
+		}},
+		{"GetUsers", func() error {
+			_, err := client.GetUsers(ctx)
+
+			return fmt.Errorf("GetUsers: %w", err)
+		}},
+		{"GetDiscoveryMode", func() error {
+			_, err := client.GetDiscoveryMode(ctx)
+
+			return fmt.Errorf("GetDiscoveryMode: %w", err)
+		}},
 		{"GetRemoteDiscoveryMode", func() error { _, err := client.GetRemoteDiscoveryMode(ctx); return err }},
 		{"GetEndpointReference", func() error { _, err := client.GetEndpointReference(ctx); return err }},
 		{"GetRelayOutputs", func() error { _, err := client.GetRelayOutputs(ctx); return err }},

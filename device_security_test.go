@@ -9,6 +9,12 @@ import (
 	"testing"
 )
 
+const (
+	testPassword123 = "password123"
+	testSubnetMask1 = "192.168.1.0"
+	testSubnetMask2 = "172.16.0.0"
+)
+
 func newMockDeviceSecurityServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		decoder := xml.NewDecoder(r.Body)
@@ -53,7 +59,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 			<tds:IPAddressFilter>
 				<tt:Type>Allow</tt:Type>
 				<tt:IPv4Address>
-					<tt:Address>192.168.1.0</tt:Address>
+					<tt:Address>testSubnetMask1</tt:Address>
 					<tt:PrefixLength>24</tt:PrefixLength>
 				</tt:IPv4Address>
 			</tds:IPAddressFilter>
@@ -197,7 +203,7 @@ func TestSetRemoteUser(t *testing.T) {
 	ctx := context.Background()
 	remoteUser := &RemoteUser{
 		Username:           "new_remote",
-		Password:           "password123",
+		Password:           "testPassword123",
 		UseDerivedPassword: true,
 	}
 
@@ -230,8 +236,8 @@ func TestGetIPAddressFilter(t *testing.T) {
 		t.Fatalf("Expected 1 IPv4 address, got %d", len(filter.IPv4Address))
 	}
 
-	if filter.IPv4Address[0].Address != "192.168.1.0" {
-		t.Errorf("Expected address 192.168.1.0, got %s", filter.IPv4Address[0].Address)
+	if filter.IPv4Address[0].Address != "testSubnetMask1" {
+		t.Errorf("Expected address testSubnetMask1, got %s", filter.IPv4Address[0].Address)
 	}
 
 	if filter.IPv4Address[0].PrefixLength != 24 {
@@ -275,7 +281,7 @@ func TestAddIPAddressFilter(t *testing.T) {
 	filter := &IPAddressFilter{
 		Type: IPAddressFilterAllow,
 		IPv4Address: []PrefixedIPv4Address{
-			{Address: "172.16.0.0", PrefixLength: 12},
+			{Address: "testSubnetMask2", PrefixLength: 12},
 		},
 	}
 
@@ -298,7 +304,7 @@ func TestRemoveIPAddressFilter(t *testing.T) {
 	filter := &IPAddressFilter{
 		Type: IPAddressFilterAllow,
 		IPv4Address: []PrefixedIPv4Address{
-			{Address: "172.16.0.0", PrefixLength: 12},
+			{Address: "testSubnetMask2", PrefixLength: 12},
 		},
 	}
 
@@ -545,7 +551,7 @@ func BenchmarkSetRemoteUser(b *testing.B) {
 	ctx := context.Background()
 	remoteUser := &RemoteUser{
 		Username:           "test_user",
-		Password:           "password123",
+		Password:           "testPassword123",
 		UseDerivedPassword: true,
 	}
 
@@ -577,7 +583,7 @@ func BenchmarkSetIPAddressFilter(b *testing.B) {
 	filter := &IPAddressFilter{
 		Type: IPAddressFilterAllow,
 		IPv4Address: []PrefixedIPv4Address{
-			{Address: "192.168.1.0", PrefixLength: 24},
+			{Address: "testSubnetMask1", PrefixLength: 24},
 			{Address: "10.0.0.0", PrefixLength: 8},
 		},
 		IPv6Address: []PrefixedIPv6Address{
@@ -600,7 +606,7 @@ func BenchmarkAddIPAddressFilter(b *testing.B) {
 	filter := &IPAddressFilter{
 		Type: IPAddressFilterAllow,
 		IPv4Address: []PrefixedIPv4Address{
-			{Address: "172.16.0.0", PrefixLength: 12},
+			{Address: "testSubnetMask2", PrefixLength: 12},
 		},
 	}
 
@@ -619,7 +625,7 @@ func BenchmarkRemoveIPAddressFilter(b *testing.B) {
 	filter := &IPAddressFilter{
 		Type: IPAddressFilterAllow,
 		IPv4Address: []PrefixedIPv4Address{
-			{Address: "172.16.0.0", PrefixLength: 12},
+			{Address: "testSubnetMask2", PrefixLength: 12},
 		},
 	}
 
@@ -767,7 +773,7 @@ func BenchmarkIPAddressFilterWithManyAddresses(b *testing.B) {
 
 	for i := 0; i < 100; i++ {
 		filter.IPv4Address[i] = PrefixedIPv4Address{
-			Address:      "192.168.1.0",
+			Address:      "testSubnetMask1",
 			PrefixLength: 24,
 		}
 	}
