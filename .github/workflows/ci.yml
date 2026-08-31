@@ -149,6 +149,10 @@ jobs:
           # Don't fail on PRs from forks where token may not be available
           fail_ci_if_error: ${{ github.event_name == 'push' }}
           verbose: true
+          # codecov-action's default uploader verifies its own binary against a
+          # GPG key hosted on keybase.io, which now 404s (codecov/codecov-action#1955).
+          # use_pypi installs the uploader from PyPI instead, bypassing that dead path.
+          use_pypi: true
 
   # Stage 4: SonarCloud Analysis (depends on test)
   # Only runs on push to master/main when SONAR_TOKEN is available
