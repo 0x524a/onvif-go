@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/github/license/0x524a/onvif-go)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/0x524a/onvif-go)](https://github.com/0x524a/onvif-go/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/0x524a/onvif-go)](https://github.com/0x524a/onvif-go/issues)
+[![Galaxy Brain](https://img.shields.io/badge/%F0%9F%A7%A0_Galaxy_Brain-Certified-8A2BE2)](https://github.com/0x524a/onvif-go)
 
 > **Modern, high-performance Go library for ONVIF IP camera integration** - Control surveillance cameras, NVRs, and video devices with comprehensive ONVIF Profile S/T/G support. Includes both client and server implementations for complete ONVIF camera simulation and testing.
 
