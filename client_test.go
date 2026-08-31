@@ -1005,10 +1005,10 @@ func TestDigestAuthTransport(t *testing.T) {
 	defer server.Close()
 
 	tr := &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout:   DefaultTimeout,
 			KeepAlive: DefaultTimeout,
-		}).Dial,
+		}).DialContext,
 	}
 
 	digestClient := &http.Client{
@@ -1340,10 +1340,10 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 	defer server.Close()
 
 	tr := &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout:   DefaultTimeout,
 			KeepAlive: DefaultTimeout,
-		}).Dial,
+		}).DialContext,
 	}
 
 	// Create a single transport instance that will be used concurrently

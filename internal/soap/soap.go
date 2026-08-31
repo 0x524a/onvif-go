@@ -196,7 +196,6 @@ func (c *Client) createSecurityHeader() *Security {
 	// Generate nonce
 	const nonceSize = 16
 	nonceBytes := make([]byte, nonceSize)
-	//nolint:errcheck // rand.Read always returns len(nonceBytes), nil for sufficient entropy
 	_, _ = rand.Read(nonceBytes)
 	nonce := base64.StdEncoding.EncodeToString(nonceBytes)
 
