@@ -392,7 +392,7 @@ var DeviceIOReadOperations = []OperationSpec{
 
 // AllReadOperations returns all READ operations across all services.
 func AllReadOperations() []OperationSpec {
-	var all []OperationSpec
+	all := make([]OperationSpec, 0, len(DeviceReadOperations)+len(MediaReadOperations)+len(PTZReadOperations)+len(ImagingReadOperations)+len(EventReadOperations)+len(DeviceIOReadOperations))
 	all = append(all, DeviceReadOperations...)
 	all = append(all, MediaReadOperations...)
 	all = append(all, PTZReadOperations...)

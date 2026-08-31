@@ -28,6 +28,15 @@ const (
 	maxZoom           = 3
 	lowPTZSpeed       = 0.3
 	presetZoom        = 2
+	h264              = "H264"
+	autoMode          = "AUTO"
+	manualMode        = "MANUAL"
+	offMode           = "OFF"
+	onvifBasePath     = "/onvif"
+	sessionTimeout    = "PT60S"
+	homePresetName    = "Home"
+	invalidModeError  = "Invalid mode"
+	invalidModeValue  = "INVALID"
 )
 
 // Config represents the ONVIF server configuration.
@@ -255,7 +264,7 @@ type WDRSettings struct {
 //nolint:funlen // DefaultConfig has many statements due to comprehensive default configuration
 func DefaultConfig() *Config {
 	return &Config{
-		Host:     "0.0.0.0",
+		Host:     defaultHost,
 		Port:     defaultPort,
 		BasePath: "/onvif",
 		Timeout:  defaultTimeoutSec * time.Second,
@@ -283,7 +292,7 @@ func DefaultConfig() *Config {
 					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
 					Quality:    defaultQuality,
 					Framerate:  defaultFramerate,
@@ -302,7 +311,7 @@ func DefaultConfig() *Config {
 					SupportsAbsolute:   true,
 					SupportsRelative:   true,
 					Presets: []Preset{
-						{Token: "preset_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
+						{Token: "preset_0", Name: homePresetName, Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
 						{
 							Token: "preset_1", Name: "Entrance",
 							Position: PTZPosition{Pan: -45, Tilt: -10, Zoom: defaultPTZSpeed},
@@ -326,7 +335,7 @@ func DefaultConfig() *Config {
 					Bounds:     Bounds{X: 0, Y: 0, Width: mediumWidth, Height: mediumHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
 					Quality:    mediumQuality,
 					Framerate:  defaultFramerate,
@@ -350,7 +359,7 @@ func DefaultConfig() *Config {
 					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
 					Quality:    highQuality,
 					Framerate:  lowFramerate,
@@ -369,7 +378,7 @@ func DefaultConfig() *Config {
 					SupportsAbsolute:   true,
 					SupportsRelative:   true,
 					Presets: []Preset{
-						{Token: "preset_2_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
+						{Token: "preset_2_0", Name: homePresetName, Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
 						{
 							Token: "preset_2_1", Name: "Zoom In",
 							Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: presetZoom},

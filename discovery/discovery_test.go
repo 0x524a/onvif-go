@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+const (
+	testCameraNameScope   = "onvif://www.onvif.org/name/TestCamera"
+	testCameraHardware    = "onvif://www.onvif.org/hardware/Model123"
+	testDiscoveryValue    = "value1"
+)
+
 func TestDevice_GetName(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -18,8 +24,8 @@ func TestDevice_GetName(t *testing.T) {
 			name: "device with name in scopes",
 			device: &Device{
 				Scopes: []string{
-					"onvif://www.onvif.org/name/TestCamera",
-					"onvif://www.onvif.org/hardware/Model123",
+					testCameraNameScope,
+					testCameraHardware,
 				},
 			},
 			want: "TestCamera",
@@ -28,7 +34,7 @@ func TestDevice_GetName(t *testing.T) {
 			name: "device without name in scopes",
 			device: &Device{
 				Scopes: []string{
-					"onvif://www.onvif.org/hardware/Model123",
+					testCameraHardware,
 				},
 			},
 			want: "",
@@ -92,7 +98,7 @@ func TestDevice_GetLocation(t *testing.T) {
 			device: &Device{
 				Scopes: []string{
 					"onvif://www.onvif.org/location/Building1",
-					"onvif://www.onvif.org/hardware/Model123",
+					"testCameraHardware",
 				},
 			},
 			want: "Building1",
@@ -101,7 +107,7 @@ func TestDevice_GetLocation(t *testing.T) {
 			name: "device without location in scopes",
 			device: &Device{
 				Scopes: []string{
-					"onvif://www.onvif.org/hardware/Model123",
+					"testCameraHardware",
 				},
 			},
 			want: "",
@@ -158,8 +164,8 @@ func TestParseSpaceSeparated(t *testing.T) {
 	}{
 		{
 			name:  "multiple values",
-			input: "value1 value2 value3",
-			want:  []string{"value1", "value2", "value3"},
+			input: "testDiscoveryValue value2 value3",
+			want:  []string{"testDiscoveryValue", "value2", "value3"},
 		},
 		{
 			name:  "empty string",
@@ -168,8 +174,8 @@ func TestParseSpaceSeparated(t *testing.T) {
 		},
 		{
 			name:  "single value",
-			input: "value1",
-			want:  []string{"value1"},
+			input: "testDiscoveryValue",
+			want:  []string{"testDiscoveryValue"},
 		},
 	}
 
@@ -199,9 +205,9 @@ func TestDevice_GetTypes(t *testing.T) {
 
 func TestDevice_GetScopes(t *testing.T) {
 	scopes := []string{
-		"onvif://www.onvif.org/name/TestCamera",
+		"testCameraNameScope",
 		"onvif://www.onvif.org/location/Building1",
-		"onvif://www.onvif.org/hardware/Model123",
+		"testCameraHardware",
 	}
 
 	device := &Device{
@@ -230,8 +236,8 @@ func TestDevice_GetScopes(t *testing.T) {
 func BenchmarkDeviceGetName(b *testing.B) {
 	device := &Device{
 		Scopes: []string{
-			"onvif://www.onvif.org/name/TestCamera",
-			"onvif://www.onvif.org/hardware/Model123",
+			"testCameraNameScope",
+			"testCameraHardware",
 		},
 	}
 

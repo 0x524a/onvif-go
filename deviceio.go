@@ -10,7 +10,10 @@ import (
 )
 
 // Device IO service namespace.
-const deviceIONamespace = "http://www.onvif.org/ver10/deviceIO/wsdl"
+const (
+	deviceIONamespace     = "http://www.onvif.org/ver10/deviceIO/wsdl"
+	onvifSchemaNamespace  = "http://www.onvif.org/ver10/schema"
+)
 
 // Device IO service errors.
 var (
@@ -687,7 +690,7 @@ func (c *Client) SendReceiveSerialCommand(ctx context.Context, serialPortToken s
 
 	req := SendReceiveSerialCommand{
 		Xmlns:   deviceIONamespace,
-		XmlnsTT: "http://www.onvif.org/ver10/schema",
+		XmlnsTT: onvifSchemaNamespace,
 		Token:   serialPortToken,
 		SerialData: SerialData{
 			Binary: string(data),
@@ -838,7 +841,7 @@ func (c *Client) SetVideoOutputConfiguration(ctx context.Context, config *VideoO
 
 	req := SetVideoOutputConfiguration{
 		Xmlns:   deviceIONamespace,
-		XmlnsTT: "http://www.onvif.org/ver10/schema",
+		XmlnsTT: onvifSchemaNamespace,
 		Configuration: VideoOutputConfigurationXML{
 			Token:       config.Token,
 			Name:        config.Name,

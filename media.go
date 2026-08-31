@@ -11,6 +11,8 @@ import (
 // Media service namespace.
 const mediaNamespace = "http://www.onvif.org/ver10/media/wsdl"
 
+// onvifSchemaNamespace is already defined in deviceio.go and available here
+
 // getMediaEndpoint returns the media endpoint, falling back to the default endpoint if not set.
 func (c *Client) getMediaEndpoint() string {
 	if c.mediaEndpoint != "" {
@@ -177,7 +179,7 @@ func (c *Client) GetStreamURI(ctx context.Context, profileToken string) (*MediaU
 
 	req := GetStreamURI{
 		Xmlns:        mediaNamespace,
-		Xmlnst:       "http://www.onvif.org/ver10/schema",
+		Xmlnst:       onvifSchemaNamespace,
 		ProfileToken: profileToken,
 	}
 	req.StreamSetup.Stream = "RTP-Unicast"

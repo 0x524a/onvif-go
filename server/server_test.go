@@ -366,7 +366,7 @@ func createTestConfig() *Config {
 	return &Config{
 		Host:     "127.0.0.1",
 		Port:     8080,
-		BasePath: "/onvif",
+		BasePath: onvifBasePath,
 		Timeout:  30 * time.Second,
 		DeviceInfo: DeviceInfo{
 			Manufacturer:    "Test",
@@ -394,7 +394,7 @@ func createTestConfig() *Config {
 					},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: 1920, Height: 1080},
 					Quality:    80,
 					Framerate:  30,

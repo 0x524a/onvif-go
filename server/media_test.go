@@ -145,7 +145,7 @@ func TestMediaProfileStructure(t *testing.T) {
 		},
 		VideoEncoderConfiguration: &VideoEncoderConfiguration{
 			Token:    "ve_1",
-			Encoding: "H264",
+			Encoding: h264,
 			Resolution: VideoResolution{
 				Width:  1920,
 				Height: 1080,

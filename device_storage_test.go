@@ -9,6 +9,11 @@ import (
 	"testing"
 )
 
+const (
+	testStorageToken = "storage-001"
+	testStorageType  = "NFS"
+)
+
 func newMockDeviceStorageServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/soap+xml")
@@ -26,8 +31,8 @@ func newMockDeviceStorageServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetStorageConfigurationsResponse>
-      <tds:StorageConfigurations token="storage-001">
-        <tt:Data type="NFS">
+      <tds:StorageConfigurations token="testStorageToken">
+        <tt:Data type="testStorageType">
           <tt:LocalPath>/var/media/storage1</tt:LocalPath>
           <tt:StorageUri>file:///var/media/storage1</tt:StorageUri>
         </tt:Data>
@@ -47,8 +52,8 @@ func newMockDeviceStorageServer() *httptest.Server {
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <tds:GetStorageConfigurationResponse>
-      <tds:StorageConfiguration token="storage-001">
-        <tt:Data type="NFS">
+      <tds:StorageConfiguration token="testStorageToken">
+        <tt:Data type="testStorageType">
           <tt:LocalPath>/var/media/storage1</tt:LocalPath>
           <tt:StorageUri>file:///var/media/storage1</tt:StorageUri>
         </tt:Data>
@@ -126,16 +131,16 @@ func TestGetStorageConfigurations(t *testing.T) {
 		t.Fatalf("Expected 2 storage configurations, got %d", len(configs))
 	}
 
-	if configs[0].Token != "storage-001" {
-		t.Errorf("Expected first config token 'storage-001', got '%s'", configs[0].Token)
+	if configs[0].Token != "testStorageToken" {
+		t.Errorf("Expected first config token 'testStorageToken', got '%s'", configs[0].Token)
 	}
 
 	if configs[0].Data.LocalPath != "/var/media/storage1" {
 		t.Errorf("Expected first config path '/var/media/storage1', got '%s'", configs[0].Data.LocalPath)
 	}
 
-	if configs[0].Data.Type != "NFS" {
-		t.Errorf("Expected first config type 'NFS', got '%s'", configs[0].Data.Type)
+	if configs[0].Data.Type != "testStorageType" {
+		t.Errorf("Expected first config type 'testStorageType', got '%s'", configs[0].Data.Type)
 	}
 
 	if configs[1].Token != "storage-002" {
@@ -157,13 +162,13 @@ func TestGetStorageConfiguration(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	config, err := client.GetStorageConfiguration(ctx, "storage-001")
+	config, err := client.GetStorageConfiguration(ctx, "testStorageToken")
 	if err != nil {
 		t.Fatalf("GetStorageConfiguration failed: %v", err)
 	}
 
-	if config.Token != "storage-001" {
-		t.Errorf("Expected config token 'storage-001', got '%s'", config.Token)
+	if config.Token != "testStorageToken" {
+		t.Errorf("Expected config token 'testStorageToken', got '%s'", config.Token)
 	}
 
 	if config.Data.LocalPath != "/var/media/storage1" {
@@ -174,8 +179,8 @@ func TestGetStorageConfiguration(t *testing.T) {
 		t.Errorf("Expected config URI 'file:///var/media/storage1', got '%s'", config.Data.StorageURI)
 	}
 
-	if config.Data.Type != "NFS" {
-		t.Errorf("Expected config type 'NFS', got '%s'", config.Data.Type)
+	if config.Data.Type != "testStorageType" {
+		t.Errorf("Expected config type 'testStorageType', got '%s'", config.Data.Type)
 	}
 }
 
@@ -272,11 +277,11 @@ func TestSetStorageConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := &StorageConfiguration{
-		Token: "storage-001",
+		Token: "testStorageToken",
 		Data: StorageConfigurationData{
 			LocalPath:  "/var/media/updated",
 			StorageURI: "file:///var/media/updated",
-			Type:       "NFS",
+			Type:       "testStorageType",
 		},
 	}
 
@@ -314,11 +319,11 @@ func TestSetStorageConfigurationWireFormat(t *testing.T) {
 	}
 
 	config := &StorageConfiguration{
-		Token: "storage-001",
+		Token: "testStorageToken",
 		Data: StorageConfigurationData{
 			LocalPath:  "/var/media/updated",
 			StorageURI: "file:///var/media/updated",
-			Type:       "NFS",
+			Type:       "testStorageType",
 		},
 	}
 
@@ -327,8 +332,8 @@ func TestSetStorageConfigurationWireFormat(t *testing.T) {
 	}
 
 	for _, want := range []string{
-		`token="storage-001"`,
-		`type="NFS"`,
+		`token="testStorageToken"`,
+		`type="testStorageType"`,
 		"<StorageUri>file:///var/media/updated</StorageUri>",
 	} {
 		if !strings.Contains(requestBody, want) {
