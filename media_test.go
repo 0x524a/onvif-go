@@ -88,12 +88,12 @@ func TestGetProfile(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	profile, err := client.GetProfile(ctx, "Profile1")
+	profile, err := client.GetProfile(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("GetProfile() failed: %v", err)
 	}
 
-	if profile.Token != "Profile1" {
+	if profile.Token != testProfileToken {
 		t.Errorf("Expected token Profile1, got %s", profile.Token)
 	}
 }
@@ -114,7 +114,7 @@ func TestSetProfile(t *testing.T) {
 
 	ctx := context.Background()
 	profile := &Profile{
-		Token: "Profile1",
+		Token: testProfileToken,
 		Name:  "Updated Profile",
 	}
 
@@ -151,7 +151,7 @@ func TestGetStreamURI(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	uri, err := client.GetStreamURI(ctx, "Profile1")
+	uri, err := client.GetStreamURI(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("GetStreamURI() failed: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestGetSnapshotURI(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	uri, err := client.GetSnapshotURI(ctx, "Profile1")
+	uri, err := client.GetSnapshotURI(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("GetSnapshotURI() failed: %v", err)
 	}
@@ -357,7 +357,7 @@ func TestDeleteProfile(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.DeleteProfile(ctx, "Profile1")
+	err = client.DeleteProfile(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("DeleteProfile() failed: %v", err)
 	}
@@ -394,16 +394,16 @@ func TestGetVideoEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetVideoEncoderConfiguration(ctx, "VideoEnc1")
+	config, err := client.GetVideoEncoderConfiguration(ctx, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("GetVideoEncoderConfiguration() failed: %v", err)
 	}
 
-	if config.Token != "VideoEnc1" {
+	if config.Token != testVideoEncToken {
 		t.Errorf("Expected token VideoEnc1, got %s", config.Token)
 	}
 
-	if config.Encoding != "H264" {
+	if config.Encoding != encodingH264 {
 		t.Errorf("Expected encoding H264, got %s", config.Encoding)
 	}
 }
@@ -424,9 +424,9 @@ func TestSetVideoEncoderConfiguration(t *testing.T) {
 
 	ctx := context.Background()
 	config := &VideoEncoderConfiguration{
-		Token:    "VideoEnc1",
+		Token:    testVideoEncToken,
 		Name:     "H264 Config",
-		Encoding: "H264",
+		Encoding: encodingH264,
 		Resolution: &VideoResolution{
 			Width:  1920,
 			Height: 1080,
@@ -515,7 +515,7 @@ func TestGetVideoEncoderConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetVideoEncoderConfigurationOptions(ctx, "VideoEnc1")
+	options, err := client.GetVideoEncoderConfigurationOptions(ctx, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("GetVideoEncoderConfigurationOptions() failed: %v", err)
 	}
@@ -557,16 +557,16 @@ func TestGetAudioEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetAudioEncoderConfiguration(ctx, "AudioEnc1")
+	config, err := client.GetAudioEncoderConfiguration(ctx, testAudioEncToken)
 	if err != nil {
 		t.Fatalf("GetAudioEncoderConfiguration() failed: %v", err)
 	}
 
-	if config.Token != "AudioEnc1" {
+	if config.Token != testAudioEncToken {
 		t.Errorf("Expected token AudioEnc1, got %s", config.Token)
 	}
 
-	if config.Encoding != "AAC" {
+	if config.Encoding != testEncodingAAC {
 		t.Errorf("Expected encoding AAC, got %s", config.Encoding)
 	}
 }
@@ -587,9 +587,9 @@ func TestSetAudioEncoderConfiguration(t *testing.T) {
 
 	ctx := context.Background()
 	config := &AudioEncoderConfiguration{
-		Token:      "AudioEnc1",
+		Token:      testAudioEncToken,
 		Name:       "AAC Config",
-		Encoding:   "AAC",
+		Encoding:   testEncodingAAC,
 		Bitrate:    128000,
 		SampleRate: 48000,
 	}
@@ -754,7 +754,7 @@ func TestSetSynchronizationPoint(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.SetSynchronizationPoint(ctx, "Profile1")
+	err = client.SetSynchronizationPoint(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("SetSynchronizationPoint() failed: %v", err)
 	}
@@ -921,7 +921,7 @@ func TestStartMulticastStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.StartMulticastStreaming(ctx, "Profile1")
+	err = client.StartMulticastStreaming(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("StartMulticastStreaming() failed: %v", err)
 	}
@@ -942,7 +942,7 @@ func TestStopMulticastStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.StopMulticastStreaming(ctx, "Profile1")
+	err = client.StopMulticastStreaming(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("StopMulticastStreaming() failed: %v", err)
 	}
@@ -963,7 +963,7 @@ func TestAddVideoEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddVideoEncoderConfiguration(ctx, "Profile1", "VideoEnc1")
+	err = client.AddVideoEncoderConfiguration(ctx, testProfileToken, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("AddVideoEncoderConfiguration() failed: %v", err)
 	}
@@ -984,7 +984,7 @@ func TestRemoveVideoEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.RemoveVideoEncoderConfiguration(ctx, "Profile1")
+	err = client.RemoveVideoEncoderConfiguration(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("RemoveVideoEncoderConfiguration() failed: %v", err)
 	}
@@ -1005,7 +1005,7 @@ func TestAddAudioEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddAudioEncoderConfiguration(ctx, "Profile1", "AudioEnc1")
+	err = client.AddAudioEncoderConfiguration(ctx, testProfileToken, testAudioEncToken)
 	if err != nil {
 		t.Fatalf("AddAudioEncoderConfiguration() failed: %v", err)
 	}
@@ -1026,7 +1026,7 @@ func TestRemoveAudioEncoderConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.RemoveAudioEncoderConfiguration(ctx, "Profile1")
+	err = client.RemoveAudioEncoderConfiguration(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("RemoveAudioEncoderConfiguration() failed: %v", err)
 	}
@@ -1047,7 +1047,7 @@ func TestAddAudioSourceConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddAudioSourceConfiguration(ctx, "Profile1", "AudioSourceConfig1")
+	err = client.AddAudioSourceConfiguration(ctx, testProfileToken, "AudioSourceConfig1")
 	if err != nil {
 		t.Fatalf("AddAudioSourceConfiguration() failed: %v", err)
 	}
@@ -1068,7 +1068,7 @@ func TestRemoveAudioSourceConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.RemoveAudioSourceConfiguration(ctx, "Profile1")
+	err = client.RemoveAudioSourceConfiguration(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("RemoveAudioSourceConfiguration() failed: %v", err)
 	}
@@ -1089,7 +1089,7 @@ func TestAddVideoSourceConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddVideoSourceConfiguration(ctx, "Profile1", "VideoSourceConfig1")
+	err = client.AddVideoSourceConfiguration(ctx, testProfileToken, "VideoSourceConfig1")
 	if err != nil {
 		t.Fatalf("AddVideoSourceConfiguration() failed: %v", err)
 	}
@@ -1110,7 +1110,7 @@ func TestRemoveVideoSourceConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.RemoveVideoSourceConfiguration(ctx, "Profile1")
+	err = client.RemoveVideoSourceConfiguration(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("RemoveVideoSourceConfiguration() failed: %v", err)
 	}
@@ -1131,7 +1131,7 @@ func TestAddPTZConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddPTZConfiguration(ctx, "Profile1", "PTZConfig1")
+	err = client.AddPTZConfiguration(ctx, testProfileToken, "PTZConfig1")
 	if err != nil {
 		t.Fatalf("AddPTZConfiguration() failed: %v", err)
 	}
@@ -1152,7 +1152,7 @@ func TestRemovePTZConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.RemovePTZConfiguration(ctx, "Profile1")
+	err = client.RemovePTZConfiguration(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("RemovePTZConfiguration() failed: %v", err)
 	}
@@ -1173,7 +1173,7 @@ func TestAddMetadataConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.AddMetadataConfiguration(ctx, "Profile1", "Metadata1")
+	err = client.AddMetadataConfiguration(ctx, testProfileToken, "Metadata1")
 	if err != nil {
 		t.Fatalf("AddMetadataConfiguration() failed: %v", err)
 	}
@@ -1194,7 +1194,7 @@ func TestRemoveMetadataConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err = client.RemoveMetadataConfiguration(ctx, "Profile1")
+	err = client.RemoveMetadataConfiguration(ctx, testProfileToken)
 	if err != nil {
 		t.Fatalf("RemoveMetadataConfiguration() failed: %v", err)
 	}
@@ -1230,7 +1230,7 @@ func TestGetAudioEncoderConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetAudioEncoderConfigurationOptions(ctx, "AudioEnc1", "")
+	options, err := client.GetAudioEncoderConfigurationOptions(ctx, testAudioEncToken, "")
 	if err != nil {
 		t.Fatalf("GetAudioEncoderConfigurationOptions() failed: %v", err)
 	}
@@ -1443,7 +1443,7 @@ func TestGetGuaranteedNumberOfVideoEncoderInstances(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	instances, err := client.GetGuaranteedNumberOfVideoEncoderInstances(ctx, "VideoEnc1")
+	instances, err := client.GetGuaranteedNumberOfVideoEncoderInstances(ctx, testVideoEncToken)
 	if err != nil {
 		t.Fatalf("GetGuaranteedNumberOfVideoEncoderInstances() failed: %v", err)
 	}
