@@ -31,7 +31,7 @@ func New(config *Config) (*Server, error) {
 		streamPath := fmt.Sprintf("/stream%d", i)
 
 		host := config.Host
-		if host == "0.0.0.0" || host == "" {
+		if host == defaultHost || host == "" {
 			host = "localhost"
 		}
 
@@ -61,13 +61,13 @@ func New(config *Config) (*Server, error) {
 			Contrast:    50.0, //nolint:mnd // Default imaging value
 			Saturation:  50.0, //nolint:mnd // Default imaging value
 			Sharpness:   50.0, //nolint:mnd // Default imaging value
-			IrCutFilter: "AUTO",
+			IrCutFilter: autoMode,
 			BacklightComp: BacklightCompensation{
-				Mode:  "OFF",
+				Mode:  offMode,
 				Level: 0,
 			},
 			Exposure: ExposureSettings{
-				Mode:         "AUTO",
+				Mode:         autoMode,
 				Priority:     "FrameRate",
 				MinExposure:  1,
 				MaxExposure:  10000, //nolint:mnd // Exposure time in microseconds
@@ -77,19 +77,19 @@ func New(config *Config) (*Server, error) {
 				Gain:         50,  //nolint:mnd // Gain value
 			},
 			Focus: FocusSettings{
-				AutoFocusMode: "AUTO",
+				AutoFocusMode: autoMode,
 				DefaultSpeed:  0.5, //nolint:mnd // Focus speed
 				NearLimit:     0,
 				FarLimit:      1,
 				CurrentPos:    0.5, //nolint:mnd // Focus position
 			},
 			WhiteBalance: WhiteBalanceSettings{
-				Mode:   "AUTO",
+				Mode:   autoMode,
 				CrGain: 128, //nolint:mnd // White balance gain
 				CbGain: 128, //nolint:mnd // White balance gain
 			},
 			WideDynamicRange: WDRSettings{
-				Mode:  "OFF",
+				Mode:  offMode,
 				Level: 0,
 			},
 		}

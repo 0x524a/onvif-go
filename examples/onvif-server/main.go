@@ -12,6 +12,10 @@ import (
 	"github.com/0x524a/onvif-go/server"
 )
 
+const (
+	exampleH264 = "H264"
+)
+
 func main() {
 	// Create a custom multi-lens camera configuration
 	config := &server.Config{
@@ -44,7 +48,7 @@ func main() {
 					Bounds:     server.Bounds{X: 0, Y: 0, Width: 3840, Height: 2160},
 				},
 				VideoEncoder: server.VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   exampleH264,
 					Resolution: server.Resolution{Width: 3840, Height: 2160},
 					Quality:    90,
 					Framerate:  30,
@@ -85,7 +89,7 @@ func main() {
 					Bounds:     server.Bounds{X: 0, Y: 0, Width: 2560, Height: 1440},
 				},
 				VideoEncoder: server.VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   exampleH264,
 					Resolution: server.Resolution{Width: 2560, Height: 1440},
 					Quality:    85,
 					Framerate:  30,
@@ -110,7 +114,7 @@ func main() {
 					Bounds:     server.Bounds{X: 0, Y: 0, Width: 1920, Height: 1080},
 				},
 				VideoEncoder: server.VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   exampleH264,
 					Resolution: server.Resolution{Width: 1920, Height: 1080},
 					Quality:    88,
 					Framerate:  60,
@@ -151,7 +155,7 @@ func main() {
 					Bounds:     server.Bounds{X: 0, Y: 0, Width: 1920, Height: 1080},
 				},
 				VideoEncoder: server.VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   exampleH264,
 					Resolution: server.Resolution{Width: 1920, Height: 1080},
 					Quality:    85,
 					Framerate:  30,

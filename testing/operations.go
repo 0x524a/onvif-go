@@ -1,9 +1,57 @@
 // Package onviftesting provides testing utilities for ONVIF client testing.
 package onviftesting
 
+// ONVIF token parameter names, shared between OperationSpec.RequiresToken
+// entries below and the parameter extraction logic in mock_server.go.
+const (
+	tokenProfile       = "ProfileToken"
+	tokenConfiguration = "ConfigurationToken"
+	tokenVideoSource   = "VideoSourceToken"
+	tokenVideoOutput   = "VideoOutputToken"
+	tokenSerialPort    = "SerialPortToken"
+)
+
+// Operation category labels used across OperationSpec.Category entries.
+const (
+	categoryCore         = "core"
+	categorySystem       = "system"
+	categoryNetwork      = "network"
+	categorySecurity     = "security"
+	categoryCertificates = "certificates"
+	categoryAdditional   = "additional"
+	categoryWiFi         = "wifi"
+	categoryAudio        = "audio"
+	categoryAnalytics    = "analytics"
+	categoryVideo        = "video"
+	categoryEncoder      = "encoder"
+	categoryMetadata     = "metadata"
+	categoryOSD          = "osd"
+	categoryOutputs      = "outputs"
+	categorySerial       = "serial"
+)
+
+// ONVIF operation names referenced as both an operation's Name and as the
+// DependsOn value of operations that require a token it provides.
+const (
+	opGetProfiles                   = "GetProfiles"
+	opGetVideoSources               = "GetVideoSources"
+	opGetVideoSourceConfigurations  = "GetVideoSourceConfigurations"
+	opGetVideoEncoderConfigurations = "GetVideoEncoderConfigurations"
+	opGetAudioSourceConfigurations  = "GetAudioSourceConfigurations"
+	opGetAudioEncoderConfigurations = "GetAudioEncoderConfigurations"
+	opGetAudioOutputConfigurations  = "GetAudioOutputConfigurations"
+	opGetAudioDecoderConfigurations = "GetAudioDecoderConfigurations"
+	opGetMetadataConfigurations     = "GetMetadataConfigurations"
+	opGetOSDs                       = "GetOSDs"
+	opGetVideoOutputs               = "GetVideoOutputs"
+	opGetSerialPorts                = "GetSerialPorts"
+	opGetStreamURI                  = "GetStreamURI"
+	opGetDeviceInformation          = "GetDeviceInformation"
+)
+
 // OperationSpec defines how to capture an ONVIF operation.
 type OperationSpec struct {
-	// Name is the ONVIF operation name (e.g., "GetDeviceInformation")
+	// Name is the ONVIF operation name (e.g., opGetDeviceInformation)
 	Name string
 
 	// Service is the ONVIF service type
@@ -12,13 +60,13 @@ type OperationSpec struct {
 	// RequiresInit indicates if Initialize() must be called first
 	RequiresInit bool
 
-	// RequiresToken specifies which token parameter is needed (e.g., "ProfileToken")
+	// RequiresToken specifies which token parameter is needed (e.g., tokenProfile)
 	RequiresToken string
 
 	// DependsOn specifies which operation provides the required token
 	DependsOn string
 
-	// Category groups related operations (e.g., "core", "network", "security")
+	// Category groups related operations (e.g., categoryCore, categoryNetwork, categorySecurity)
 	Category string
 
 	// IsWrite indicates if this operation modifies camera state
@@ -35,39 +83,39 @@ type OperationSpec struct {
 // DeviceReadOperations contains all read-only Device service operations.
 var DeviceReadOperations = []OperationSpec{
 	// Core operations
-	{Name: "GetDeviceInformation", Service: ServiceDevice, Category: "core",
+	{Name: opGetDeviceInformation, Service: ServiceDevice, Category: categoryCore,
 		Description: "Get manufacturer, model, firmware version"},
-	{Name: "GetCapabilities", Service: ServiceDevice, Category: "core",
+	{Name: "GetCapabilities", Service: ServiceDevice, Category: categoryCore,
 		Description: "Get service capabilities and endpoints"},
-	{Name: "GetServices", Service: ServiceDevice, Category: "core",
+	{Name: "GetServices", Service: ServiceDevice, Category: categoryCore,
 		Description: "Get list of available services"},
-	{Name: "GetServiceCapabilities", Service: ServiceDevice, Category: "core",
+	{Name: "GetServiceCapabilities", Service: ServiceDevice, Category: categoryCore,
 		Description: "Get device service capabilities"},
 
 	// System operations
-	{Name: "GetSystemDateAndTime", Service: ServiceDevice, Category: "system",
+	{Name: "GetSystemDateAndTime", Service: ServiceDevice, Category: categorySystem,
 		Description: "Get device date and time settings"},
-	{Name: "GetSystemLog", Service: ServiceDevice, Category: "system",
+	{Name: "GetSystemLog", Service: ServiceDevice, Category: categorySystem,
 		Description: "Get system log"},
-	{Name: "GetSystemUris", Service: ServiceDevice, Category: "system",
+	{Name: "GetSystemUris", Service: ServiceDevice, Category: categorySystem,
 		Description: "Get system URIs (support, firmware, logs)"},
-	{Name: "GetSystemSupportInformation", Service: ServiceDevice, Category: "system",
+	{Name: "GetSystemSupportInformation", Service: ServiceDevice, Category: categorySystem,
 		Description: "Get system support information"},
-	{Name: "GetEndpointReference", Service: ServiceDevice, Category: "system",
+	{Name: "GetEndpointReference", Service: ServiceDevice, Category: categorySystem,
 		Description: "Get unique endpoint reference address"},
 
 	// Network operations
-	{Name: "GetHostname", Service: ServiceDevice, Category: "network",
+	{Name: "GetHostname", Service: ServiceDevice, Category: categoryNetwork,
 		Description: "Get device hostname"},
-	{Name: "GetDNS", Service: ServiceDevice, Category: "network",
+	{Name: "GetDNS", Service: ServiceDevice, Category: categoryNetwork,
 		Description: "Get DNS configuration"},
-	{Name: "GetNTP", Service: ServiceDevice, Category: "network",
+	{Name: "GetNTP", Service: ServiceDevice, Category: categoryNetwork,
 		Description: "Get NTP configuration"},
-	{Name: "GetNetworkInterfaces", Service: ServiceDevice, Category: "network",
+	{Name: "GetNetworkInterfaces", Service: ServiceDevice, Category: categoryNetwork,
 		Description: "Get network interface configuration"},
-	{Name: "GetNetworkProtocols", Service: ServiceDevice, Category: "network",
+	{Name: "GetNetworkProtocols", Service: ServiceDevice, Category: categoryNetwork,
 		Description: "Get enabled network protocols"},
-	{Name: "GetNetworkDefaultGateway", Service: ServiceDevice, Category: "network",
+	{Name: "GetNetworkDefaultGateway", Service: ServiceDevice, Category: categoryNetwork,
 		Description: "Get default gateway configuration"},
 
 	// Discovery operations
@@ -85,31 +133,31 @@ var DeviceReadOperations = []OperationSpec{
 		Description: "Get list of device users"},
 
 	// Security operations
-	{Name: "GetRemoteUser", Service: ServiceDevice, Category: "security",
+	{Name: "GetRemoteUser", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get remote user configuration"},
-	{Name: "GetIPAddressFilter", Service: ServiceDevice, Category: "security",
+	{Name: "GetIPAddressFilter", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get IP address filter rules"},
-	{Name: "GetZeroConfiguration", Service: ServiceDevice, Category: "security",
+	{Name: "GetZeroConfiguration", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get zero configuration (link-local) settings"},
-	{Name: "GetDynamicDNS", Service: ServiceDevice, Category: "security",
+	{Name: "GetDynamicDNS", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get dynamic DNS configuration"},
-	{Name: "GetAccessPolicy", Service: ServiceDevice, Category: "security",
+	{Name: "GetAccessPolicy", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get access policy configuration"},
-	{Name: "GetPasswordComplexityConfiguration", Service: ServiceDevice, Category: "security",
+	{Name: "GetPasswordComplexityConfiguration", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get password complexity requirements"},
-	{Name: "GetPasswordHistoryConfiguration", Service: ServiceDevice, Category: "security",
+	{Name: "GetPasswordHistoryConfiguration", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get password history configuration"},
-	{Name: "GetAuthFailureWarningConfiguration", Service: ServiceDevice, Category: "security",
+	{Name: "GetAuthFailureWarningConfiguration", Service: ServiceDevice, Category: categorySecurity,
 		Description: "Get authentication failure warning settings"},
 
 	// Certificate operations
-	{Name: "GetCertificates", Service: ServiceDevice, Category: "certificates",
+	{Name: "GetCertificates", Service: ServiceDevice, Category: categoryCertificates,
 		Description: "Get device certificates"},
-	{Name: "GetCACertificates", Service: ServiceDevice, Category: "certificates",
+	{Name: "GetCACertificates", Service: ServiceDevice, Category: categoryCertificates,
 		Description: "Get CA certificates"},
-	{Name: "GetCertificatesStatus", Service: ServiceDevice, Category: "certificates",
+	{Name: "GetCertificatesStatus", Service: ServiceDevice, Category: categoryCertificates,
 		Description: "Get certificate status"},
-	{Name: "GetClientCertificateMode", Service: ServiceDevice, Category: "certificates",
+	{Name: "GetClientCertificateMode", Service: ServiceDevice, Category: categoryCertificates,
 		Description: "Get client certificate mode"},
 
 	// Storage operations
@@ -121,21 +169,21 @@ var DeviceReadOperations = []OperationSpec{
 		Description: "Get relay output states"},
 
 	// Additional operations
-	{Name: "GetGeoLocation", Service: ServiceDevice, Category: "additional",
+	{Name: "GetGeoLocation", Service: ServiceDevice, Category: categoryAdditional,
 		Description: "Get geographic location"},
-	{Name: "GetDPAddresses", Service: ServiceDevice, Category: "additional",
+	{Name: "GetDPAddresses", Service: ServiceDevice, Category: categoryAdditional,
 		Description: "Get DP (discovery proxy) addresses"},
-	{Name: "GetWsdlURL", Service: ServiceDevice, Category: "additional",
+	{Name: "GetWsdlURL", Service: ServiceDevice, Category: categoryAdditional,
 		Description: "Get WSDL URL"},
 
 	// WiFi operations (802.11)
-	{Name: "GetDot11Capabilities", Service: ServiceDevice, Category: "wifi",
+	{Name: "GetDot11Capabilities", Service: ServiceDevice, Category: categoryWiFi,
 		Description: "Get 802.11 capabilities"},
-	{Name: "GetDot11Status", Service: ServiceDevice, Category: "wifi",
+	{Name: "GetDot11Status", Service: ServiceDevice, Category: categoryWiFi,
 		Description: "Get 802.11 connection status"},
-	{Name: "GetDot1XConfigurations", Service: ServiceDevice, Category: "wifi",
+	{Name: "GetDot1XConfigurations", Service: ServiceDevice, Category: categoryWiFi,
 		Description: "Get 802.1X configurations"},
-	{Name: "ScanAvailableDot11Networks", Service: ServiceDevice, Category: "wifi",
+	{Name: "ScanAvailableDot11Networks", Service: ServiceDevice, Category: categoryWiFi,
 		Description: "Scan for available WiFi networks"},
 }
 
@@ -146,150 +194,150 @@ var DeviceReadOperations = []OperationSpec{
 // MediaReadOperations contains all read-only Media service operations.
 var MediaReadOperations = []OperationSpec{
 	// Service capabilities
-	{Name: "GetMediaServiceCapabilities", Service: ServiceMedia, RequiresInit: true, Category: "core",
+	{Name: "GetMediaServiceCapabilities", Service: ServiceMedia, RequiresInit: true, Category: categoryCore,
 		Description: "Get media service capabilities"},
 
 	// Profile operations
-	{Name: "GetProfiles", Service: ServiceMedia, RequiresInit: true, Category: "profiles",
+	{Name: opGetProfiles, Service: ServiceMedia, RequiresInit: true, Category: "profiles",
 		Description: "Get all media profiles"},
 	{Name: "GetProfile", Service: ServiceMedia, RequiresInit: true, Category: "profiles",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get specific profile by token"},
 
 	// Video source operations
-	{Name: "GetVideoSources", Service: ServiceMedia, RequiresInit: true, Category: "video",
+	{Name: opGetVideoSources, Service: ServiceMedia, RequiresInit: true, Category: categoryVideo,
 		Description: "Get video sources"},
-	{Name: "GetVideoSourceConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "video",
+	{Name: opGetVideoSourceConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryVideo,
 		Description: "Get all video source configurations"},
-	{Name: "GetVideoSourceConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "video",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetVideoSourceConfigurations",
+	{Name: "GetVideoSourceConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryVideo,
+		RequiresToken: tokenConfiguration, DependsOn: opGetVideoSourceConfigurations,
 		Description: "Get specific video source configuration"},
-	{Name: "GetVideoSourceConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "video",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetVideoSourceConfigurations",
+	{Name: "GetVideoSourceConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryVideo,
+		RequiresToken: tokenConfiguration, DependsOn: opGetVideoSourceConfigurations,
 		Description: "Get video source configuration options"},
-	{Name: "GetVideoSourceModes", Service: ServiceMedia, RequiresInit: true, Category: "video",
-		RequiresToken: "VideoSourceToken", DependsOn: "GetVideoSources",
+	{Name: "GetVideoSourceModes", Service: ServiceMedia, RequiresInit: true, Category: categoryVideo,
+		RequiresToken: tokenVideoSource, DependsOn: opGetVideoSources,
 		Description: "Get video source modes"},
-	{Name: "GetCompatibleVideoSourceConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "video",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleVideoSourceConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryVideo,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible video source configurations for profile"},
 
 	// Video encoder operations
-	{Name: "GetVideoEncoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "encoder",
+	{Name: opGetVideoEncoderConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryEncoder,
 		Description: "Get all video encoder configurations"},
-	{Name: "GetVideoEncoderConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "encoder",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetVideoEncoderConfigurations",
+	{Name: "GetVideoEncoderConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryEncoder,
+		RequiresToken: tokenConfiguration, DependsOn: opGetVideoEncoderConfigurations,
 		Description: "Get specific video encoder configuration"},
-	{Name: "GetVideoEncoderConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "encoder",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetVideoEncoderConfigurations",
+	{Name: "GetVideoEncoderConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryEncoder,
+		RequiresToken: tokenConfiguration, DependsOn: opGetVideoEncoderConfigurations,
 		Description: "Get video encoder configuration options"},
-	{Name: "GetCompatibleVideoEncoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "encoder",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleVideoEncoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryEncoder,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible video encoder configurations for profile"},
-	{Name: "GetGuaranteedNumberOfVideoEncoderInstances", Service: ServiceMedia, RequiresInit: true, Category: "encoder",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetVideoEncoderConfigurations",
+	{Name: "GetGuaranteedNumberOfVideoEncoderInstances", Service: ServiceMedia, RequiresInit: true, Category: categoryEncoder,
+		RequiresToken: tokenConfiguration, DependsOn: opGetVideoEncoderConfigurations,
 		Description: "Get guaranteed number of video encoder instances"},
 
 	// Audio source operations
-	{Name: "GetAudioSources", Service: ServiceMedia, RequiresInit: true, Category: "audio",
+	{Name: "GetAudioSources", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
 		Description: "Get audio sources"},
-	{Name: "GetAudioSourceConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
+	{Name: opGetAudioSourceConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
 		Description: "Get all audio source configurations"},
-	{Name: "GetAudioSourceConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioSourceConfigurations",
+	{Name: "GetAudioSourceConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioSourceConfigurations,
 		Description: "Get specific audio source configuration"},
-	{Name: "GetAudioSourceConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioSourceConfigurations",
+	{Name: "GetAudioSourceConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioSourceConfigurations,
 		Description: "Get audio source configuration options"},
-	{Name: "GetCompatibleAudioSourceConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleAudioSourceConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible audio source configurations for profile"},
 
 	// Audio encoder operations
-	{Name: "GetAudioEncoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
+	{Name: opGetAudioEncoderConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
 		Description: "Get all audio encoder configurations"},
-	{Name: "GetAudioEncoderConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioEncoderConfigurations",
+	{Name: "GetAudioEncoderConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioEncoderConfigurations,
 		Description: "Get specific audio encoder configuration"},
-	{Name: "GetAudioEncoderConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioEncoderConfigurations",
+	{Name: "GetAudioEncoderConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioEncoderConfigurations,
 		Description: "Get audio encoder configuration options"},
-	{Name: "GetCompatibleAudioEncoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleAudioEncoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible audio encoder configurations for profile"},
 
 	// Audio output operations
-	{Name: "GetAudioOutputs", Service: ServiceMedia, RequiresInit: true, Category: "audio",
+	{Name: "GetAudioOutputs", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
 		Description: "Get audio outputs"},
-	{Name: "GetAudioOutputConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
+	{Name: opGetAudioOutputConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
 		Description: "Get all audio output configurations"},
-	{Name: "GetAudioOutputConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioOutputConfigurations",
+	{Name: "GetAudioOutputConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioOutputConfigurations,
 		Description: "Get specific audio output configuration"},
-	{Name: "GetAudioOutputConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioOutputConfigurations",
+	{Name: "GetAudioOutputConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioOutputConfigurations,
 		Description: "Get audio output configuration options"},
-	{Name: "GetCompatibleAudioOutputConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleAudioOutputConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible audio output configurations for profile"},
 
 	// Audio decoder operations
-	{Name: "GetAudioDecoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
+	{Name: opGetAudioDecoderConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
 		Description: "Get all audio decoder configurations"},
-	{Name: "GetAudioDecoderConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioDecoderConfigurations",
+	{Name: "GetAudioDecoderConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioDecoderConfigurations,
 		Description: "Get specific audio decoder configuration"},
-	{Name: "GetAudioDecoderConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetAudioDecoderConfigurations",
+	{Name: "GetAudioDecoderConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenConfiguration, DependsOn: opGetAudioDecoderConfigurations,
 		Description: "Get audio decoder configuration options"},
-	{Name: "GetCompatibleAudioDecoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "audio",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleAudioDecoderConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryAudio,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible audio decoder configurations for profile"},
 
 	// Metadata operations
-	{Name: "GetMetadataConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "metadata",
+	{Name: opGetMetadataConfigurations, Service: ServiceMedia, RequiresInit: true, Category: categoryMetadata,
 		Description: "Get all metadata configurations"},
-	{Name: "GetMetadataConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "metadata",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetMetadataConfigurations",
+	{Name: "GetMetadataConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryMetadata,
+		RequiresToken: tokenConfiguration, DependsOn: opGetMetadataConfigurations,
 		Description: "Get specific metadata configuration"},
-	{Name: "GetMetadataConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: "metadata",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetMetadataConfigurations",
+	{Name: "GetMetadataConfigurationOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryMetadata,
+		RequiresToken: tokenConfiguration, DependsOn: opGetMetadataConfigurations,
 		Description: "Get metadata configuration options"},
-	{Name: "GetCompatibleMetadataConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "metadata",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleMetadataConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryMetadata,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible metadata configurations for profile"},
 
 	// Video analytics operations
-	{Name: "GetVideoAnalyticsConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "analytics",
+	{Name: "GetVideoAnalyticsConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryAnalytics,
 		Description: "Get all video analytics configurations"},
-	{Name: "GetVideoAnalyticsConfiguration", Service: ServiceMedia, RequiresInit: true, Category: "analytics",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetVideoAnalyticsConfigurations",
+	{Name: "GetVideoAnalyticsConfiguration", Service: ServiceMedia, RequiresInit: true, Category: categoryAnalytics,
+		RequiresToken: tokenConfiguration, DependsOn: "GetVideoAnalyticsConfigurations",
 		Description: "Get specific video analytics configuration"},
-	{Name: "GetCompatibleVideoAnalyticsConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "analytics",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: "GetCompatibleVideoAnalyticsConfigurations", Service: ServiceMedia, RequiresInit: true, Category: categoryAnalytics,
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible video analytics configurations for profile"},
 
 	// Stream operations
-	{Name: "GetStreamURI", Service: ServiceMedia, RequiresInit: true, Category: "streaming",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+	{Name: opGetStreamURI, Service: ServiceMedia, RequiresInit: true, Category: "streaming",
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get RTSP stream URI"},
 	{Name: "GetSnapshotURI", Service: ServiceMedia, RequiresInit: true, Category: "streaming",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get snapshot URI"},
 
 	// OSD operations
-	{Name: "GetOSDs", Service: ServiceMedia, RequiresInit: true, Category: "osd",
+	{Name: opGetOSDs, Service: ServiceMedia, RequiresInit: true, Category: categoryOSD,
 		Description: "Get all OSD configurations"},
-	{Name: "GetOSD", Service: ServiceMedia, RequiresInit: true, Category: "osd",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetOSDs",
+	{Name: "GetOSD", Service: ServiceMedia, RequiresInit: true, Category: categoryOSD,
+		RequiresToken: tokenConfiguration, DependsOn: opGetOSDs,
 		Description: "Get specific OSD configuration"},
-	{Name: "GetOSDOptions", Service: ServiceMedia, RequiresInit: true, Category: "osd",
-		RequiresToken: "ConfigurationToken", DependsOn: "GetOSDs",
+	{Name: "GetOSDOptions", Service: ServiceMedia, RequiresInit: true, Category: categoryOSD,
+		RequiresToken: tokenConfiguration, DependsOn: opGetOSDs,
 		Description: "Get OSD configuration options"},
 
 	// PTZ configuration operations (on Media service)
 	{Name: "GetCompatiblePTZConfigurations", Service: ServiceMedia, RequiresInit: true, Category: "ptz",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get compatible PTZ configurations for profile"},
 }
 
@@ -305,10 +353,10 @@ var PTZReadOperations = []OperationSpec{
 		RequiresToken: "PTZConfigurationToken", DependsOn: "GetConfigurations",
 		Description: "Get specific PTZ configuration"},
 	{Name: "GetStatus", Service: ServicePTZ, RequiresInit: true, Category: "status",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get PTZ status (position, move status)"},
 	{Name: "GetPresets", Service: ServicePTZ, RequiresInit: true, Category: "presets",
-		RequiresToken: "ProfileToken", DependsOn: "GetProfiles",
+		RequiresToken: tokenProfile, DependsOn: opGetProfiles,
 		Description: "Get PTZ presets"},
 	{Name: "GetNodes", Service: ServicePTZ, RequiresInit: true, Category: "nodes",
 		Description: "Get PTZ nodes"},
@@ -324,16 +372,16 @@ var PTZReadOperations = []OperationSpec{
 // ImagingReadOperations contains all read-only Imaging service operations.
 var ImagingReadOperations = []OperationSpec{
 	{Name: "GetImagingSettings", Service: ServiceImaging, RequiresInit: true, Category: "settings",
-		RequiresToken: "VideoSourceToken", DependsOn: "GetVideoSources",
+		RequiresToken: tokenVideoSource, DependsOn: opGetVideoSources,
 		Description: "Get imaging settings (brightness, contrast, etc.)"},
 	{Name: "GetOptions", Service: ServiceImaging, RequiresInit: true, Category: "options",
-		RequiresToken: "VideoSourceToken", DependsOn: "GetVideoSources",
+		RequiresToken: tokenVideoSource, DependsOn: opGetVideoSources,
 		Description: "Get imaging options and ranges"},
 	{Name: "GetMoveOptions", Service: ServiceImaging, RequiresInit: true, Category: "options",
-		RequiresToken: "VideoSourceToken", DependsOn: "GetVideoSources",
+		RequiresToken: tokenVideoSource, DependsOn: opGetVideoSources,
 		Description: "Get focus move options"},
 	{Name: "GetImagingStatus", Service: ServiceImaging, RequiresInit: true, Category: "status",
-		RequiresToken: "VideoSourceToken", DependsOn: "GetVideoSources",
+		RequiresToken: tokenVideoSource, DependsOn: opGetVideoSources,
 		Description: "Get imaging status (focus status, etc.)"},
 }
 
@@ -343,9 +391,9 @@ var ImagingReadOperations = []OperationSpec{
 
 // EventReadOperations contains all read-only Event service operations.
 var EventReadOperations = []OperationSpec{
-	{Name: "GetEventServiceCapabilities", Service: ServiceEvent, RequiresInit: true, Category: "core",
+	{Name: "GetEventServiceCapabilities", Service: ServiceEvent, RequiresInit: true, Category: categoryCore,
 		Description: "Get event service capabilities"},
-	{Name: "GetEventProperties", Service: ServiceEvent, RequiresInit: true, Category: "core",
+	{Name: "GetEventProperties", Service: ServiceEvent, RequiresInit: true, Category: categoryCore,
 		Description: "Get event topic properties"},
 	{Name: "GetEventBrokers", Service: ServiceEvent, RequiresInit: true, Category: "brokers",
 		Description: "Get event brokers"},
@@ -357,32 +405,32 @@ var EventReadOperations = []OperationSpec{
 
 // DeviceIOReadOperations contains all read-only DeviceIO service operations.
 var DeviceIOReadOperations = []OperationSpec{
-	{Name: "GetDeviceIOServiceCapabilities", Service: ServiceDeviceIO, RequiresInit: true, Category: "core",
+	{Name: "GetDeviceIOServiceCapabilities", Service: ServiceDeviceIO, RequiresInit: true, Category: categoryCore,
 		Description: "Get DeviceIO service capabilities"},
 	{Name: "GetDigitalInputs", Service: ServiceDeviceIO, RequiresInit: true, Category: "inputs",
 		Description: "Get digital inputs"},
 	{Name: "GetDigitalInputConfigurationOptions", Service: ServiceDeviceIO, RequiresInit: true, Category: "inputs",
 		Description: "Get digital input configuration options"},
-	{Name: "GetVideoOutputs", Service: ServiceDeviceIO, RequiresInit: true, Category: "outputs",
+	{Name: opGetVideoOutputs, Service: ServiceDeviceIO, RequiresInit: true, Category: categoryOutputs,
 		Description: "Get video outputs"},
-	{Name: "GetVideoOutputConfiguration", Service: ServiceDeviceIO, RequiresInit: true, Category: "outputs",
-		RequiresToken: "VideoOutputToken", DependsOn: "GetVideoOutputs",
+	{Name: "GetVideoOutputConfiguration", Service: ServiceDeviceIO, RequiresInit: true, Category: categoryOutputs,
+		RequiresToken: tokenVideoOutput, DependsOn: opGetVideoOutputs,
 		Description: "Get video output configuration"},
-	{Name: "GetVideoOutputConfigurationOptions", Service: ServiceDeviceIO, RequiresInit: true, Category: "outputs",
-		RequiresToken: "VideoOutputToken", DependsOn: "GetVideoOutputs",
+	{Name: "GetVideoOutputConfigurationOptions", Service: ServiceDeviceIO, RequiresInit: true, Category: categoryOutputs,
+		RequiresToken: tokenVideoOutput, DependsOn: opGetVideoOutputs,
 		Description: "Get video output configuration options"},
-	{Name: "GetSerialPorts", Service: ServiceDeviceIO, RequiresInit: true, Category: "serial",
+	{Name: opGetSerialPorts, Service: ServiceDeviceIO, RequiresInit: true, Category: categorySerial,
 		Description: "Get serial ports"},
-	{Name: "GetSerialPortConfiguration", Service: ServiceDeviceIO, RequiresInit: true, Category: "serial",
-		RequiresToken: "SerialPortToken", DependsOn: "GetSerialPorts",
+	{Name: "GetSerialPortConfiguration", Service: ServiceDeviceIO, RequiresInit: true, Category: categorySerial,
+		RequiresToken: tokenSerialPort, DependsOn: opGetSerialPorts,
 		Description: "Get serial port configuration"},
-	{Name: "GetSerialPortConfigurationOptions", Service: ServiceDeviceIO, RequiresInit: true, Category: "serial",
-		RequiresToken: "SerialPortToken", DependsOn: "GetSerialPorts",
+	{Name: "GetSerialPortConfigurationOptions", Service: ServiceDeviceIO, RequiresInit: true, Category: categorySerial,
+		RequiresToken: tokenSerialPort, DependsOn: opGetSerialPorts,
 		Description: "Get serial port configuration options"},
 	{Name: "GetRelayOutputOptions", Service: ServiceDeviceIO, RequiresInit: true, Category: "relay",
 		RequiresToken: "RelayOutputToken",
 		Description:   "Get relay output options"},
-	{Name: "GetAudioOutputs", Service: ServiceDeviceIO, RequiresInit: true, Category: "audio",
+	{Name: "GetAudioOutputs", Service: ServiceDeviceIO, RequiresInit: true, Category: categoryAudio,
 		Description: "Get audio outputs (DeviceIO)"},
 }
 
@@ -392,13 +440,14 @@ var DeviceIOReadOperations = []OperationSpec{
 
 // AllReadOperations returns all READ operations across all services.
 func AllReadOperations() []OperationSpec {
-	var all []OperationSpec
+	all := make([]OperationSpec, 0, len(DeviceReadOperations)+len(MediaReadOperations)+len(PTZReadOperations)+len(ImagingReadOperations)+len(EventReadOperations)+len(DeviceIOReadOperations))
 	all = append(all, DeviceReadOperations...)
 	all = append(all, MediaReadOperations...)
 	all = append(all, PTZReadOperations...)
 	all = append(all, ImagingReadOperations...)
 	all = append(all, EventReadOperations...)
 	all = append(all, DeviceIOReadOperations...)
+
 	return all
 }
 
@@ -420,6 +469,7 @@ func ReadOperationsByService(service ServiceType) []OperationSpec {
 	case ServiceUnknown:
 		return nil
 	}
+
 	return nil
 }
 
@@ -431,6 +481,7 @@ func IndependentOperations() []OperationSpec {
 			independent = append(independent, op)
 		}
 	}
+
 	return independent
 }
 
@@ -442,6 +493,7 @@ func DependentOperations() []OperationSpec {
 			dependent = append(dependent, op)
 		}
 	}
+
 	return dependent
 }
 
@@ -453,6 +505,7 @@ func OperationsByDependency(dependsOn string) []OperationSpec {
 			ops = append(ops, op)
 		}
 	}
+
 	return ops
 }
 
@@ -488,6 +541,7 @@ func GetOperationSpec(name string) *OperationSpec {
 			return &DeviceIOReadOperations[i]
 		}
 	}
+
 	return nil
 }
 

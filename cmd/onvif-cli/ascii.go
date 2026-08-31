@@ -26,6 +26,12 @@ const (
 	largeASCIIWidth    = 160
 	largeASCIIHeight   = 50
 	defaultQuality     = "medium"
+	highQuality        = "high"
+	detailedQuality    = "detailed"
+	lowQuality         = "low"
+	simpleQuality      = "simple"
+	blockQuality       = "block"
+	fullQuality        = "full"
 )
 
 // DefaultASCIIConfig returns a sensible default configuration.
@@ -86,15 +92,15 @@ func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (
 	// Select character set based on quality
 	charset := charsetMedium
 	switch strings.ToLower(config.Quality) {
-	case "high", "detailed":
+	case highQuality, detailedQuality:
 		charset = charsetDetailed
 	case "medium":
 		charset = charsetMedium
-	case "low", "simple":
+	case lowQuality, simpleQuality:
 		charset = charsetSimple
-	case "block":
+	case blockQuality:
 		charset = charsetBlock
-	case "full":
+	case fullQuality:
 		charset = charsetFull
 	}
 
@@ -239,7 +245,7 @@ func CreateASCIIHighQuality(imageData []byte) (string, error) {
 		Width:   largeASCIIWidth,
 		Height:  largeASCIIHeight,
 		Invert:  false,
-		Quality: "high",
+		Quality: highQuality,
 	}
 
 	return ImageToASCII(imageData, config)
