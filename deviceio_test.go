@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	testDeviceIOXMLHeader    = `<?xml version="1.0" encoding="UTF-8"?>`
-	testVideoOutputToken     = "testVideoOutputToken"
-	testSerialPortToken      = "testSerialPortToken"
+	testDeviceIOXMLHeader = `<?xml version="1.0" encoding="UTF-8"?>`
+	testVideoOutputToken  = "testVideoOutputToken"
+	testSerialPortToken   = "testSerialPortToken"
 )
 
 func newMockDeviceIOServer() *httptest.Server {
@@ -420,7 +420,7 @@ func TestGetVideoOutputs(t *testing.T) {
 		t.Fatalf("Expected 1 video output, got %d", len(outputs))
 	}
 
-	if outputs[0].Token != "testVideoOutputToken" {
+	if outputs[0].Token != testVideoOutputToken {
 		t.Errorf("Expected video output token 'testVideoOutputToken', got '%s'", outputs[0].Token)
 	}
 
@@ -464,7 +464,7 @@ func TestGetSerialPorts(t *testing.T) {
 		t.Fatalf("Expected 2 serial ports, got %d", len(ports))
 	}
 
-	if ports[0].Token != "testSerialPortToken" {
+	if ports[0].Token != testSerialPortToken {
 		t.Errorf("Expected first serial port token 'testSerialPortToken', got '%s'", ports[0].Token)
 	}
 
@@ -487,12 +487,12 @@ func TestGetSerialPortConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetSerialPortConfiguration(ctx, "testSerialPortToken")
+	config, err := client.GetSerialPortConfiguration(ctx, testSerialPortToken)
 	if err != nil {
 		t.Fatalf("GetSerialPortConfiguration failed: %v", err)
 	}
 
-	if config.Token != "testSerialPortToken" {
+	if config.Token != testSerialPortToken {
 		t.Errorf("Expected token 'testSerialPortToken', got '%s'", config.Token)
 	}
 
@@ -543,7 +543,7 @@ func TestGetSerialPortConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetSerialPortConfigurationOptions(ctx, "testSerialPortToken")
+	options, err := client.GetSerialPortConfigurationOptions(ctx, testSerialPortToken)
 	if err != nil {
 		t.Fatalf("GetSerialPortConfigurationOptions failed: %v", err)
 	}
@@ -593,7 +593,7 @@ func TestSetSerialPortConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := &SerialPortConfiguration{
-		Token:           "testSerialPortToken",
+		Token:           testSerialPortToken,
 		Type:            SerialPortTypeRS232,
 		BaudRate:        19200,
 		ParityBit:       ParityNone,
@@ -643,7 +643,7 @@ func TestSendReceiveSerialCommand(t *testing.T) {
 
 	ctx := context.Background()
 
-	response, err := client.SendReceiveSerialCommand(ctx, "testSerialPortToken", []byte("HELLO"), 5, 10)
+	response, err := client.SendReceiveSerialCommand(ctx, testSerialPortToken, []byte("HELLO"), 5, 10)
 	if err != nil {
 		t.Fatalf("SendReceiveSerialCommand failed: %v", err)
 	}
@@ -671,7 +671,7 @@ func TestSendReceiveSerialCommandValidation(t *testing.T) {
 	}
 
 	// Test empty data.
-	_, err = client.SendReceiveSerialCommand(ctx, "testSerialPortToken", []byte{}, 5, 10)
+	_, err = client.SendReceiveSerialCommand(ctx, testSerialPortToken, []byte{}, 5, 10)
 	if !errors.Is(err, ErrInvalidSerialData) {
 		t.Errorf("Expected ErrInvalidSerialData, got %v", err)
 	}
@@ -737,7 +737,7 @@ func TestGetVideoOutputConfiguration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	config, err := client.GetVideoOutputConfiguration(ctx, "testVideoOutputToken")
+	config, err := client.GetVideoOutputConfiguration(ctx, testVideoOutputToken)
 	if err != nil {
 		t.Fatalf("GetVideoOutputConfiguration failed: %v", err)
 	}
@@ -754,7 +754,7 @@ func TestGetVideoOutputConfiguration(t *testing.T) {
 		t.Errorf("Expected use count 2, got %d", config.UseCount)
 	}
 
-	if config.OutputToken != "testVideoOutputToken" {
+	if config.OutputToken != testVideoOutputToken {
 		t.Errorf("Expected output token 'testVideoOutputToken', got '%s'", config.OutputToken)
 	}
 }
@@ -785,7 +785,7 @@ func TestGetVideoOutputConfigurationOptions(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	options, err := client.GetVideoOutputConfigurationOptions(ctx, "testVideoOutputToken")
+	options, err := client.GetVideoOutputConfigurationOptions(ctx, testVideoOutputToken)
 	if err != nil {
 		t.Fatalf("GetVideoOutputConfigurationOptions failed: %v", err)
 	}
@@ -834,7 +834,7 @@ func TestSetVideoOutputConfiguration(t *testing.T) {
 		Token:            "config_001",
 		Name:             "Main Output",
 		UseCount:         2,
-		OutputToken:      "testVideoOutputToken",
+		OutputToken:      testVideoOutputToken,
 		ForcePersistence: true,
 	}
 

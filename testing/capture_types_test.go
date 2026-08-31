@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+const (
+	testCaptureProfileToken = "profile1"
+	testCaptureConfigToken  = "config1"
+)
+
 func TestDetectCaptureVersion(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -14,7 +19,7 @@ func TestDetectCaptureVersion(t *testing.T) {
 		{
 			name:     "V1 format (no version)",
 			input:    `{"timestamp":"2025-01-01T00:00:00Z","operation":1}`,
-			expected: "1.0",
+			expected: RegistryVersion,
 		},
 		{
 			name:     "V2 format",
@@ -24,12 +29,12 @@ func TestDetectCaptureVersion(t *testing.T) {
 		{
 			name:     "Empty object",
 			input:    `{}`,
-			expected: "1.0",
+			expected: RegistryVersion,
 		},
 		{
 			name:     "Invalid JSON",
 			input:    `{invalid}`,
-			expected: "1.0",
+			expected: RegistryVersion,
 		},
 	}
 
@@ -73,18 +78,18 @@ func TestCapturedExchangeV2_IsV2(t *testing.T) {
 func TestCapturedExchangeV2_GetTokens(t *testing.T) {
 	exchange := CapturedExchangeV2{
 		Parameters: map[string]interface{}{
-			"ProfileToken":       "profile1",
-			"ConfigurationToken": "config1",
+			"ProfileToken":       testCaptureProfileToken,
+			"ConfigurationToken": testCaptureConfigToken,
 			"VideoSourceToken":   "video1",
 		},
 	}
 
-	if token := exchange.GetProfileToken(); token != "profile1" {
-		t.Errorf("GetProfileToken() = %v, want %v", token, "profile1")
+	if token := exchange.GetProfileToken(); token != testCaptureProfileToken {
+		t.Errorf("GetProfileToken() = %v, want %v", token, testCaptureProfileToken)
 	}
 
-	if token := exchange.GetConfigurationToken(); token != "config1" {
-		t.Errorf("GetConfigurationToken() = %v, want %v", token, "config1")
+	if token := exchange.GetConfigurationToken(); token != testCaptureConfigToken {
+		t.Errorf("GetConfigurationToken() = %v, want %v", token, testCaptureConfigToken)
 	}
 
 	if token := exchange.GetVideoSourceToken(); token != "video1" {
@@ -102,22 +107,22 @@ func TestCapturedExchangeV2_GetTokens_Empty(t *testing.T) {
 
 func TestBuildMatchKey(t *testing.T) {
 	params := map[string]interface{}{
-		"ProfileToken":       "profile1",
-		"ConfigurationToken": "config1",
+		"ProfileToken":       testCaptureProfileToken,
+		"ConfigurationToken": testCaptureConfigToken,
 	}
 
-	key := BuildMatchKey("GetStreamURI", params)
+	key := BuildMatchKey(opGetStreamURI, params)
 
-	if key.OperationName != "GetStreamURI" {
-		t.Errorf("OperationName = %v, want %v", key.OperationName, "GetStreamURI")
+	if key.OperationName != opGetStreamURI {
+		t.Errorf("OperationName = %v, want %v", key.OperationName, opGetStreamURI)
 	}
 
-	if key.ProfileToken != "profile1" {
-		t.Errorf("ProfileToken = %v, want %v", key.ProfileToken, "profile1")
+	if key.ProfileToken != testCaptureProfileToken {
+		t.Errorf("ProfileToken = %v, want %v", key.ProfileToken, testCaptureProfileToken)
 	}
 
-	if key.ConfigurationToken != "config1" {
-		t.Errorf("ConfigurationToken = %v, want %v", key.ConfigurationToken, "config1")
+	if key.ConfigurationToken != testCaptureConfigToken {
+		t.Errorf("ConfigurationToken = %v, want %v", key.ConfigurationToken, testCaptureConfigToken)
 	}
 }
 
@@ -130,26 +135,26 @@ func TestMatchKey_MatchScore(t *testing.T) {
 	}{
 		{
 			name:     "Different operations",
-			key1:     MatchKey{OperationName: "GetProfiles"},
-			key2:     MatchKey{OperationName: "GetStreamURI"},
+			key1:     MatchKey{OperationName: opGetProfiles},
+			key2:     MatchKey{OperationName: opGetStreamURI},
 			expected: -1,
 		},
 		{
 			name:     "Same operation only",
-			key1:     MatchKey{OperationName: "GetProfiles"},
-			key2:     MatchKey{OperationName: "GetProfiles"},
+			key1:     MatchKey{OperationName: opGetProfiles},
+			key2:     MatchKey{OperationName: opGetProfiles},
 			expected: 1,
 		},
 		{
 			name:     "Same operation with matching profile",
-			key1:     MatchKey{OperationName: "GetStreamURI", ProfileToken: "profile1"},
-			key2:     MatchKey{OperationName: "GetStreamURI", ProfileToken: "profile1"},
+			key1:     MatchKey{OperationName: opGetStreamURI, ProfileToken: testCaptureProfileToken},
+			key2:     MatchKey{OperationName: opGetStreamURI, ProfileToken: testCaptureProfileToken},
 			expected: 11, // 1 + 10
 		},
 		{
 			name:     "Same operation with non-matching profile",
-			key1:     MatchKey{OperationName: "GetStreamURI", ProfileToken: "profile1"},
-			key2:     MatchKey{OperationName: "GetStreamURI", ProfileToken: "profile2"},
+			key1:     MatchKey{OperationName: opGetStreamURI, ProfileToken: testCaptureProfileToken},
+			key2:     MatchKey{OperationName: opGetStreamURI, ProfileToken: "profile2"},
 			expected: 1,
 		},
 	}
@@ -204,7 +209,7 @@ func TestConvertV1ToV2(t *testing.T) {
 	v1 := &CapturedExchange{
 		Timestamp:     "2025-01-01T00:00:00Z",
 		Operation:     1,
-		OperationName: "GetDeviceInformation",
+		OperationName: opGetDeviceInformation,
 		Endpoint:      "http://camera/onvif/device_service",
 		RequestBody:   "<request/>",
 		ResponseBody:  "<response/>",

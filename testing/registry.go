@@ -60,6 +60,7 @@ func LoadRegistry(path string) (*Registry, error) {
 				Coverage:    make(map[string]Coverage),
 			}, nil
 		}
+
 		return nil, fmt.Errorf("failed to read registry: %w", err)
 	}
 
@@ -101,6 +102,7 @@ func (r *Registry) AddCamera(entry *CameraEntry) {
 		if cam.ID == entry.ID {
 			// Update existing entry
 			r.Cameras[i] = *entry
+
 			return
 		}
 	}
@@ -119,6 +121,7 @@ func (r *Registry) GetCamera(id string) *CameraEntry {
 			return &r.Cameras[i]
 		}
 	}
+
 	return nil
 }
 
@@ -128,6 +131,7 @@ func (r *Registry) RemoveCamera(id string) bool {
 		cam := &r.Cameras[i]
 		if cam.ID == id {
 			r.Cameras = append(r.Cameras[:i], r.Cameras[i+1:]...)
+
 			return true
 		}
 	}
@@ -143,6 +147,7 @@ func (r *Registry) GetCamerasByManufacturer(manufacturer string) []*CameraEntry 
 			cameras = append(cameras, &r.Cameras[i])
 		}
 	}
+
 	return cameras
 }
 
@@ -174,6 +179,7 @@ func (r *Registry) GetTotalCoverage() (total, captured int) {
 		total += cov.Total
 		captured += cov.Captured
 	}
+
 	return total, captured
 }
 
@@ -182,6 +188,7 @@ func GenerateCameraID(manufacturer, model, firmware string) string {
 	// Sanitize and combine
 	id := fmt.Sprintf("%s_%s_%s", manufacturer, model, firmware)
 	id = sanitizeID(id)
+
 	return id
 }
 
@@ -201,6 +208,7 @@ func sanitizeID(s string) string {
 			result = append(result, '_')
 		}
 	}
+
 	return string(result)
 }
 
@@ -338,6 +346,7 @@ func findSubstring(s, substr string) int {
 			return i
 		}
 	}
+
 	return -1
 }
 

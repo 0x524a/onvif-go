@@ -1031,22 +1031,58 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 			return fmt.Errorf("GetDiscoveryMode: %w", err)
 		}},
-		{"GetRemoteDiscoveryMode", func() error { _, err := client.GetRemoteDiscoveryMode(ctx); return err }},
-		{"GetEndpointReference", func() error { _, err := client.GetEndpointReference(ctx); return err }},
-		{"GetRelayOutputs", func() error { _, err := client.GetRelayOutputs(ctx); return err }},
-		{"GetRemoteUser", func() error { _, err := client.GetRemoteUser(ctx); return err }},
-		{"GetIPAddressFilter", func() error { _, err := client.GetIPAddressFilter(ctx); return err }},
-		{"GetZeroConfiguration", func() error { _, err := client.GetZeroConfiguration(ctx); return err }},
-		{"GetServices", func() error { _, err := client.GetServices(ctx, true); return err }},
-		{"GetServiceCapabilities", func() error { _, err := client.GetServiceCapabilities(ctx); return err }},
-		{"GetStorageConfigurations", func() error { _, err := client.GetStorageConfigurations(ctx); return err }},
-		{"GetGeoLocation", func() error { _, err := client.GetGeoLocation(ctx); return err }},
-		{"GetDPAddresses", func() error { _, err := client.GetDPAddresses(ctx); return err }},
-		{"GetAccessPolicy", func() error { _, err := client.GetAccessPolicy(ctx); return err }},
-		{"GetWsdlURL", func() error { _, err := client.GetWsdlURL(ctx); return err }},
-		{"GetPasswordComplexityConfiguration", func() error { _, err := client.GetPasswordComplexityConfiguration(ctx); return err }},
-		{"GetPasswordHistoryConfiguration", func() error { _, err := client.GetPasswordHistoryConfiguration(ctx); return err }},
-		{"GetAuthFailureWarningConfiguration", func() error { _, err := client.GetAuthFailureWarningConfiguration(ctx); return err }},
+		{"GetRemoteDiscoveryMode", func() error {
+			_, err := client.GetRemoteDiscoveryMode(ctx)
+
+			return fmt.Errorf("GetRemoteDiscoveryMode: %w", err)
+		}},
+		{"GetEndpointReference", func() error {
+			_, err := client.GetEndpointReference(ctx)
+
+			return fmt.Errorf("GetEndpointReference: %w", err)
+		}},
+		{"GetRelayOutputs", func() error { _, err := client.GetRelayOutputs(ctx); return fmt.Errorf("GetRelayOutputs: %w", err) }}, //nolint:nlreturn
+		{"GetRemoteUser", func() error { _, err := client.GetRemoteUser(ctx); return fmt.Errorf("GetRemoteUser: %w", err) }},       //nolint:nlreturn
+		{"GetIPAddressFilter", func() error {
+			_, err := client.GetIPAddressFilter(ctx)
+
+			return fmt.Errorf("GetIPAddressFilter: %w", err)
+		}},
+		{"GetZeroConfiguration", func() error {
+			_, err := client.GetZeroConfiguration(ctx)
+
+			return fmt.Errorf("GetZeroConfiguration: %w", err)
+		}},
+		{"GetServices", func() error { _, err := client.GetServices(ctx, true); return fmt.Errorf("GetServices: %w", err) }}, //nolint:nlreturn
+		{"GetServiceCapabilities", func() error {
+			_, err := client.GetServiceCapabilities(ctx)
+
+			return fmt.Errorf("GetServiceCapabilities: %w", err)
+		}},
+		{"GetStorageConfigurations", func() error {
+			_, err := client.GetStorageConfigurations(ctx)
+
+			return fmt.Errorf("GetStorageConfigurations: %w", err)
+		}},
+		{"GetGeoLocation", func() error { _, err := client.GetGeoLocation(ctx); return fmt.Errorf("GetGeoLocation: %w", err) }},    //nolint:nlreturn
+		{"GetDPAddresses", func() error { _, err := client.GetDPAddresses(ctx); return fmt.Errorf("GetDPAddresses: %w", err) }},    //nolint:nlreturn
+		{"GetAccessPolicy", func() error { _, err := client.GetAccessPolicy(ctx); return fmt.Errorf("GetAccessPolicy: %w", err) }}, //nolint:nlreturn
+		{"GetWsdlURL", func() error { _, err := client.GetWsdlURL(ctx); return fmt.Errorf("GetWsdlURL: %w", err) }},                //nolint:nlreturn
+		{"GetPasswordComplexityConfiguration", func() error {
+			_, err := client.GetPasswordComplexityConfiguration(ctx)
+
+			return fmt.Errorf("GetPasswordComplexityConfiguration: %w", err)
+		}},
+		{"GetPasswordHistoryConfiguration", func() error {
+			_, err := client.GetPasswordHistoryConfiguration(ctx)
+
+			return fmt.Errorf("GetPasswordHistoryConfiguration: %w", err)
+		}},
+		{"GetAuthFailureWarningConfiguration", func() error {
+			_, err := client.GetAuthFailureWarningConfiguration(ctx)
+
+			return fmt.Errorf("GetAuthFailureWarningConfiguration: %w", err)
+		}},
 	}
 
 	for _, op := range deviceOps {
@@ -1245,13 +1281,41 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		name string
 		fn   func() error
 	}{
-		{"GetVideoSourceConfigurations", func() error { _, err := client.GetVideoSourceConfigurations(ctx); return err }},
-		{"GetVideoEncoderConfigurations", func() error { _, err := client.GetVideoEncoderConfigurations(ctx); return err }},
-		{"GetAudioSourceConfigurations", func() error { _, err := client.GetAudioSourceConfigurations(ctx); return err }},
-		{"GetAudioEncoderConfigurations", func() error { _, err := client.GetAudioEncoderConfigurations(ctx); return err }},
-		{"GetAudioOutputConfigurations", func() error { _, err := client.GetAudioOutputConfigurations(ctx); return err }},
-		{"GetMetadataConfigurations", func() error { _, err := client.GetMetadataConfigurations(ctx); return err }},
-		{"GetMediaServiceCapabilities", func() error { _, err := client.GetMediaServiceCapabilities(ctx); return err }},
+		{"GetVideoSourceConfigurations", func() error {
+			_, err := client.GetVideoSourceConfigurations(ctx)
+
+			return fmt.Errorf("GetVideoSourceConfigurations: %w", err)
+		}},
+		{"GetVideoEncoderConfigurations", func() error {
+			_, err := client.GetVideoEncoderConfigurations(ctx)
+
+			return fmt.Errorf("GetVideoEncoderConfigurations: %w", err)
+		}},
+		{"GetAudioSourceConfigurations", func() error {
+			_, err := client.GetAudioSourceConfigurations(ctx)
+
+			return fmt.Errorf("GetAudioSourceConfigurations: %w", err)
+		}},
+		{"GetAudioEncoderConfigurations", func() error {
+			_, err := client.GetAudioEncoderConfigurations(ctx)
+
+			return fmt.Errorf("GetAudioEncoderConfigurations: %w", err)
+		}},
+		{"GetAudioOutputConfigurations", func() error {
+			_, err := client.GetAudioOutputConfigurations(ctx)
+
+			return fmt.Errorf("GetAudioOutputConfigurations: %w", err)
+		}},
+		{"GetMetadataConfigurations", func() error {
+			_, err := client.GetMetadataConfigurations(ctx)
+
+			return fmt.Errorf("GetMetadataConfigurations: %w", err)
+		}},
+		{"GetMediaServiceCapabilities", func() error {
+			_, err := client.GetMediaServiceCapabilities(ctx)
+
+			return fmt.Errorf("GetMediaServiceCapabilities: %w", err)
+		}},
 	}
 
 	for _, op := range configOps {
@@ -1276,8 +1340,16 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		name string
 		fn   func() error
 	}{
-		{"GetEventServiceCapabilities", func() error { _, err := client.GetEventServiceCapabilities(ctx); return err }},
-		{"GetEventProperties", func() error { _, err := client.GetEventProperties(ctx); return err }},
+		{"GetEventServiceCapabilities", func() error {
+			_, err := client.GetEventServiceCapabilities(ctx)
+
+			return fmt.Errorf("GetEventServiceCapabilities: %w", err)
+		}},
+		{"GetEventProperties", func() error {
+			_, err := client.GetEventProperties(ctx)
+
+			return fmt.Errorf("GetEventProperties: %w", err)
+		}},
 	}
 
 	for _, op := range eventOps {
@@ -1302,10 +1374,18 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		name string
 		fn   func() error
 	}{
-		{"GetCertificates", func() error { _, err := client.GetCertificates(ctx); return err }},
-		{"GetCACertificates", func() error { _, err := client.GetCACertificates(ctx); return err }},
-		{"GetCertificatesStatus", func() error { _, err := client.GetCertificatesStatus(ctx); return err }},
-		{"GetClientCertificateMode", func() error { _, err := client.GetClientCertificateMode(ctx); return err }},
+		{"GetCertificates", func() error { _, err := client.GetCertificates(ctx); return fmt.Errorf("GetCertificates: %w", err) }},       //nolint:nlreturn
+		{"GetCACertificates", func() error { _, err := client.GetCACertificates(ctx); return fmt.Errorf("GetCACertificates: %w", err) }}, //nolint:nlreturn
+		{"GetCertificatesStatus", func() error {
+			_, err := client.GetCertificatesStatus(ctx)
+
+			return fmt.Errorf("GetCertificatesStatus: %w", err)
+		}},
+		{"GetClientCertificateMode", func() error {
+			_, err := client.GetClientCertificateMode(ctx)
+
+			return fmt.Errorf("GetClientCertificateMode: %w", err)
+		}},
 	}
 
 	for _, op := range certOps {
@@ -1330,8 +1410,16 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 		name string
 		fn   func() error
 	}{
-		{"GetDot11Capabilities", func() error { _, err := client.GetDot11Capabilities(ctx); return err }},
-		{"GetDot1XConfigurations", func() error { _, err := client.GetDot1XConfigurations(ctx); return err }},
+		{"GetDot11Capabilities", func() error {
+			_, err := client.GetDot11Capabilities(ctx)
+
+			return fmt.Errorf("GetDot11Capabilities: %w", err)
+		}},
+		{"GetDot1XConfigurations", func() error {
+			_, err := client.GetDot1XConfigurations(ctx)
+
+			return fmt.Errorf("GetDot1XConfigurations: %w", err)
+		}},
 	}
 
 	for _, op := range wifiOps {
@@ -1719,9 +1807,11 @@ func writeTarEntry(tarWriter *tar.Writer, sourceDir, path string) error {
 
 	if _, err := io.Copy(tarWriter, file); err != nil {
 		_ = file.Close()
+
 		return fmt.Errorf("failed to write file to tar: %w", err)
 	}
 	_ = file.Close()
+
 	return nil
 }
 
@@ -1758,6 +1848,7 @@ func createTarGzV2(sourceDir, archivePath string) error {
 			return nil
 		}
 		files = append(files, path)
+
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to walk source directory: %w", err)

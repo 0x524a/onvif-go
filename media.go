@@ -544,7 +544,7 @@ func (c *Client) SetVideoEncoderConfiguration(
 
 	req := SetVideoEncoderConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -906,7 +906,7 @@ func (c *Client) SetAudioEncoderConfiguration(
 
 	req := SetAudioEncoderConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -1087,7 +1087,7 @@ func (c *Client) SetMetadataConfiguration(
 
 	req := SetMetadataConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -1345,7 +1345,7 @@ func (c *Client) SetOSD(ctx context.Context, osd *OSDConfiguration) error {
 
 	req := SetOSD{
 		Xmlns:  mediaNamespace,
-		Xmlnst: "http://www.onvif.org/ver10/schema",
+		Xmlnst: onvifSchemaNamespace,
 	}
 	req.OSD.Token = osd.Token
 
@@ -1386,7 +1386,7 @@ func (c *Client) CreateOSD(
 
 	req := CreateOSD{
 		Xmlns:                         mediaNamespace,
-		Xmlnst:                        "http://www.onvif.org/ver10/schema",
+		Xmlnst:                        onvifSchemaNamespace,
 		VideoSourceConfigurationToken: videoSourceConfigurationToken,
 	}
 	if osd != nil && osd.Token != "" {
@@ -1536,7 +1536,7 @@ func (c *Client) SetProfile(ctx context.Context, profile *Profile) error {
 
 	req := SetProfile{
 		Xmlns:  mediaNamespace,
-		Xmlnst: "http://www.onvif.org/ver10/schema",
+		Xmlnst: onvifSchemaNamespace,
 	}
 	req.Profile.Token = profile.Token
 	req.Profile.Name = profile.Name
@@ -2028,7 +2028,7 @@ func (c *Client) SetAudioOutputConfiguration(ctx context.Context, config *AudioO
 
 	req := SetAudioOutputConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -2776,7 +2776,7 @@ func (c *Client) SetVideoSourceConfiguration(
 
 	req := SetVideoSourceConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -2828,7 +2828,7 @@ func (c *Client) SetAudioSourceConfiguration(ctx context.Context, config *AudioS
 
 	req := SetAudioSourceConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -3471,7 +3471,7 @@ func (c *Client) SetAudioDecoderConfiguration(ctx context.Context, config *Audio
 
 	req := SetAudioDecoderConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
@@ -3638,7 +3638,7 @@ func (c *Client) SetVideoAnalyticsConfiguration(ctx context.Context, config *Vid
 
 	req := SetVideoAnalyticsConfiguration{
 		Xmlns:            mediaNamespace,
-		Xmlnst:           "http://www.onvif.org/ver10/schema",
+		Xmlnst:           onvifSchemaNamespace,
 		ForcePersistence: forcePersistence,
 	}
 
