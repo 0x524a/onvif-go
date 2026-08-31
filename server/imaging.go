@@ -356,7 +356,7 @@ func (s *Server) HandleGetOptions(body interface{}) (interface{}, error) {
 		Sharpness:        &FloatRange{Min: 0, Max: maxImagingValue},
 		IrCutFilterModes: []string{"ON", offMode, autoMode},
 		BacklightCompensation: &BacklightCompensationOptions{
-			Mode:  []string{"OFF", "ON"},
+			Mode:  []string{offMode, "ON"},
 			Level: &FloatRange{Min: 0, Max: maxImagingValue},
 		},
 		Exposure: &ExposureOptions{
@@ -370,17 +370,17 @@ func (s *Server) HandleGetOptions(body interface{}) (interface{}, error) {
 			Gain:            &FloatRange{Min: 0, Max: maxImagingValue},
 		},
 		Focus: &FocusOptions{
-			AutoFocusModes: []string{"AUTO", "MANUAL"},
+			AutoFocusModes: []string{autoMode, manualMode},
 			DefaultSpeed:   &FloatRange{Min: 0, Max: 1},
 			NearLimit:      &FloatRange{Min: 0, Max: 1},
 			FarLimit:       &FloatRange{Min: 0, Max: 1},
 		},
 		WideDynamicRange: &WideDynamicRangeOptions{
-			Mode:  []string{"OFF", "ON"},
+			Mode:  []string{offMode, "ON"},
 			Level: &FloatRange{Min: 0, Max: 100}, //nolint:mnd // Imaging parameter range
 		},
 		WhiteBalance: &WhiteBalanceOptions{
-			Mode:   []string{"AUTO", "MANUAL"},
+			Mode:   []string{autoMode, manualMode},
 			YrGain: &FloatRange{Min: 0, Max: 255}, //nolint:mnd // White balance gain range
 			YbGain: &FloatRange{Min: 0, Max: 255}, //nolint:mnd // White balance gain range
 		},

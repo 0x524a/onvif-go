@@ -84,7 +84,7 @@ func New(config *Config) (*Server, error) {
 				CurrentPos:    0.5, //nolint:mnd // Focus position
 			},
 			WhiteBalance: WhiteBalanceSettings{
-				Mode:   "AUTO",
+				Mode:   autoMode,
 				CrGain: 128, //nolint:mnd // White balance gain
 				CbGain: 128, //nolint:mnd // White balance gain
 			},

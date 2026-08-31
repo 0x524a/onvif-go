@@ -156,7 +156,7 @@ func TestResolution(t *testing.T) {
 			expectValid: true,
 		},
 		{
-			name:        "Zero width",
+			name:        testZeroWidthName,
 			resolution:  Resolution{Width: 0, Height: 1080},
 			expectValid: false,
 		},
@@ -239,7 +239,7 @@ func TestBounds(t *testing.T) {
 			expectValid: true,
 		},
 		{
-			name:        "Zero width",
+			name:        testZeroWidthName,
 			bounds:      Bounds{X: 0, Y: 0, Width: 0, Height: 1080},
 			expectValid: false,
 		},
@@ -269,7 +269,7 @@ func TestPreset(t *testing.T) {
 		{
 			name: "Valid preset",
 			preset: Preset{
-				Token:    "preset_1",
+				Token:    defaultPresetToken,
 				Name:     homePresetName,
 				Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0},
 			},
@@ -286,7 +286,7 @@ func TestPreset(t *testing.T) {
 		{
 			name: "Preset with empty name",
 			preset: Preset{
-				Token: "preset_1",
+				Token: defaultPresetToken,
 				Name:  "",
 			},
 			expectValid: false,
@@ -313,7 +313,7 @@ func TestPTZConfig(t *testing.T) {
 		{
 			name: "Valid PTZ config",
 			ptzConfig: &PTZConfig{
-				NodeToken: "ptz_node",
+				NodeToken: testPTZNodeToken,
 				PanRange:  Range{Min: -360, Max: 360},
 				TiltRange: Range{Min: -90, Max: 90},
 				ZoomRange: Range{Min: 0, Max: 10},
@@ -323,12 +323,12 @@ func TestPTZConfig(t *testing.T) {
 		{
 			name: "PTZ config with presets",
 			ptzConfig: &PTZConfig{
-				NodeToken: "ptz_node",
+				NodeToken: testPTZNodeToken,
 				PanRange:  Range{Min: -360, Max: 360},
 				TiltRange: Range{Min: -90, Max: 90},
 				ZoomRange: Range{Min: 0, Max: 10},
 				Presets: []Preset{
-					{Token: "preset_1", Name: "Home"},
+					{Token: defaultPresetToken, Name: "Home"},
 					{Token: "preset_2", Name: "Away"},
 				},
 			},
@@ -435,10 +435,10 @@ func TestProfileConfig(t *testing.T) {
 		{
 			name: "Valid profile config",
 			profileConfig: ProfileConfig{
-				Token: "profile_1",
-				Name:  "Profile 1",
+				Token: defaultProfileToken,
+				Name:  testProfileName1,
 				VideoSource: VideoSourceConfig{
-					Token:      "vs_1",
+					Token:      testVideoSourceTok,
 					Name:       "Video Source",
 					Resolution: Resolution{Width: 1920, Height: 1080},
 					Framerate:  30,
@@ -463,7 +463,7 @@ func TestProfileConfig(t *testing.T) {
 		{
 			name: "Profile with empty name",
 			profileConfig: ProfileConfig{
-				Token: "profile_1",
+				Token: defaultProfileToken,
 				Name:  "",
 			},
 			expectValid: false,
@@ -562,7 +562,7 @@ func TestServiceEndpoints(t *testing.T) {
 				SupportEvents: true,
 			},
 			host:           "",
-			expectServices: []string{"device", "media", "imaging", "ptz", "events"},
+			expectServices: []string{deviceServiceKey, mediaServiceKey, imagingServiceKey, ptzServiceKey, "events"},
 		},
 		{
 			name: "Custom host",
@@ -574,38 +574,38 @@ func TestServiceEndpoints(t *testing.T) {
 				SupportEvents: false,
 			},
 			host:           "custom.example.com",
-			expectServices: []string{"device", "media", "imaging"},
+			expectServices: []string{deviceServiceKey, mediaServiceKey, imagingServiceKey},
 		},
 		{
 			name: "Port 80",
 			config: &Config{
 				Host:       "localhost",
 				Port:       80,
-				BasePath:   "/onvif",
+				BasePath:   onvifBasePath,
 				SupportPTZ: true,
 			},
 			host:           "",
-			expectServices: []string{"device", "media", "imaging", "ptz"},
+			expectServices: []string{deviceServiceKey, mediaServiceKey, imagingServiceKey, ptzServiceKey},
 		},
 		{
 			name: "Default host with 0.0.0.0",
 			config: &Config{
 				Host:     "0.0.0.0",
 				Port:     8080,
-				BasePath: "/onvif",
+				BasePath: onvifBasePath,
 			},
 			host:           "",
-			expectServices: []string{"device", "media", "imaging"},
+			expectServices: []string{deviceServiceKey, mediaServiceKey, imagingServiceKey},
 		},
 		{
 			name: "Empty host fallback",
 			config: &Config{
 				Host:     "",
 				Port:     8080,
-				BasePath: "/onvif",
+				BasePath: onvifBasePath,
 			},
 			host:           "",
-			expectServices: []string{"device", "media", "imaging"},
+			expectServices: []string{deviceServiceKey, mediaServiceKey, imagingServiceKey},
 		},
 	}
 
@@ -641,14 +641,14 @@ func TestServiceEndpointsURL(t *testing.T) {
 	endpoints := config.ServiceEndpoints("example.com")
 
 	expectedDeviceURL := "http://example.com:9000/services/device_service"
-	if endpoints["device"] != expectedDeviceURL {
-		t.Errorf("Device endpoint mismatch: got %s, want %s", endpoints["device"], expectedDeviceURL)
+	if endpoints[deviceServiceKey] != expectedDeviceURL {
+		t.Errorf("Device endpoint mismatch: got %s, want %s", endpoints[deviceServiceKey], expectedDeviceURL)
 	}
 }
 
 func TestToONVIFProfile(t *testing.T) {
 	profile := &ProfileConfig{
-		Token: "profile_1",
+		Token: defaultProfileToken,
 		Name:  "HD Profile",
 		VideoSource: VideoSourceConfig{
 			Token:      "source_1",
@@ -670,7 +670,7 @@ func TestToONVIFProfile(t *testing.T) {
 
 	onvifProfile := profile.ToONVIFProfile()
 
-	if onvifProfile.Token != "profile_1" {
+	if onvifProfile.Token != defaultProfileToken {
 		t.Errorf("Profile token mismatch: got %s", onvifProfile.Token)
 	}
 	if onvifProfile.Name != "HD Profile" {

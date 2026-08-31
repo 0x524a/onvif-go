@@ -103,6 +103,7 @@ func (e *CapturedExchangeV2) GetProfileToken() string {
 	if token, ok := e.Parameters["ProfileToken"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -118,6 +119,7 @@ func (e *CapturedExchangeV2) GetConfigurationToken() string {
 	if token, ok := e.Parameters["Token"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -129,6 +131,7 @@ func (e *CapturedExchangeV2) GetVideoSourceToken() string {
 	if token, ok := e.Parameters["VideoSourceToken"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -140,6 +143,7 @@ func (e *CapturedExchangeV2) GetAudioSourceToken() string {
 	if token, ok := e.Parameters["AudioSourceToken"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -151,6 +155,7 @@ func (e *CapturedExchangeV2) GetPresetToken() string {
 	if token, ok := e.Parameters["PresetToken"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -162,6 +167,7 @@ func (e *CapturedExchangeV2) GetNodeToken() string {
 	if token, ok := e.Parameters["NodeToken"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -173,6 +179,7 @@ func (e *CapturedExchangeV2) GetOSDToken() string {
 	if token, ok := e.Parameters["OSDToken"].(string); ok {
 		return token
 	}
+
 	return ""
 }
 
@@ -219,6 +226,7 @@ func (k MatchKey) String() string {
 	if k.OSDToken != "" {
 		s += "[OSD:" + k.OSDToken + "]"
 	}
+
 	return s
 }
 
@@ -280,6 +288,7 @@ func addTokenScore(score int, token1, token2 string) int {
 	if token1 != "" && token1 == token2 {
 		return score + tokenScoreBonus
 	}
+
 	return score
 }
 
@@ -310,11 +319,12 @@ func DetectCaptureVersion(data []byte) string {
 		Version string `json:"version"`
 	}
 	if err := json.Unmarshal(data, &probe); err != nil {
-		return "1.0"
+		return RegistryVersion
 	}
 	if probe.Version == "" {
-		return "1.0"
+		return RegistryVersion
 	}
+
 	return probe.Version
 }
 
@@ -354,6 +364,7 @@ func DetermineServiceType(soapBody string) ServiceType {
 			return svc
 		}
 	}
+
 	return ServiceUnknown
 }
 
@@ -369,5 +380,6 @@ func findString(s, substr string) int {
 			return i
 		}
 	}
+
 	return -1
 }

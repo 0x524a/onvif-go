@@ -260,7 +260,7 @@ func TestBacklightCompensation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid := (tt.comp.Mode == "ON" || tt.comp.Mode == "OFF") &&
+			valid := (tt.comp.Mode == backlightCompOn || tt.comp.Mode == offMode) &&
 				tt.comp.Level >= 0 && tt.comp.Level <= 100
 			if valid != tt.expectValid {
 				t.Errorf("Backlight validation failed: Mode=%s, Level=%f", tt.comp.Mode, tt.comp.Level)
@@ -298,7 +298,7 @@ func TestExposureSettings(t *testing.T) {
 		{
 			name: "Invalid mode",
 			exposure: ExposureSettings{
-				Mode: "INVALID",
+				Mode: invalidModeValue,
 			},
 			expectValid: false,
 		},
