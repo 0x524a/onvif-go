@@ -260,6 +260,7 @@ func NewMockSOAPServerV2(archivePath string) (*MockSOAPServerV2, error) {
 	}
 
 	mock.Server = httptest.NewServer(http.HandlerFunc(mock.handleRequest))
+
 	return mock, nil
 }
 
@@ -272,6 +273,7 @@ func processArchiveEntry(header *tar.Header, data []byte, capture *CameraCapture
 		if err := json.Unmarshal(data, &meta); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
 		}
+
 		return &meta, nil
 	}
 
@@ -300,6 +302,7 @@ func parseExchange(fileName string, data []byte) (*CapturedExchangeV2, error) {
 		if err := json.Unmarshal(data, &exchange); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal V2 %s: %w", fileName, err)
 		}
+
 		return &exchange, nil
 	}
 
@@ -312,6 +315,7 @@ func parseExchange(fileName string, data []byte) (*CapturedExchangeV2, error) {
 	// Extract parameters from V1 request body
 	v2Exchange.Parameters = ExtractParameters(v2Exchange.OperationName, v2Exchange.RequestBody)
 	v2Exchange.ServiceType = DetermineServiceType(v2Exchange.RequestBody)
+
 	return v2Exchange, nil
 }
 
@@ -371,6 +375,7 @@ func LoadCaptureFromArchiveV2(archivePath string) (*CameraCaptureV2, *CaptureMet
 	}
 
 	capture.Metadata = metadata
+
 	return capture, metadata, nil
 }
 
@@ -379,12 +384,14 @@ func (m *MockSOAPServerV2) handleRequest(w http.ResponseWriter, r *http.Request)
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request", http.StatusBadRequest)
+
 		return
 	}
 
 	operationName := extractOperationFromSOAP(string(reqBody))
 	if operationName == "" {
 		http.Error(w, "Could not extract operation name from request", http.StatusBadRequest)
+
 		return
 	}
 
@@ -392,6 +399,7 @@ func (m *MockSOAPServerV2) handleRequest(w http.ResponseWriter, r *http.Request)
 	exchanges, ok := m.exchangeMap[operationName]
 	if !ok || len(exchanges) == 0 {
 		http.Error(w, fmt.Sprintf("No capture found for operation: %s", operationName), http.StatusNotFound)
+
 		return
 	}
 
@@ -450,6 +458,7 @@ func (m *MockSOAPServerV2) GetOperations() []string {
 	for op := range m.exchangeMap {
 		ops = append(ops, op)
 	}
+
 	return ops
 }
 
@@ -460,9 +469,9 @@ func (m *MockSOAPServerV2) GetOperations() []string {
 // tokenParams are common ONVIF token parameters to extract.
 var tokenParams = []string{
 	// Core tokens
-	"ProfileToken",
-	"ConfigurationToken",
-	"VideoSourceToken",
+	tokenProfile,
+	tokenConfiguration,
+	tokenVideoSource,
 	"AudioSourceToken",
 	"PresetToken",
 	"Token",
@@ -479,9 +488,9 @@ var tokenParams = []string{
 	"OSDToken",
 	"NodeToken",
 	"RelayOutputToken",
-	"VideoOutputToken",
+	tokenVideoOutput,
 	"DigitalInputToken",
-	"SerialPortToken",
+	tokenSerialPort,
 	"StorageConfigurationToken",
 	"CertificateID",
 	"RecordingToken",

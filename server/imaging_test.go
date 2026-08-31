@@ -6,8 +6,13 @@ import (
 )
 
 const (
-	exposureModeAuto   = "AUTO"
-	exposureModeManual = "MANUAL"
+	exposureModeAuto    = "AUTO"
+	exposureModeManual  = "MANUAL"
+	backlightCompOFF    = "OFF"
+	backlightCompOn     = "ON"
+	backlightCompAuto   = "AUTO"
+	backlightCompInvExp = "Invalid mode"
+	backlightCompInvVal = "INVALID"
 )
 
 func TestHandleGetImagingSettings(t *testing.T) {
@@ -238,12 +243,12 @@ func TestBacklightCompensation(t *testing.T) {
 		},
 		{
 			name:        "Backlight OFF",
-			comp:        BacklightCompensation{Mode: "OFF", Level: 0},
+			comp:        BacklightCompensation{Mode: backlightCompOFF, Level: 0},
 			expectValid: true,
 		},
 		{
-			name:        "Invalid mode",
-			comp:        BacklightCompensation{Mode: "INVALID", Level: 50},
+			name:        backlightCompInvExp,
+			comp:        BacklightCompensation{Mode: backlightCompInvVal, Level: 50},
 			expectValid: false,
 		},
 		{
@@ -255,7 +260,7 @@ func TestBacklightCompensation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid := (tt.comp.Mode == "ON" || tt.comp.Mode == "OFF") &&
+			valid := (tt.comp.Mode == backlightCompOn || tt.comp.Mode == offMode) &&
 				tt.comp.Level >= 0 && tt.comp.Level <= 100
 			if valid != tt.expectValid {
 				t.Errorf("Backlight validation failed: Mode=%s, Level=%f", tt.comp.Mode, tt.comp.Level)
@@ -293,7 +298,7 @@ func TestExposureSettings(t *testing.T) {
 		{
 			name: "Invalid mode",
 			exposure: ExposureSettings{
-				Mode: "INVALID",
+				Mode: invalidModeValue,
 			},
 			expectValid: false,
 		},
@@ -418,7 +423,7 @@ func TestWideDynamicRange(t *testing.T) {
 			expectValid: true,
 		},
 		{
-			name:        "Invalid mode",
+			name:        backlightCompInvExp,
 			wdr:         WDRSettings{Mode: "INVALID", Level: 50},
 			expectValid: false,
 		},

@@ -129,7 +129,7 @@ func TestGetStreamConfig(t *testing.T) {
 		},
 		{
 			name:     "Get non-existent stream",
-			token:    "invalid-token",
+			token:    testInvalidToken,
 			expectOk: false,
 		},
 	}
@@ -170,7 +170,7 @@ func TestUpdateStreamURI(t *testing.T) {
 		},
 		{
 			name:        "Update non-existent stream",
-			token:       "invalid-token",
+			token:       testInvalidToken,
 			newURI:      "rtsp://localhost:8554/stream",
 			expectError: true,
 		},
@@ -231,7 +231,7 @@ func TestGetPTZState(t *testing.T) {
 	if profileWithPTZ == "" {
 		// Create config with PTZ
 		config.Profiles[0].PTZ = &PTZConfig{
-			NodeToken: "ptz_node",
+			NodeToken: testPTZNodeToken,
 			PanRange:  Range{Min: -360, Max: 360},
 			TiltRange: Range{Min: -90, Max: 90},
 			ZoomRange: Range{Min: 0, Max: 10},
@@ -252,7 +252,7 @@ func TestGetPTZState(t *testing.T) {
 		},
 		{
 			name:     "Get PTZ state for non-existent profile",
-			token:    "invalid-token",
+			token:    testInvalidToken,
 			expectOk: false,
 		},
 	}
@@ -301,7 +301,7 @@ func TestGetImagingState(t *testing.T) {
 		},
 		{
 			name:     "Get imaging state for non-existent source",
-			token:    "invalid-token",
+			token:    testInvalidToken,
 			expectOk: false,
 		},
 	}
@@ -366,7 +366,7 @@ func createTestConfig() *Config {
 	return &Config{
 		Host:     "127.0.0.1",
 		Port:     8080,
-		BasePath: "/onvif",
+		BasePath: onvifBasePath,
 		Timeout:  30 * time.Second,
 		DeviceInfo: DeviceInfo{
 			Manufacturer:    "Test",
@@ -380,7 +380,7 @@ func createTestConfig() *Config {
 		Profiles: []ProfileConfig{
 			{
 				Token: "profile_token_1",
-				Name:  "Profile 1",
+				Name:  testProfileName1,
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_1",
 					Name:       "Video Source 1",
@@ -394,7 +394,7 @@ func createTestConfig() *Config {
 					},
 				},
 				VideoEncoder: VideoEncoderConfig{
-					Encoding:   "H264",
+					Encoding:   h264,
 					Resolution: Resolution{Width: 1920, Height: 1080},
 					Quality:    80,
 					Framerate:  30,

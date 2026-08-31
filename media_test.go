@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+const (
+	testProfileToken = "Profile1"
+)
+
 // TestGetProfiles tests GetProfiles operation.
 func TestGetProfiles(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +55,7 @@ func TestGetProfiles(t *testing.T) {
 	}
 
 	if profiles[0].Token != testProfileToken {
-		t.Errorf("Expected token Profile1, got %s", profiles[0].Token)
+		t.Errorf("Expected token %s, got %s", testProfileToken, profiles[0].Token)
 	}
 
 	if profiles[0].Name != "Main Profile" {
