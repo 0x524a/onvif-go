@@ -11,6 +11,7 @@ import (
 // constants avoids goconst churn from the many happy-path/fault-path test pairs that reference
 // the same tokens.
 const (
+	testProfileToken      = "Profile1"
 	testVideoSrcCfgToken  = "VideoSrcCfg1"
 	testVideoSourceToken  = "VideoSource1"
 	testAudioSrcCfgToken  = "AudioSrcCfg1"
@@ -448,7 +449,7 @@ func TestGetVideoSourceConfigurationOptions(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	opts, err := client.GetVideoSourceConfigurationOptions(context.Background(), testVideoSrcCfgToken, "Profile1")
+	opts, err := client.GetVideoSourceConfigurationOptions(context.Background(), testVideoSrcCfgToken, testProfileToken)
 	if err != nil {
 		t.Fatalf("GetVideoSourceConfigurationOptions() failed: %v", err)
 	}
@@ -468,7 +469,7 @@ func TestGetVideoSourceConfigurationOptionsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetVideoSourceConfigurationOptions(context.Background(), testVideoSrcCfgToken, "Profile1")
+	_, err := client.GetVideoSourceConfigurationOptions(context.Background(), testVideoSrcCfgToken, testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetVideoSourceConfigurationOptions(), got nil")
 	}
@@ -492,7 +493,7 @@ func TestGetAudioSourceConfigurationOptions(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	opts, err := client.GetAudioSourceConfigurationOptions(context.Background(), testAudioSrcCfgToken, "Profile1")
+	opts, err := client.GetAudioSourceConfigurationOptions(context.Background(), testAudioSrcCfgToken, testProfileToken)
 	if err != nil {
 		t.Fatalf("GetAudioSourceConfigurationOptions() failed: %v", err)
 	}
@@ -508,7 +509,7 @@ func TestGetAudioSourceConfigurationOptionsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetAudioSourceConfigurationOptions(context.Background(), testAudioSrcCfgToken, "Profile1")
+	_, err := client.GetAudioSourceConfigurationOptions(context.Background(), testAudioSrcCfgToken, testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetAudioSourceConfigurationOptions(), got nil")
 	}
@@ -611,7 +612,7 @@ func TestGetCompatibleVideoEncoderConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleVideoEncoderConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleVideoEncoderConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleVideoEncoderConfigurations() failed: %v", err)
 	}
@@ -635,7 +636,7 @@ func TestGetCompatibleVideoEncoderConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleVideoEncoderConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleVideoEncoderConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleVideoEncoderConfigurations(), got nil")
 	}
@@ -662,7 +663,7 @@ func TestGetCompatibleVideoSourceConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleVideoSourceConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleVideoSourceConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleVideoSourceConfigurations() failed: %v", err)
 	}
@@ -682,7 +683,7 @@ func TestGetCompatibleVideoSourceConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleVideoSourceConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleVideoSourceConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleVideoSourceConfigurations(), got nil")
 	}
@@ -710,7 +711,7 @@ func TestGetCompatibleAudioEncoderConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleAudioEncoderConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleAudioEncoderConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleAudioEncoderConfigurations() failed: %v", err)
 	}
@@ -730,7 +731,7 @@ func TestGetCompatibleAudioEncoderConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleAudioEncoderConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleAudioEncoderConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleAudioEncoderConfigurations(), got nil")
 	}
@@ -756,7 +757,7 @@ func TestGetCompatibleAudioSourceConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleAudioSourceConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleAudioSourceConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleAudioSourceConfigurations() failed: %v", err)
 	}
@@ -776,7 +777,7 @@ func TestGetCompatibleAudioSourceConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleAudioSourceConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleAudioSourceConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleAudioSourceConfigurations(), got nil")
 	}
@@ -802,7 +803,7 @@ func TestGetCompatiblePTZConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatiblePTZConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatiblePTZConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatiblePTZConfigurations() failed: %v", err)
 	}
@@ -822,7 +823,7 @@ func TestGetCompatiblePTZConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatiblePTZConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatiblePTZConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatiblePTZConfigurations(), got nil")
 	}
@@ -848,7 +849,7 @@ func TestGetCompatibleMetadataConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleMetadataConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleMetadataConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleMetadataConfigurations() failed: %v", err)
 	}
@@ -868,7 +869,7 @@ func TestGetCompatibleMetadataConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleMetadataConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleMetadataConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleMetadataConfigurations(), got nil")
 	}
@@ -894,7 +895,7 @@ func TestGetCompatibleAudioOutputConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleAudioOutputConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleAudioOutputConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleAudioOutputConfigurations() failed: %v", err)
 	}
@@ -914,7 +915,7 @@ func TestGetCompatibleAudioOutputConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleAudioOutputConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleAudioOutputConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleAudioOutputConfigurations(), got nil")
 	}
@@ -939,7 +940,7 @@ func TestGetCompatibleAudioDecoderConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleAudioDecoderConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleAudioDecoderConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleAudioDecoderConfigurations() failed: %v", err)
 	}
@@ -959,7 +960,7 @@ func TestGetCompatibleAudioDecoderConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleAudioDecoderConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleAudioDecoderConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleAudioDecoderConfigurations(), got nil")
 	}
@@ -1279,7 +1280,7 @@ func TestGetCompatibleVideoAnalyticsConfigurations(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	configs, err := client.GetCompatibleVideoAnalyticsConfigurations(context.Background(), "Profile1")
+	configs, err := client.GetCompatibleVideoAnalyticsConfigurations(context.Background(), testProfileToken)
 	if err != nil {
 		t.Fatalf("GetCompatibleVideoAnalyticsConfigurations() failed: %v", err)
 	}
@@ -1299,7 +1300,7 @@ func TestGetCompatibleVideoAnalyticsConfigurationsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetCompatibleVideoAnalyticsConfigurations(context.Background(), "Profile1")
+	_, err := client.GetCompatibleVideoAnalyticsConfigurations(context.Background(), testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetCompatibleVideoAnalyticsConfigurations(), got nil")
 	}
@@ -1352,7 +1353,7 @@ func TestGetVideoAnalyticsConfigurationOptions(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	opts, err := client.GetVideoAnalyticsConfigurationOptions(context.Background(), testAnalyticsCfgToken, "Profile1")
+	opts, err := client.GetVideoAnalyticsConfigurationOptions(context.Background(), testAnalyticsCfgToken, testProfileToken)
 	if err != nil {
 		t.Fatalf("GetVideoAnalyticsConfigurationOptions() failed: %v", err)
 	}
@@ -1368,7 +1369,7 @@ func TestGetVideoAnalyticsConfigurationOptionsFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	_, err := client.GetVideoAnalyticsConfigurationOptions(context.Background(), testAnalyticsCfgToken, "Profile1")
+	_, err := client.GetVideoAnalyticsConfigurationOptions(context.Background(), testAnalyticsCfgToken, testProfileToken)
 	if err == nil {
 		t.Fatal("Expected error from GetVideoAnalyticsConfigurationOptions(), got nil")
 	}
@@ -1382,7 +1383,7 @@ func TestAddVideoAnalyticsConfiguration(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.AddVideoAnalyticsConfiguration(context.Background(), "Profile1", testAnalyticsCfgToken); err != nil {
+	if err := client.AddVideoAnalyticsConfiguration(context.Background(), testProfileToken, testAnalyticsCfgToken); err != nil {
 		t.Fatalf("AddVideoAnalyticsConfiguration() failed: %v", err)
 	}
 }
@@ -1393,7 +1394,7 @@ func TestAddVideoAnalyticsConfigurationFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.AddVideoAnalyticsConfiguration(context.Background(), "Profile1", testAnalyticsCfgToken); err == nil {
+	if err := client.AddVideoAnalyticsConfiguration(context.Background(), testProfileToken, testAnalyticsCfgToken); err == nil {
 		t.Fatal("Expected error from AddVideoAnalyticsConfiguration(), got nil")
 	}
 }
@@ -1406,7 +1407,7 @@ func TestRemoveVideoAnalyticsConfiguration(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.RemoveVideoAnalyticsConfiguration(context.Background(), "Profile1"); err != nil {
+	if err := client.RemoveVideoAnalyticsConfiguration(context.Background(), testProfileToken); err != nil {
 		t.Fatalf("RemoveVideoAnalyticsConfiguration() failed: %v", err)
 	}
 }
@@ -1417,7 +1418,7 @@ func TestRemoveVideoAnalyticsConfigurationFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.RemoveVideoAnalyticsConfiguration(context.Background(), "Profile1"); err == nil {
+	if err := client.RemoveVideoAnalyticsConfiguration(context.Background(), testProfileToken); err == nil {
 		t.Fatal("Expected error from RemoveVideoAnalyticsConfiguration(), got nil")
 	}
 }
@@ -1430,7 +1431,7 @@ func TestAddAudioOutputConfiguration(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.AddAudioOutputConfiguration(context.Background(), "Profile1", "AudioOutCfg1"); err != nil {
+	if err := client.AddAudioOutputConfiguration(context.Background(), testProfileToken, "AudioOutCfg1"); err != nil {
 		t.Fatalf("AddAudioOutputConfiguration() failed: %v", err)
 	}
 }
@@ -1441,7 +1442,7 @@ func TestAddAudioOutputConfigurationFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.AddAudioOutputConfiguration(context.Background(), "Profile1", "AudioOutCfg1"); err == nil {
+	if err := client.AddAudioOutputConfiguration(context.Background(), testProfileToken, "AudioOutCfg1"); err == nil {
 		t.Fatal("Expected error from AddAudioOutputConfiguration(), got nil")
 	}
 }
@@ -1454,7 +1455,7 @@ func TestRemoveAudioOutputConfiguration(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.RemoveAudioOutputConfiguration(context.Background(), "Profile1"); err != nil {
+	if err := client.RemoveAudioOutputConfiguration(context.Background(), testProfileToken); err != nil {
 		t.Fatalf("RemoveAudioOutputConfiguration() failed: %v", err)
 	}
 }
@@ -1465,7 +1466,7 @@ func TestRemoveAudioOutputConfigurationFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.RemoveAudioOutputConfiguration(context.Background(), "Profile1"); err == nil {
+	if err := client.RemoveAudioOutputConfiguration(context.Background(), testProfileToken); err == nil {
 		t.Fatal("Expected error from RemoveAudioOutputConfiguration(), got nil")
 	}
 }
@@ -1478,7 +1479,7 @@ func TestAddAudioDecoderConfiguration(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.AddAudioDecoderConfiguration(context.Background(), "Profile1", testAudioDecCfgToken); err != nil {
+	if err := client.AddAudioDecoderConfiguration(context.Background(), testProfileToken, testAudioDecCfgToken); err != nil {
 		t.Fatalf("AddAudioDecoderConfiguration() failed: %v", err)
 	}
 }
@@ -1489,7 +1490,7 @@ func TestAddAudioDecoderConfigurationFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.AddAudioDecoderConfiguration(context.Background(), "Profile1", testAudioDecCfgToken); err == nil {
+	if err := client.AddAudioDecoderConfiguration(context.Background(), testProfileToken, testAudioDecCfgToken); err == nil {
 		t.Fatal("Expected error from AddAudioDecoderConfiguration(), got nil")
 	}
 }
@@ -1502,7 +1503,7 @@ func TestRemoveAudioDecoderConfiguration(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.RemoveAudioDecoderConfiguration(context.Background(), "Profile1"); err != nil {
+	if err := client.RemoveAudioDecoderConfiguration(context.Background(), testProfileToken); err != nil {
 		t.Fatalf("RemoveAudioDecoderConfiguration() failed: %v", err)
 	}
 }
@@ -1513,7 +1514,7 @@ func TestRemoveAudioDecoderConfigurationFault(t *testing.T) {
 
 	client := newMediaConfigClient(t, server.URL)
 
-	if err := client.RemoveAudioDecoderConfiguration(context.Background(), "Profile1"); err == nil {
+	if err := client.RemoveAudioDecoderConfiguration(context.Background(), testProfileToken); err == nil {
 		t.Fatal("Expected error from RemoveAudioDecoderConfiguration(), got nil")
 	}
 }
