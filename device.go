@@ -261,17 +261,29 @@ func (c *Client) SystemReboot(ctx context.Context) (string, error) {
 }
 
 // GetSystemDateAndTime retrieves the device's system date and time.
+//
+// Deprecated: Use GetSystemDateAndTimeTyped, which exposes the response as a
+// SystemDateTime instead of interface{}.
 func (c *Client) GetSystemDateAndTime(ctx context.Context) (interface{}, error) {
+	return c.GetSystemDateAndTimeTyped(ctx)
+}
+
+// GetSystemDateAndTimeTyped retrieves the device's system date and time.
+func (c *Client) GetSystemDateAndTimeTyped(ctx context.Context) (*SystemDateTime, error) {
 	type GetSystemDateAndTime struct {
 		XMLName xml.Name `xml:"tds:GetSystemDateAndTime"`
 		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+	type GetSystemDateAndTimeResponse struct {
+		XMLName           xml.Name        `xml:"GetSystemDateAndTimeResponse"`
+		SystemDateAndTime *SystemDateTime `xml:"SystemDateAndTime"`
 	}
 
 	req := GetSystemDateAndTime{
 		Xmlns: deviceNamespace,
 	}
 
-	var resp interface{}
+	var resp GetSystemDateAndTimeResponse
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
@@ -280,7 +292,11 @@ func (c *Client) GetSystemDateAndTime(ctx context.Context) (interface{}, error) 
 		return nil, fmt.Errorf("GetSystemDateAndTime failed: %w", err)
 	}
 
-	return resp, nil
+	if resp.SystemDateAndTime == nil {
+		return nil, fmt.Errorf("GetSystemDateAndTime failed: %w: missing SystemDateAndTime", ErrInvalidResponse)
+	}
+
+	return resp.SystemDateAndTime, nil
 }
 
 // GetHostname retrieves the device's hostname.
