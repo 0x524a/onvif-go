@@ -194,10 +194,14 @@ func (s *Server) registerDeviceService(mux *http.ServeMux) {
 func (s *Server) registerMediaService(mux *http.ServeMux) {
 	handler := soap.NewHandler(s.config.Username, s.config.Password)
 
-	// Register media service handlers
+	// Register media service handlers. GetStreamUri/GetSnapshotUri are
+	// registered under the ONVIF Media WSDL's actual spelling (lowercase
+	// "Uri") - the real onvif.Client sends exactly that, and action
+	// dispatch in soap.Handler.extractAction is case-sensitive, so a
+	// "GetStreamURI" registration here silently never matches (#79).
 	handler.RegisterHandler("GetProfiles", s.HandleGetProfiles)
-	handler.RegisterHandler("GetStreamURI", s.HandleGetStreamURI)
-	handler.RegisterHandler("GetSnapshotURI", s.HandleGetSnapshotURI)
+	handler.RegisterHandler("GetStreamUri", s.HandleGetStreamURI)
+	handler.RegisterHandler("GetSnapshotUri", s.HandleGetSnapshotURI)
 	handler.RegisterHandler("GetVideoSources", s.HandleGetVideoSources)
 
 	mux.Handle(s.config.BasePath+"/media_service", handler)
