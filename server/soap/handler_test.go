@@ -11,16 +11,21 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 const testXMLHeader = `<?xml version="1.0"?>`
 
 const testResultSuccess = "Success"
 
-const (
-	testNonce   = "test_nonce_12345"
-	testCreated = "2024-01-01T00:00:00Z"
-)
+const testNonce = "test_nonce_12345"
+
+// freshCreated returns a Created timestamp within the server's clock-skew
+// window. A fixed historical timestamp would now be rejected outright by
+// the skew check before auth even reaches the password comparison.
+func freshCreated() string {
+	return time.Now().UTC().Format(time.RFC3339)
+}
 
 // testActionResponse is the response body shared by the handler tests. It has to
 // be a struct rather than a map: encoding/xml cannot marshal maps, so a map would
@@ -251,12 +256,13 @@ func TestSendResponse(t *testing.T) {
 	}
 }
 
-// securitySOAPRequest builds a SOAP request carrying a WS-Security UsernameToken.
-// The digest is computed over digestPassword, so a caller can send either a
-// correct digest or a deliberately wrong one.
-func securitySOAPRequest(username, digestPassword, nonce, created string) string {
+// securitySOAPRequest builds a SOAP request carrying a WS-Security UsernameToken
+// for the "admin" user configured by every caller in this file, using the
+// shared testNonce. The digest is computed over digestPassword, so a caller
+// can send either a correct digest or a deliberately wrong one.
+func securitySOAPRequest(digestPassword, created string) string {
 	hash := sha1.New()
-	hash.Write([]byte(nonce))
+	hash.Write([]byte(testNonce))
 	hash.Write([]byte(created))
 	hash.Write([]byte(digestPassword))
 	digest := base64.StdEncoding.EncodeToString(hash.Sum(nil))
@@ -268,9 +274,9 @@ func securitySOAPRequest(username, digestPassword, nonce, created string) string
   <soap:Header>
     <wsse:Security>
       <wsse:UsernameToken>
-        <wsse:Username>` + username + `</wsse:Username>
+        <wsse:Username>admin</wsse:Username>
         <wsse:Password>` + digest + `</wsse:Password>
-        <wsse:Nonce>` + base64.StdEncoding.EncodeToString([]byte(nonce)) + `</wsse:Nonce>
+        <wsse:Nonce>` + base64.StdEncoding.EncodeToString([]byte(testNonce)) + `</wsse:Nonce>
         <wsu:Created>` + created + `</wsu:Created>
       </wsse:UsernameToken>
     </wsse:Security>
@@ -288,7 +294,7 @@ func TestAuthenticate(t *testing.T) {
 	})
 
 	req := httptest.NewRequestWithContext(context.Background(), "POST", "/",
-		strings.NewReader(securitySOAPRequest("admin", "password", testNonce, testCreated)))
+		strings.NewReader(securitySOAPRequest("password", freshCreated())))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -311,7 +317,7 @@ func TestAuthenticateFailsWithWrongPassword(t *testing.T) {
 	})
 
 	req := httptest.NewRequestWithContext(context.Background(), "POST", "/",
-		strings.NewReader(securitySOAPRequest("admin", "wrong_password", testNonce, testCreated)))
+		strings.NewReader(securitySOAPRequest("wrong_password", freshCreated())))
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -319,6 +325,74 @@ func TestAuthenticateFailsWithWrongPassword(t *testing.T) {
 	// Should fail authentication
 	if !strings.Contains(w.Body.String(), "Fault") {
 		t.Errorf("Expected authentication failure")
+	}
+}
+
+func TestAuthenticateRejectsReplayedNonce(t *testing.T) {
+	handler := NewHandler("admin", "password")
+	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
+		return &testActionResponse{Result: testResultSuccess}, nil
+	})
+
+	soapBody := securitySOAPRequest("password", freshCreated())
+
+	req1 := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
+	w1 := httptest.NewRecorder()
+	handler.ServeHTTP(w1, req1)
+
+	if w1.Code != http.StatusOK {
+		t.Fatalf("First request with a fresh nonce should succeed, got %d: %s", w1.Code, w1.Body.String())
+	}
+
+	req2 := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
+	w2 := httptest.NewRecorder()
+	handler.ServeHTTP(w2, req2)
+
+	if !strings.Contains(w2.Body.String(), "Fault") {
+		t.Errorf("Replaying the same nonce+timestamp should fail authentication, got: %s", w2.Body.String())
+	}
+}
+
+func TestAuthenticateRejectsStaleTimestamp(t *testing.T) {
+	handler := NewHandler("admin", "password")
+	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
+		return &testActionResponse{Result: testResultSuccess}, nil
+	})
+
+	staleCreated := time.Now().UTC().Add(-1 * time.Hour).Format(time.RFC3339)
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/",
+		strings.NewReader(securitySOAPRequest("password", staleCreated)))
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	if !strings.Contains(w.Body.String(), "Fault") {
+		t.Errorf("A stale (1h old) Created timestamp should fail authentication, got: %s", w.Body.String())
+	}
+}
+
+func TestAuthenticateRequiredWithPartialCredentials(t *testing.T) {
+	// Configuring only a username (empty password) must still enforce
+	// auth rather than silently falling back to no-auth mode.
+	handler := NewHandler("admin", "")
+	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
+		return &testActionResponse{Result: "should not reach here"}, nil
+	})
+
+	soapBody := testXMLHeader + `
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Body>
+    <TestAction/>
+  </soap:Body>
+</soap:Envelope>`
+
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	if !strings.Contains(w.Body.String(), "Fault") {
+		t.Errorf("A request with no security header should fail authentication when username is configured, got: %s", w.Body.String())
 	}
 }
 
@@ -434,5 +508,86 @@ func TestContentType(t *testing.T) {
 	// Handler should work regardless of content type
 	if w.Code == http.StatusInternalServerError {
 		t.Logf("Note: Handler may validate content type")
+	}
+}
+
+// TestServeHTTPDecodesParameterizedRequestBody is a regression test for a bug
+// where every parameterized operation always received a nil body: Envelope's
+// Body.Content field was interface{}, which encoding/xml cannot populate, so
+// every such request always failed with an EOF-turned-Fault regardless of
+// what the client actually sent. This drives a realistic request body
+// through the real wire path (ServeHTTP) rather than calling a handler
+// function directly, and asserts the handler actually decoded a field from
+// it - not just that the response wasn't a 500.
+func TestServeHTTPDecodesParameterizedRequestBody(t *testing.T) {
+	handler := NewHandler("", "")
+
+	type getStreamURIRequest struct {
+		XMLName      xml.Name `xml:"GetStreamURI"`
+		ProfileToken string   `xml:"ProfileToken"`
+	}
+
+	var gotToken string
+	handler.RegisterHandler("GetStreamURI", func(body interface{}) (interface{}, error) {
+		bodyBytes, ok := body.([]byte)
+		if !ok {
+			t.Fatalf("expected handler body to be []byte, got %T", body)
+		}
+
+		var req getStreamURIRequest
+		if err := xml.Unmarshal(bodyBytes, &req); err != nil {
+			t.Fatalf("failed to unmarshal request body: %v", err)
+		}
+		gotToken = req.ProfileToken
+
+		return &testActionResponse{Result: testResultSuccess}, nil
+	})
+
+	soapBody := testXMLHeader + `
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Body>
+    <GetStreamURI xmlns="http://www.onvif.org/ver10/media/wsdl">
+      <ProfileToken>Profile1</ProfileToken>
+    </GetStreamURI>
+  </soap:Body>
+</soap:Envelope>`
+
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(soapBody))
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if gotToken != "Profile1" {
+		t.Errorf("Expected handler to decode ProfileToken %q, got %q", "Profile1", gotToken)
+	}
+}
+
+// TestServeHTTPRejectsNonSOAPRoot ensures the decode-only requestEnvelope
+// type still validates the root element namespace/name like the original
+// originsoap.Envelope did, rather than silently accepting anything with a
+// Body element.
+func TestServeHTTPRejectsNonSOAPRoot(t *testing.T) {
+	handler := NewHandler("", "")
+	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {
+		return &testActionResponse{Result: testResultSuccess}, nil
+	})
+
+	notASOAPEnvelope := testXMLHeader + `
+<NotSoap>
+  <Body>
+    <TestAction/>
+  </Body>
+</NotSoap>`
+
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/", strings.NewReader(notASOAPEnvelope))
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	if !strings.Contains(w.Body.String(), "Fault") {
+		t.Errorf("Expected a fault for a non-SOAP root element, got: %s", w.Body.String())
 	}
 }

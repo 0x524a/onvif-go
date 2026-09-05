@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/xml"
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -198,7 +197,11 @@ type FloatRange struct {
 
 // PTZ service handlers
 
-var ptzMutex sync.RWMutex
+// Named settle delays, replacing what used to be inline magic numbers.
+const (
+	ptzMoveSettleDelay   = 500 * time.Millisecond
+	ptzPresetSettleDelay = 1 * time.Second
+)
 
 // HandleContinuousMove handles ContinuousMove request.
 func (s *Server) HandleContinuousMove(body interface{}) (interface{}, error) {
@@ -208,8 +211,8 @@ func (s *Server) HandleContinuousMove(body interface{}) (interface{}, error) {
 	}
 
 	// Get PTZ state
-	ptzMutex.Lock()
-	defer ptzMutex.Unlock()
+	s.ptzMu.Lock()
+	defer s.ptzMu.Unlock()
 
 	state, ok := s.ptzState[req.ProfileToken]
 	if !ok {
@@ -241,8 +244,8 @@ func (s *Server) HandleAbsoluteMove(body interface{}) (interface{}, error) {
 	}
 
 	// Get PTZ state
-	ptzMutex.Lock()
-	defer ptzMutex.Unlock()
+	s.ptzMu.Lock()
+	defer s.ptzMu.Unlock()
 
 	state, ok := s.ptzState[req.ProfileToken]
 	if !ok {
@@ -267,15 +270,7 @@ func (s *Server) HandleAbsoluteMove(body interface{}) (interface{}, error) {
 
 	// In a real implementation, simulate movement over time
 	// For now, we'll stop immediately
-	go func() {
-		time.Sleep(500 * time.Millisecond) //nolint:mnd // PTZ movement delay
-		ptzMutex.Lock()
-		state.Moving = false
-		state.PanMoving = false
-		state.TiltMoving = false
-		state.ZoomMoving = false
-		ptzMutex.Unlock()
-	}()
+	s.scheduleSettle(state, ptzMoveSettleDelay)
 
 	return &AbsoluteMoveResponse{}, nil
 }
@@ -288,8 +283,8 @@ func (s *Server) HandleRelativeMove(body interface{}) (interface{}, error) {
 	}
 
 	// Get PTZ state
-	ptzMutex.Lock()
-	defer ptzMutex.Unlock()
+	s.ptzMu.Lock()
+	defer s.ptzMu.Unlock()
 
 	state, ok := s.ptzState[req.ProfileToken]
 	if !ok {
@@ -316,15 +311,7 @@ func (s *Server) HandleRelativeMove(body interface{}) (interface{}, error) {
 	state.LastUpdate = time.Now()
 
 	// Simulate movement completion
-	go func() {
-		time.Sleep(500 * time.Millisecond) //nolint:mnd // PTZ movement delay
-		ptzMutex.Lock()
-		state.Moving = false
-		state.PanMoving = false
-		state.TiltMoving = false
-		state.ZoomMoving = false
-		ptzMutex.Unlock()
-	}()
+	s.scheduleSettle(state, ptzMoveSettleDelay)
 
 	return &RelativeMoveResponse{}, nil
 }
@@ -337,12 +324,20 @@ func (s *Server) HandleStop(body interface{}) (interface{}, error) {
 	}
 
 	// Get PTZ state
-	ptzMutex.Lock()
-	defer ptzMutex.Unlock()
+	s.ptzMu.Lock()
+	defer s.ptzMu.Unlock()
 
 	state, ok := s.ptzState[req.ProfileToken]
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", ErrPTZNotSupported, req.ProfileToken)
+	}
+
+	// Cancel any pending settle timer - Stop already clears the flags
+	// immediately below, so a stale timer must not fire later and
+	// overwrite whatever the next move sets.
+	if state.settleTimer != nil {
+		state.settleTimer.Stop()
+		state.settleTimer = nil
 	}
 
 	// Stop movement
@@ -373,8 +368,8 @@ func (s *Server) HandleGetStatus(body interface{}) (interface{}, error) {
 	}
 
 	// Get PTZ state
-	ptzMutex.RLock()
-	defer ptzMutex.RUnlock()
+	s.ptzMu.RLock()
+	defer s.ptzMu.RUnlock()
 
 	state, ok := s.ptzState[req.ProfileToken]
 	if !ok {
@@ -486,8 +481,8 @@ func (s *Server) HandleGotoPreset(body interface{}) (interface{}, error) {
 	}
 
 	// Get PTZ state and move to preset
-	ptzMutex.Lock()
-	defer ptzMutex.Unlock()
+	s.ptzMu.Lock()
+	defer s.ptzMu.Unlock()
 
 	state := s.ptzState[req.ProfileToken]
 	state.Position = *presetPos
@@ -498,17 +493,38 @@ func (s *Server) HandleGotoPreset(body interface{}) (interface{}, error) {
 	state.LastUpdate = time.Now()
 
 	// Simulate movement completion
-	go func() {
-		time.Sleep(1 * time.Second)
-		ptzMutex.Lock()
+	s.scheduleSettle(state, ptzPresetSettleDelay)
+
+	return &GotoPresetResponse{}, nil
+}
+
+// scheduleSettle stops any settle timer already pending for state and
+// schedules a new one that clears its Moving/PanMoving/TiltMoving/
+// ZoomMoving flags after delay. Must be called with s.ptzMu held, since it
+// mutates state.settleTimer, a field shared with other PTZ handlers.
+//
+// time.AfterFunc replaces what used to be a bare, untracked goroutine per
+// move call - the returned *Timer can be stopped, so a second move for the
+// same profile before the first one settles no longer leaves two timers
+// racing to clear the same state. Timer.Stop() never blocks, so this cannot
+// deadlock even though the callback below re-acquires s.ptzMu. Note this
+// doesn't fully eliminate the race: if the old timer's callback has already
+// fired and is itself waiting on s.ptzMu at the moment Stop() is called
+// here, Stop() is a no-op and that stale callback still runs right after
+// this handler returns, clobbering the state it just set. That window is
+// narrow and acceptable for a test simulator.
+func (s *Server) scheduleSettle(state *PTZState, delay time.Duration) {
+	if state.settleTimer != nil {
+		state.settleTimer.Stop()
+	}
+	state.settleTimer = time.AfterFunc(delay, func() {
+		s.ptzMu.Lock()
+		defer s.ptzMu.Unlock()
 		state.Moving = false
 		state.PanMoving = false
 		state.TiltMoving = false
 		state.ZoomMoving = false
-		ptzMutex.Unlock()
-	}()
-
-	return &GotoPresetResponse{}, nil
+	})
 }
 
 // Helper functions

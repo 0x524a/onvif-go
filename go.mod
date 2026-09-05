@@ -2,12 +2,14 @@ module github.com/0x524a/onvif-go
 
 go 1.25.0
 
-require github.com/0x524A/rtspeek v0.0.1
+require (
+	github.com/0x524A/rtspeek v0.0.1
+	github.com/google/uuid v1.6.0
+)
 
 require (
 	github.com/bluenviron/gortsplib/v4 v4.16.2 // indirect
 	github.com/bluenviron/mediacommon/v2 v2.9.3 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/pion/logging v0.2.4 // indirect
