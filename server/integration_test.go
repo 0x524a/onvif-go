@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -181,5 +182,140 @@ func TestPTZStopCancelsSettleTimer(t *testing.T) {
 
 	if state.settleTimer != nil {
 		t.Errorf("expected Stop to cancel and clear the pending settle timer, it's still set")
+	}
+}
+
+// TestHandleRelativeMove exercises HandleRelativeMove directly with a real
+// typed request (unlike the disabled/skipped tests elsewhere in this
+// package that hand-build namespace-less XML and silently never reach
+// their assertions, this actually runs).
+func TestHandleRelativeMove(t *testing.T) {
+	config := createTestConfig()
+	srv, err := New(config)
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	profileToken := config.Profiles[0].Token
+
+	req := RelativeMoveRequest{
+		ProfileToken: profileToken,
+		Translation: PTZVector{
+			PanTilt: &Vector2D{X: 10, Y: 5},
+			Zoom:    &Vector1D{X: 0.1},
+		},
+	}
+
+	resp, err := srv.HandleRelativeMove(req)
+	if err != nil {
+		t.Fatalf("HandleRelativeMove() error = %v", err)
+	}
+	if _, ok := resp.(*RelativeMoveResponse); !ok {
+		t.Fatalf("expected *RelativeMoveResponse, got %T", resp)
+	}
+
+	state, ok := srv.GetPTZState(profileToken)
+	if !ok {
+		t.Fatalf("expected PTZ state for profile %q", profileToken)
+	}
+	if !state.Moving {
+		t.Errorf("expected Moving to be true after RelativeMove")
+	}
+	if state.Position.Pan != 10 || state.Position.Tilt != 5 || state.Position.Zoom != 0.1 {
+		t.Errorf("expected position to reflect the translation, got %+v", state.Position)
+	}
+
+	if _, err := srv.HandleRelativeMove(RelativeMoveRequest{ProfileToken: testInvalidToken}); !errors.Is(err, ErrPTZNotSupported) {
+		t.Errorf("expected ErrPTZNotSupported for an unknown profile, got %v", err)
+	}
+}
+
+// TestHandleMove exercises the imaging HandleMove (focus) handler directly
+// with a real typed request - the existing _DisabledTestHandleMove in
+// imaging_test.go is disabled for the same namespace-mismatch reason as
+// TestHandleGotoPreset above.
+func TestHandleMove(t *testing.T) {
+	config := createTestConfig()
+	srv, err := New(config)
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	videoSourceToken := config.Profiles[0].VideoSource.Token
+
+	resp, err := srv.HandleMove(MoveRequest{
+		VideoSourceToken: videoSourceToken,
+		Focus:            &FocusMove{Absolute: &AbsoluteFocus{Position: 0.75}},
+	})
+	if err != nil {
+		t.Fatalf("HandleMove() error = %v", err)
+	}
+	if _, ok := resp.(*MoveResponse); !ok {
+		t.Fatalf("expected *MoveResponse, got %T", resp)
+	}
+
+	state, ok := srv.GetImagingState(videoSourceToken)
+	if !ok {
+		t.Fatalf("expected imaging state for video source %q", videoSourceToken)
+	}
+	if state.Focus.CurrentPos != 0.75 {
+		t.Errorf("expected Focus.CurrentPos to be 0.75, got %v", state.Focus.CurrentPos)
+	}
+
+	if _, err := srv.HandleMove(MoveRequest{VideoSourceToken: testInvalidToken}); !errors.Is(err, ErrVideoSourceNotFound) {
+		t.Errorf("expected ErrVideoSourceNotFound for an unknown video source, got %v", err)
+	}
+}
+
+// TestHandleGetStreamURIUnknownProfile covers the not-found path of
+// HandleGetStreamURI, which the new streamsMu-guarded early return
+// (server/media.go) needs exercised.
+func TestHandleGetStreamURIUnknownProfile(t *testing.T) {
+	config := createTestConfig()
+	srv, err := New(config)
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+
+	type getStreamURIRequest struct {
+		ProfileToken string `xml:"ProfileToken"`
+	}
+	_, err = srv.HandleGetStreamURI(getStreamURIRequest{ProfileToken: testInvalidToken})
+	if !errors.Is(err, ErrProfileNotFound) {
+		t.Errorf("expected ErrProfileNotFound, got %v", err)
+	}
+}
+
+// TestScheduleSettleFires lets a settle timer actually fire (with a short
+// custom delay, rather than waiting out the real 500ms/1s constants) and
+// verifies it clears the Moving flags - the one path none of the other PTZ
+// timer tests exercise, since they only check cancellation/replacement.
+func TestScheduleSettleFires(t *testing.T) {
+	config := createTestConfig()
+	srv, err := New(config)
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	profileToken := config.Profiles[0].Token
+
+	state, ok := srv.GetPTZState(profileToken)
+	if !ok {
+		t.Fatalf("expected PTZ state for profile %q", profileToken)
+	}
+
+	srv.ptzMu.Lock()
+	state.Moving = true
+	state.PanMoving = true
+	state.TiltMoving = true
+	state.ZoomMoving = true
+	srv.scheduleSettle(state, 10*time.Millisecond)
+	srv.ptzMu.Unlock()
+
+	time.Sleep(150 * time.Millisecond)
+
+	state, ok = srv.GetPTZState(profileToken)
+	if !ok {
+		t.Fatalf("expected PTZ state for profile %q", profileToken)
+	}
+	if state.Moving || state.PanMoving || state.TiltMoving || state.ZoomMoving {
+		t.Errorf("expected the settle timer to have cleared all Moving flags, got %+v", state)
 	}
 }
