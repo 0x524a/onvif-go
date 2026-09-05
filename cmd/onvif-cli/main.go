@@ -511,7 +511,7 @@ func (c *CLI) getCapabilities(ctx context.Context) {
 func (c *CLI) getSystemDateTime(ctx context.Context) {
 	fmt.Println("⏳ Getting system date and time...")
 
-	dateTime, err := c.client.GetSystemDateAndTime(ctx)
+	dateTime, err := c.client.GetSystemDateAndTimeTyped(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
 

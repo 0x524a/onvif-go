@@ -47,7 +47,7 @@ func main() {
 
 	// Test 2: Get System Date and Time
 	fmt.Println("=== Test 2: GetSystemDateAndTime ===")
-	dateTime, err := client.GetSystemDateAndTime(ctx)
+	dateTime, err := client.GetSystemDateAndTimeTyped(ctx)
 	if err != nil {
 		log.Printf("ERROR: %v\n", err)
 	} else {
