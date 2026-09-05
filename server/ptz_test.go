@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/xml"
+	"errors"
 	"testing"
 	"time"
 )
@@ -44,25 +45,20 @@ func _DisabledTestHandleGetPresets(t *testing.T) {
 
 func TestHandleGotoPreset(t *testing.T) {
 	config := createTestConfig()
+	// createTestConfig doesn't define any presets by default; hand-rolled
+	// XML against HandleGetPresets used to "discover" one here, but that
+	// always failed to unmarshal against GetPresetsRequest's namespaced
+	// XMLName tag (silently skipping this test - see the real fix for
+	// that discovery step in TestHandleGotoPresetWithRealPreset). Define
+	// one directly instead.
+	presetToken := "preset1"
+	config.Profiles[0].PTZ.Presets = []Preset{
+		{Token: presetToken, Name: homePresetName, Position: PTZPosition{Pan: 1, Tilt: 2, Zoom: 0.3}},
+	}
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
 
-	// First get available presets
-	reqXML := `<GetPresets><ProfileToken>` + profileToken + `</ProfileToken></GetPresets>`
-	presetsResp, _ := server.HandleGetPresets([]byte(reqXML))
-	presetsResp2, ok := presetsResp.(*GetPresetsResponse)
-	if !ok || presetsResp2 == nil {
-		t.Skip("Could not get presets")
-	}
-	if len(presetsResp2.Preset) == 0 {
-		t.Skip("No presets available")
-	}
-
-	presetToken := presetsResp2.Preset[0].Token
-
-	// Now go to preset
-	gotoXML := `<GotoPreset><ProfileToken>` + profileToken + `</ProfileToken><PresetToken>` + presetToken + `</PresetToken></GotoPreset>`
-	gotoResp, err := server.HandleGotoPreset([]byte(gotoXML))
+	gotoResp, err := server.HandleGotoPreset(GotoPresetRequest{ProfileToken: profileToken, PresetToken: presetToken})
 	if err != nil {
 		t.Fatalf("HandleGotoPreset() error = %v", err)
 	}
@@ -74,6 +70,10 @@ func TestHandleGotoPreset(t *testing.T) {
 
 	if gotoResp2 == nil {
 		t.Error("GotoPresetResponse is nil")
+	}
+
+	if _, err := server.HandleGotoPreset(GotoPresetRequest{ProfileToken: profileToken, PresetToken: "no-such-preset"}); !errors.Is(err, ErrPresetNotFound) {
+		t.Errorf("expected ErrPresetNotFound for an unknown preset, got %v", err)
 	}
 }
 

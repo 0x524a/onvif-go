@@ -9,14 +9,13 @@ import (
 	"net"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
 	// WS-Discovery multicast address.
 	multicastAddr = "239.255.255.250:3702"
-	// UUID generation constants.
-	uuidMod1000  = 1000
-	uuidMod10000 = 10000
 
 	// WS-Discovery probe message.
 	probeTemplate = `<?xml version="1.0" encoding="UTF-8"?>
@@ -225,18 +224,9 @@ func deviceMapToSlice(m map[string]*Device) []*Device {
 	return devices
 }
 
-// generateUUID generates a simple UUID (not cryptographically secure).
+// generateUUID generates an RFC 4122 UUID for the WS-Discovery MessageID.
 func generateUUID() string {
-	now := time.Now()
-	nanos := now.UnixNano()
-	secs := now.Unix()
-
-	return fmt.Sprintf("%d-%d-%d-%d-%d",
-		nanos,
-		secs,
-		nanos%uuidMod1000,
-		secs%uuidMod1000,
-		nanos%uuidMod10000)
+	return uuid.NewString()
 }
 
 // resolveNetworkInterface resolves a network interface by name or IP address.
