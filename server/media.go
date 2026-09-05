@@ -137,7 +137,10 @@ type IPAddress struct {
 
 // GetStreamURIResponse represents GetStreamURI response.
 type GetStreamURIResponse struct {
-	XMLName  xml.Name `xml:"http://www.onvif.org/ver10/media/wsdl GetStreamURIResponse"`
+	// Element name is "GetStreamUriResponse" (lowercase "Uri") per the
+	// ONVIF Media WSDL and what the real client expects (#79) - only the
+	// wire name needs to match, not the Go type name.
+	XMLName  xml.Name `xml:"http://www.onvif.org/ver10/media/wsdl GetStreamUriResponse"`
 	MediaURI MediaURI `xml:"MediaUri"`
 }
 
@@ -151,7 +154,9 @@ type MediaURI struct {
 
 // GetSnapshotURIResponse represents GetSnapshotURI response.
 type GetSnapshotURIResponse struct {
-	XMLName  xml.Name `xml:"http://www.onvif.org/ver10/media/wsdl GetSnapshotURIResponse"`
+	// See GetStreamURIResponse.XMLName - same lowercase "Uri" wire name
+	// requirement (#79).
+	XMLName  xml.Name `xml:"http://www.onvif.org/ver10/media/wsdl GetSnapshotUriResponse"`
 	MediaURI MediaURI `xml:"MediaUri"`
 }
 
