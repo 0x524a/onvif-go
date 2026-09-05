@@ -209,7 +209,7 @@ func testDeviceOperations(ctx context.Context, client *onvif.Client, report *Cam
 
 	// System operations
 	testOperation("GetSystemDateAndTime", func() (interface{}, error) {
-		return client.GetSystemDateAndTime(ctx)
+		return client.GetSystemDateAndTimeTyped(ctx)
 	})
 	testOperation("GetHostname", func() (interface{}, error) {
 		return client.GetHostname(ctx)

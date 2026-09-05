@@ -289,11 +289,11 @@ func (c *Client) GetSystemDateAndTimeTyped(ctx context.Context) (*SystemDateTime
 	soapClient := soap.NewClient(c.httpClient, username, password)
 
 	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
-		return nil, fmt.Errorf("GetSystemDateAndTime failed: %w", err)
+		return nil, fmt.Errorf("GetSystemDateAndTimeTyped failed: %w", err)
 	}
 
 	if resp.SystemDateAndTime == nil {
-		return nil, fmt.Errorf("GetSystemDateAndTime failed: %w: missing SystemDateAndTime", ErrInvalidResponse)
+		return nil, fmt.Errorf("GetSystemDateAndTimeTyped failed: %w: missing SystemDateAndTime", ErrInvalidResponse)
 	}
 
 	return resp.SystemDateAndTime, nil
