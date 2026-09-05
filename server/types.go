@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/0x524a/onvif-go"
@@ -199,6 +200,17 @@ type Server struct {
 	ptzState     map[string]*PTZState     // Profile token -> PTZ state
 	imagingState map[string]*ImagingState // Video source token -> imaging state
 	systemTime   time.Time
+
+	// streamsMu guards the mutable fields of the *StreamConfig values in
+	// streams (the map itself is populated once in New and never re-keyed).
+	streamsMu sync.RWMutex
+
+	// ptzMu and imagingMu guard the mutable fields of the *PTZState /
+	// *ImagingState values in ptzState / imagingState respectively. These
+	// are per-Server fields rather than package-level so that multiple
+	// Server instances in one process don't serialize through one lock.
+	ptzMu     sync.RWMutex
+	imagingMu sync.RWMutex
 }
 
 // PTZState represents the current PTZ state.
@@ -209,6 +221,11 @@ type PTZState struct {
 	TiltMoving bool
 	ZoomMoving bool
 	LastUpdate time.Time
+
+	// settleTimer, when non-nil, is the pending timer that will clear the
+	// Moving/PanMoving/TiltMoving/ZoomMoving flags once a simulated move
+	// settles. Guarded by the owning Server's ptzMu.
+	settleTimer *time.Timer
 }
 
 // ImagingState represents the current imaging settings state.

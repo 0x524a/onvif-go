@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -443,6 +445,21 @@ func TestDiscover_BackwardCompatibility(t *testing.T) {
 	}
 
 	t.Logf("Backward compat: found %d devices", len(devices))
+}
+
+// TestGenerateUUID is a regression test for generateUUID producing a
+// wall-clock-derived, non-RFC-4122 string (e.g. "1699999999-..."). Every
+// call must now be a real, unique, parseable UUID.
+func TestGenerateUUID(t *testing.T) {
+	first := generateUUID()
+	if _, err := uuid.Parse(first); err != nil {
+		t.Fatalf("generateUUID() = %q is not a valid UUID: %v", first, err)
+	}
+
+	second := generateUUID()
+	if first == second {
+		t.Errorf("expected two calls to generateUUID() to differ, both got %q", first)
+	}
 }
 
 func BenchmarkListNetworkInterfaces(b *testing.B) {

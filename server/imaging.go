@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/xml"
 	"fmt"
-	"sync"
 )
 
 // Imaging service SOAP message types
@@ -204,8 +203,6 @@ type MoveResponse struct {
 
 // Imaging service handlers
 
-var imagingMutex sync.RWMutex
-
 // HandleGetImagingSettings handles GetImagingSettings request.
 func (s *Server) HandleGetImagingSettings(body interface{}) (interface{}, error) {
 	var req GetImagingSettingsRequest
@@ -214,8 +211,8 @@ func (s *Server) HandleGetImagingSettings(body interface{}) (interface{}, error)
 	}
 
 	// Get imaging state
-	imagingMutex.RLock()
-	defer imagingMutex.RUnlock()
+	s.imagingMu.RLock()
+	defer s.imagingMu.RUnlock()
 
 	state, ok := s.imagingState[req.VideoSourceToken]
 	if !ok {
@@ -275,8 +272,8 @@ func (s *Server) HandleSetImagingSettings(body interface{}) (interface{}, error)
 	}
 
 	// Get imaging state
-	imagingMutex.Lock()
-	defer imagingMutex.Unlock()
+	s.imagingMu.Lock()
+	defer s.imagingMu.Unlock()
 
 	state, ok := s.imagingState[req.VideoSourceToken]
 	if !ok {
@@ -346,6 +343,18 @@ func (s *Server) HandleSetImagingSettings(body interface{}) (interface{}, error)
 
 // HandleGetOptions handles GetOptions request.
 func (s *Server) HandleGetOptions(body interface{}) (interface{}, error) {
+	var req GetOptionsRequest
+	if err := unmarshalBody(body, &req); err != nil {
+		return nil, fmt.Errorf("invalid request: %w", err)
+	}
+
+	s.imagingMu.RLock()
+	_, ok := s.imagingState[req.VideoSourceToken]
+	s.imagingMu.RUnlock()
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrVideoSourceNotFound, req.VideoSourceToken)
+	}
+
 	// Return available imaging options/capabilities
 	const maxImagingValue = 100   // Maximum imaging parameter value
 	const maxExposureTime = 10000 // Maximum exposure time in microseconds
@@ -399,8 +408,8 @@ func (s *Server) HandleMove(body interface{}) (interface{}, error) {
 	}
 
 	// Get imaging state
-	imagingMutex.Lock()
-	defer imagingMutex.Unlock()
+	s.imagingMu.Lock()
+	defer s.imagingMu.Unlock()
 
 	state, ok := s.imagingState[req.VideoSourceToken]
 	if !ok {

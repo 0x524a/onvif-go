@@ -140,6 +140,7 @@ func (s *Server) Start(ctx context.Context) error {
 			fmt.Printf("📷 Imaging Service: http://%s%s/imaging_service\n", addr, s.config.BasePath)
 		}
 		fmt.Printf("\n🌐 Virtual Camera Profiles:\n")
+		s.streamsMu.RLock()
 		//nolint:gocritic // Range value copy is acceptable for small structs
 		for i, profile := range s.config.Profiles {
 			stream := s.streams[profile.Token]
@@ -149,6 +150,7 @@ func (s *Server) Start(ctx context.Context) error {
 				profile.VideoEncoder.Resolution.Height,
 				profile.VideoEncoder.Framerate)
 		}
+		s.streamsMu.RUnlock()
 		fmt.Printf("\n✅ Server is ready!\n\n")
 
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -278,6 +280,8 @@ func (s *Server) GetConfig() *Config {
 
 // GetStreamConfig returns the stream configuration for a profile.
 func (s *Server) GetStreamConfig(profileToken string) (*StreamConfig, bool) {
+	s.streamsMu.RLock()
+	defer s.streamsMu.RUnlock()
 	stream, ok := s.streams[profileToken]
 
 	return stream, ok
@@ -285,6 +289,9 @@ func (s *Server) GetStreamConfig(profileToken string) (*StreamConfig, bool) {
 
 // UpdateStreamURI updates the RTSP URI for a profile.
 func (s *Server) UpdateStreamURI(profileToken, uri string) error {
+	s.streamsMu.Lock()
+	defer s.streamsMu.Unlock()
+
 	stream, ok := s.streams[profileToken]
 	if !ok {
 		return fmt.Errorf("%w: %s", ErrProfileNotFound, profileToken)
@@ -301,8 +308,8 @@ func (s *Server) ListProfiles() []ProfileConfig {
 
 // GetPTZState returns the current PTZ state for a profile.
 func (s *Server) GetPTZState(profileToken string) (*PTZState, bool) {
-	ptzMutex.RLock()
-	defer ptzMutex.RUnlock()
+	s.ptzMu.RLock()
+	defer s.ptzMu.RUnlock()
 	state, ok := s.ptzState[profileToken]
 
 	return state, ok
@@ -310,8 +317,8 @@ func (s *Server) GetPTZState(profileToken string) (*PTZState, bool) {
 
 // GetImagingState returns the current imaging state for a video source.
 func (s *Server) GetImagingState(videoSourceToken string) (*ImagingState, bool) {
-	imagingMutex.RLock()
-	defer imagingMutex.RUnlock()
+	s.imagingMu.RLock()
+	defer s.imagingMu.RUnlock()
 	state, ok := s.imagingState[videoSourceToken]
 
 	return state, ok

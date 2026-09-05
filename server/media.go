@@ -270,20 +270,26 @@ func (s *Server) HandleGetStreamURI(body interface{}) (interface{}, error) {
 	}
 
 	// Find the stream configuration for this profile
+	s.streamsMu.RLock()
 	streamCfg, ok := s.streams[req.ProfileToken]
 	if !ok {
+		s.streamsMu.RUnlock()
+
 		return nil, fmt.Errorf("%w: %s", ErrProfileNotFound, req.ProfileToken)
 	}
 
 	// Build RTSP URI
 	uri := streamCfg.StreamURI
+	rtspPath := streamCfg.RTSPPath
+	s.streamsMu.RUnlock()
+
 	if uri == "" {
 		// Default URI construction
 		host := s.config.Host
 		if host == defaultHost || host == "" {
 			host = defaultHostname
 		}
-		uri = fmt.Sprintf("rtsp://%s:8554%s", host, streamCfg.RTSPPath)
+		uri = fmt.Sprintf("rtsp://%s:8554%s", host, rtspPath)
 	}
 
 	return &GetStreamURIResponse{
