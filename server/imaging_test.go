@@ -137,7 +137,7 @@ func TestHandleGetOptionsUnknownVideoSource(t *testing.T) {
 	config := createTestConfig()
 	server, _ := New(config)
 
-	req := GetOptionsRequest{VideoSourceToken: "does-not-exist"}
+	req := GetOptionsRequest{VideoSourceToken: testInvalidToken}
 	reqData, _ := xml.Marshal(req)
 
 	_, err := server.HandleGetOptions(reqData)
