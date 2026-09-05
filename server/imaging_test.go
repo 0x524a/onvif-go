@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/xml"
+	"errors"
 	"testing"
 )
 
@@ -99,11 +100,7 @@ func TestHandleGetOptions(t *testing.T) {
 	server, _ := New(config)
 	videoSourceToken := config.Profiles[0].VideoSource.Token
 
-	type getOptionsRequest struct {
-		VideoSourceToken string `xml:"VideoSourceToken"`
-	}
-
-	req := getOptionsRequest{VideoSourceToken: videoSourceToken}
+	req := GetOptionsRequest{VideoSourceToken: videoSourceToken}
 	reqData, _ := xml.Marshal(req)
 
 	resp, err := server.HandleGetOptions(reqData)
@@ -128,6 +125,24 @@ func TestHandleGetOptions(t *testing.T) {
 	}
 	if optionsResp.ImagingOptions.Contrast == nil {
 		t.Error("Contrast options is nil")
+	}
+}
+
+// TestHandleGetOptionsUnknownVideoSource is a regression test: GetOptions
+// used to ignore its argument entirely and return the same static
+// capabilities regardless of VideoSourceToken, including for tokens that
+// don't exist. It must now validate the token like its sibling
+// GetImagingSettings does.
+func TestHandleGetOptionsUnknownVideoSource(t *testing.T) {
+	config := createTestConfig()
+	server, _ := New(config)
+
+	req := GetOptionsRequest{VideoSourceToken: "does-not-exist"}
+	reqData, _ := xml.Marshal(req)
+
+	_, err := server.HandleGetOptions(reqData)
+	if !errors.Is(err, ErrVideoSourceNotFound) {
+		t.Errorf("expected ErrVideoSourceNotFound, got %v", err)
 	}
 }
 
@@ -480,9 +495,7 @@ func TestHandleGetOptionsDetails(t *testing.T) {
 	server, _ := New(config)
 	videoSourceToken := config.Profiles[0].VideoSource.Token
 
-	resp, err := server.HandleGetOptions(struct {
-		VideoSourceToken string `xml:"VideoSourceToken"`
-	}{VideoSourceToken: videoSourceToken})
+	resp, err := server.HandleGetOptions(GetOptionsRequest{VideoSourceToken: videoSourceToken})
 
 	if err != nil {
 		t.Fatalf("HandleGetOptions error: %v", err)

@@ -4,22 +4,35 @@ package soap
 import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec // SHA1 used for ONVIF digest authentication
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	originsoap "github.com/0x524a/onvif-go/internal/soap"
 )
+
+// maxClockSkew is the maximum allowed difference between a WS-Security
+// UsernameToken's Created timestamp and the server's clock.
+const maxClockSkew = 5 * time.Minute
 
 // Handler handles incoming SOAP requests.
 type Handler struct {
 	username string
 	password string
 	handlers map[string]MessageHandler
+
+	// nonceMu guards seenNonces, a replay cache for WS-Security nonces.
+	// It is scoped per Handler instance: each ONVIF service (device,
+	// media, PTZ, imaging) gets its own Handler in server.go, so replay
+	// protection is per-service rather than server-wide.
+	nonceMu    sync.Mutex
+	seenNonces map[string]time.Time
 }
 
 // MessageHandler is a function that handles a specific SOAP message.
@@ -28,15 +41,31 @@ type MessageHandler func(body interface{}) (interface{}, error)
 // NewHandler creates a new SOAP handler.
 func NewHandler(username, password string) *Handler {
 	return &Handler{
-		username: username,
-		password: password,
-		handlers: make(map[string]MessageHandler),
+		username:   username,
+		password:   password,
+		handlers:   make(map[string]MessageHandler),
+		seenNonces: make(map[string]time.Time),
 	}
 }
 
 // RegisterHandler registers a handler for a specific action/message type.
 func (h *Handler) RegisterHandler(action string, handler MessageHandler) {
 	h.handlers[action] = handler
+}
+
+// requestEnvelope decodes an incoming SOAP request. Unlike originsoap.Envelope
+// (which is used for marshaling outgoing requests/responses across the whole
+// package), Body.Content here is []byte with ",innerxml" rather than
+// interface{} — encoding/xml cannot populate a bare interface{} field, so
+// using originsoap.Envelope here would leave the request body silently nil.
+// The XMLName tag must match originsoap.Envelope's own tag so a non-SOAP
+// root element still gets rejected instead of unmarshaling successfully.
+type requestEnvelope struct {
+	XMLName xml.Name           `xml:"http://www.w3.org/2003/05/soap-envelope Envelope"`
+	Header  *originsoap.Header `xml:"Header,omitempty"`
+	Body    struct {
+		Content []byte `xml:",innerxml"`
+	} `xml:"Body"`
 }
 
 // ServeHTTP implements http.Handler interface.
@@ -66,16 +95,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse SOAP envelope
-	var envelope originsoap.Envelope
+	var envelope requestEnvelope
 	if err := xml.Unmarshal(body, &envelope); err != nil {
 		h.sendFault(w, "Sender", "Invalid SOAP envelope", err.Error())
 
 		return
 	}
 
-	// Authenticate if credentials are configured
-	if h.username != "" && h.password != "" {
-		if !h.authenticate(&envelope) {
+	// Authenticate if credentials are configured. Either field being set
+	// requires auth - a partially-configured Handler (e.g. username set,
+	// password empty by mistake) must not silently fall back to no-auth.
+	if h.username != "" || h.password != "" {
+		if !h.authenticate(envelope.Header) {
 			h.sendFault(w, "Sender", "Authentication failed", "Invalid username or password")
 
 			return
@@ -103,15 +134,24 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // authenticate verifies the WS-Security credentials.
-func (h *Handler) authenticate(envelope *originsoap.Envelope) bool {
-	if envelope.Header == nil || envelope.Header.Security == nil || envelope.Header.Security.UsernameToken == nil {
+func (h *Handler) authenticate(header *originsoap.Header) bool {
+	if header == nil || header.Security == nil || header.Security.UsernameToken == nil {
 		return false
 	}
 
-	token := envelope.Header.Security.UsernameToken
+	token := header.Security.UsernameToken
 
 	// Check username
 	if token.Username != h.username {
+		return false
+	}
+
+	// Reject stale or malformed timestamps before anything else.
+	created, err := time.Parse(time.RFC3339, token.Created)
+	if err != nil {
+		return false
+	}
+	if skew := time.Since(created); skew > maxClockSkew || skew < -maxClockSkew {
 		return false
 	}
 
@@ -128,8 +168,40 @@ func (h *Handler) authenticate(envelope *originsoap.Envelope) bool {
 	hash.Write([]byte(h.password))
 	expectedDigest := base64.StdEncoding.EncodeToString(hash.Sum(nil))
 
-	// Compare digests
-	return token.Password.Password == expectedDigest
+	// Compare digests in constant time to avoid a timing side-channel.
+	if subtle.ConstantTimeCompare([]byte(token.Password.Password), []byte(expectedDigest)) != 1 {
+		return false
+	}
+
+	// Reject a nonce+timestamp combination that's already been used, i.e.
+	// a replayed request.
+	return h.checkAndRecordNonce(token.Nonce.Nonce, token.Created)
+}
+
+// checkAndRecordNonce returns false if the given nonce+created combination
+// has already been seen (a replay), otherwise records it and returns true.
+// Entries older than maxClockSkew are purged lazily on each call, since
+// authenticate already rejects timestamps outside that window - anything
+// older can never pass authentication again anyway.
+func (h *Handler) checkAndRecordNonce(nonce, created string) bool {
+	key := nonce + "|" + created
+	now := time.Now()
+
+	h.nonceMu.Lock()
+	defer h.nonceMu.Unlock()
+
+	for k, seenAt := range h.seenNonces {
+		if now.Sub(seenAt) > maxClockSkew {
+			delete(h.seenNonces, k)
+		}
+	}
+
+	if _, exists := h.seenNonces[key]; exists {
+		return false
+	}
+	h.seenNonces[key] = now
+
+	return true
 }
 
 // extractAction extracts the action/message type from the SOAP body.
