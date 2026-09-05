@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add `GetSystemDateAndTimeTyped` for inspecting typed clock, timezone, and optional timestamp data without breaking existing callers.
+
+### Deprecated
+- Deprecate `GetSystemDateAndTime` and `FixedGetSystemDateAndTime` in favor of `GetSystemDateAndTimeTyped`.
+
+### Notes
+- **Behavior change:** When a device response omits the `SystemDateAndTime` element entirely, `GetSystemDateAndTimeTyped` now returns an error. Previously, `FixedGetSystemDateAndTime` returned a zero-value struct with no error in this case.
+
 ## [1.1.3] - 2025-11-18
 
 ### Changed

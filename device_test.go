@@ -3,8 +3,10 @@ package onvif
 import (
 	"context"
 	"encoding/xml"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -126,6 +128,201 @@ func TestGetCapabilities(t *testing.T) {
 	if capabilities.Device == nil || capabilities.Device.XAddr == "" {
 		t.Error("Expected Device capabilities with XAddr")
 	}
+}
+
+func TestGetSystemDateAndTimeTyped(t *testing.T) {
+	const (
+		systemDateAndTimeStart = `<tds:SystemDateAndTime xmlns:tt="http://www.onvif.org/ver10/schema">
+			<tt:DateTimeType>NTP</tt:DateTimeType>
+			<tt:DaylightSavings>true</tt:DaylightSavings>`
+		timeZoneXML    = `<tt:TimeZone><tt:TZ>CST-8</tt:TZ></tt:TimeZone>`
+		utcDateTimeXML = `<tt:UTCDateTime>
+			<tt:Time><tt:Hour>8</tt:Hour><tt:Minute>15</tt:Minute><tt:Second>30</tt:Second></tt:Time>
+			<tt:Date><tt:Year>2026</tt:Year><tt:Month>8</tt:Month><tt:Day>31</tt:Day></tt:Date>
+		</tt:UTCDateTime>`
+		localDateTimeXML = `<tt:LocalDateTime>
+			<tt:Time><tt:Hour>16</tt:Hour><tt:Minute>15</tt:Minute><tt:Second>30</tt:Second></tt:Time>
+			<tt:Date><tt:Year>2026</tt:Year><tt:Month>8</tt:Month><tt:Day>31</tt:Day></tt:Date>
+		</tt:LocalDateTime>`
+		systemDateAndTimeEnd = `</tds:SystemDateAndTime>`
+	)
+
+	timeZone := &TimeZone{TZ: "CST-8"}
+	utcDateTime := &DateTime{
+		Time: Time{Hour: 8, Minute: 15, Second: 30},
+		Date: Date{Year: 2026, Month: 8, Day: 31},
+	}
+	localDateTime := &DateTime{
+		Time: Time{Hour: 16, Minute: 15, Second: 30},
+		Date: Date{Year: 2026, Month: 8, Day: 31},
+	}
+
+	tests := []struct {
+		name               string
+		includeTimeZone    bool
+		includeUTC         bool
+		includeLocal       bool
+		omitSystemDateTime bool
+	}{
+		{
+			name:            "all optional fields present",
+			includeTimeZone: true,
+			includeUTC:      true,
+			includeLocal:    true,
+		},
+		{
+			name:         "timezone omitted",
+			includeUTC:   true,
+			includeLocal: true,
+		},
+		{
+			name:            "UTC date and time omitted",
+			includeTimeZone: true,
+			includeLocal:    true,
+		},
+		{
+			name:            "local date and time omitted",
+			includeTimeZone: true,
+			includeUTC:      true,
+		},
+		{
+			name:               "system date and time omitted",
+			omitSystemDateTime: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			responseContent := ""
+			if !tt.omitSystemDateTime {
+				responseContent = systemDateAndTimeStart
+				if tt.includeTimeZone {
+					responseContent += timeZoneXML
+				}
+				if tt.includeUTC {
+					responseContent += utcDateTimeXML
+				}
+				if tt.includeLocal {
+					responseContent += localDateTimeXML
+				}
+				responseContent += systemDateAndTimeEnd
+			}
+
+			server := newSystemDateAndTimeServer(t, responseContent)
+			defer server.Close()
+
+			client, err := NewClient(server.URL)
+			if err != nil {
+				t.Fatalf("NewClient() error = %v", err)
+			}
+
+			got, err := client.GetSystemDateAndTimeTyped(context.Background())
+			if tt.omitSystemDateTime {
+				if err == nil {
+					t.Fatal("GetSystemDateAndTimeTyped() error = nil, want an error")
+				}
+				if !errors.Is(err, ErrInvalidResponse) {
+					t.Errorf("GetSystemDateAndTimeTyped() error = %v, want ErrInvalidResponse", err)
+				}
+
+				return
+			}
+			if err != nil {
+				t.Fatalf("GetSystemDateAndTimeTyped() error = %v", err)
+			}
+
+			want := &SystemDateTime{
+				DateTimeType:    SetDateTimeNTP,
+				DaylightSavings: true,
+			}
+			if tt.includeTimeZone {
+				want.TimeZone = timeZone
+			}
+			if tt.includeUTC {
+				want.UTCDateTime = utcDateTime
+			}
+			if tt.includeLocal {
+				want.LocalDateTime = localDateTime
+			}
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("GetSystemDateAndTimeTyped() = %#v, want %#v", got, want)
+			}
+		})
+	}
+}
+
+func TestGetSystemDateAndTimeCompatibilityMethods(t *testing.T) {
+	const responseContent = `<tds:SystemDateAndTime xmlns:tt="http://www.onvif.org/ver10/schema">
+		<tt:DateTimeType>Manual</tt:DateTimeType>
+		<tt:DaylightSavings>false</tt:DaylightSavings>
+		<tt:TimeZone><tt:TZ>UTC0</tt:TZ></tt:TimeZone>
+	</tds:SystemDateAndTime>`
+
+	server := newSystemDateAndTimeServer(t, responseContent)
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	untyped, err := client.GetSystemDateAndTime(context.Background())
+	if err != nil {
+		t.Fatalf("GetSystemDateAndTime() error = %v", err)
+	}
+	untypedDateTime, ok := untyped.(*SystemDateTime)
+	if !ok {
+		t.Fatalf("GetSystemDateAndTime() returned %T, want *SystemDateTime", untyped)
+	}
+
+	fixedDateTime, err := client.FixedGetSystemDateAndTime(context.Background())
+	if err != nil {
+		t.Fatalf("FixedGetSystemDateAndTime() error = %v", err)
+	}
+
+	want := &SystemDateTime{
+		DateTimeType: SetDateTimeManual,
+		TimeZone:     &TimeZone{TZ: "UTC0"},
+	}
+	if !reflect.DeepEqual(untypedDateTime, want) {
+		t.Errorf("GetSystemDateAndTime() = %#v, want %#v", untypedDateTime, want)
+	}
+	if !reflect.DeepEqual(fixedDateTime, want) {
+		t.Errorf("FixedGetSystemDateAndTime() = %#v, want %#v", fixedDateTime, want)
+	}
+}
+
+func newSystemDateAndTimeServer(t *testing.T, responseContent string) *httptest.Server {
+	t.Helper()
+
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var envelope struct {
+			Body struct {
+				GetSystemDateAndTime struct {
+					XMLName xml.Name `xml:"GetSystemDateAndTime"`
+				} `xml:"GetSystemDateAndTime"`
+			} `xml:"Body"`
+		}
+		if err := xml.NewDecoder(r.Body).Decode(&envelope); err != nil {
+			t.Errorf("Failed to decode request: %v", err)
+		}
+		if envelope.Body.GetSystemDateAndTime.XMLName.Local != "GetSystemDateAndTime" {
+			t.Errorf("Request operation = %q, want GetSystemDateAndTime", envelope.Body.GetSystemDateAndTime.XMLName.Local)
+		}
+
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetSystemDateAndTimeResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">` +
+			responseContent +
+			`</tds:GetSystemDateAndTimeResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.Header().Set("Content-Type", "application/soap+xml")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
 }
 
 func TestGetHostname(t *testing.T) {

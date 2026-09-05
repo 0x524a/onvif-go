@@ -124,91 +124,10 @@ func (c *Client) SetHostnameFromDHCP(ctx context.Context, fromDHCP bool) (bool, 
 }
 
 // FixedGetSystemDateAndTime retrieves the device's system date and time with proper typing.
+//
+// Deprecated: Use GetSystemDateAndTimeTyped.
 func (c *Client) FixedGetSystemDateAndTime(ctx context.Context) (*SystemDateTime, error) {
-	type GetSystemDateAndTime struct {
-		XMLName xml.Name `xml:"tds:GetSystemDateAndTime"`
-		Xmlns   string   `xml:"xmlns:tds,attr"`
-	}
-
-	type GetSystemDateAndTimeResponse struct {
-		XMLName           xml.Name `xml:"GetSystemDateAndTimeResponse"`
-		SystemDateAndTime struct {
-			DateTimeType    string `xml:"DateTimeType"`
-			DaylightSavings bool   `xml:"DaylightSavings"`
-			TimeZone        struct {
-				TZ string `xml:"TZ"`
-			} `xml:"TimeZone"`
-			UTCDateTime struct {
-				Time struct {
-					Hour   int `xml:"Hour"`
-					Minute int `xml:"Minute"`
-					Second int `xml:"Second"`
-				} `xml:"Time"`
-				Date struct {
-					Year  int `xml:"Year"`
-					Month int `xml:"Month"`
-					Day   int `xml:"Day"`
-				} `xml:"Date"`
-			} `xml:"UTCDateTime"`
-			LocalDateTime struct {
-				Time struct {
-					Hour   int `xml:"Hour"`
-					Minute int `xml:"Minute"`
-					Second int `xml:"Second"`
-				} `xml:"Time"`
-				Date struct {
-					Year  int `xml:"Year"`
-					Month int `xml:"Month"`
-					Day   int `xml:"Day"`
-				} `xml:"Date"`
-			} `xml:"LocalDateTime"`
-		} `xml:"SystemDateAndTime"`
-	}
-
-	req := GetSystemDateAndTime{
-		Xmlns: deviceNamespace,
-	}
-
-	var resp GetSystemDateAndTimeResponse
-
-	username, password := c.GetCredentials()
-	soapClient := soap.NewClient(c.httpClient, username, password)
-
-	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
-		return nil, fmt.Errorf("GetSystemDateAndTime failed: %w", err)
-	}
-
-	return &SystemDateTime{
-		DateTimeType:    SetDateTimeType(resp.SystemDateAndTime.DateTimeType),
-		DaylightSavings: resp.SystemDateAndTime.DaylightSavings,
-		TimeZone: &TimeZone{
-			TZ: resp.SystemDateAndTime.TimeZone.TZ,
-		},
-		UTCDateTime: &DateTime{
-			Time: Time{
-				Hour:   resp.SystemDateAndTime.UTCDateTime.Time.Hour,
-				Minute: resp.SystemDateAndTime.UTCDateTime.Time.Minute,
-				Second: resp.SystemDateAndTime.UTCDateTime.Time.Second,
-			},
-			Date: Date{
-				Year:  resp.SystemDateAndTime.UTCDateTime.Date.Year,
-				Month: resp.SystemDateAndTime.UTCDateTime.Date.Month,
-				Day:   resp.SystemDateAndTime.UTCDateTime.Date.Day,
-			},
-		},
-		LocalDateTime: &DateTime{
-			Time: Time{
-				Hour:   resp.SystemDateAndTime.LocalDateTime.Time.Hour,
-				Minute: resp.SystemDateAndTime.LocalDateTime.Time.Minute,
-				Second: resp.SystemDateAndTime.LocalDateTime.Time.Second,
-			},
-			Date: Date{
-				Year:  resp.SystemDateAndTime.LocalDateTime.Date.Year,
-				Month: resp.SystemDateAndTime.LocalDateTime.Date.Month,
-				Day:   resp.SystemDateAndTime.LocalDateTime.Date.Day,
-			},
-		},
-	}, nil
+	return c.GetSystemDateAndTimeTyped(ctx)
 }
 
 // SetSystemDateAndTime sets the device system date and time.
