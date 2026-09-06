@@ -72,13 +72,14 @@ type Config struct {
 	SupportEvents  bool
 
 	// Output receives the human-readable startup banner and shutdown notice.
+	// It defaults to os.Stdout when nil, preserving the behavior of callers
+	// written before this field existed.
 	//
-	// It defaults to io.Discard when nil. This package is a library, and a
-	// program whose stdout carries framed protocol data rather than console
-	// text would have it corrupted by banner output, so nothing is printed
-	// unless a caller asks for it. cmd/onvif-server and the examples set this
-	// to os.Stdout explicitly; ServerInfo also returns the same information as
-	// a string for callers that would rather format it themselves.
+	// Set it to io.Discard to silence the server. Do that in tests, where one
+	// banner per server instance is noise, and in any program whose stdout
+	// carries framed protocol data rather than console text - banner output
+	// would corrupt it. ServerInfo returns the same information as a string for
+	// callers that would rather place it themselves.
 	Output io.Writer
 
 	// Ready, when non-nil, is closed by Start once the listener is bound and
