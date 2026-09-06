@@ -11,12 +11,30 @@ import (
 // PTZ service namespace.
 const ptzNamespace = "http://www.onvif.org/ver20/ptz/wsdl"
 
-// getPTZEndpoint returns the PTZ endpoint.
-func (c *Client) getPTZEndpoint() string {
+// getPTZEndpoint returns the discovered PTZ service endpoint.
+//
+// When no endpoint is known it reports which of the two possible reasons
+// applies, rather than conflating them: ErrNotInitialized if Initialize has
+// never succeeded - the device may well support PTZ, the client simply has
+// not looked yet, and the caller's recovery is to call Initialize and retry -
+// or ErrServiceNotSupported if capabilities were fetched and PTZ was absent
+// from them, which is a permanent property of the device and means the caller
+// should stop offering PTZ at all.
+//
+// Both checks are made under one lock so the pair is always consistent.
+func (c *Client) getPTZEndpoint() (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	return c.ptzEndpoint
+	if c.ptzEndpoint == "" {
+		if !c.initialized {
+			return "", ErrNotInitialized
+		}
+
+		return "", ErrServiceNotSupported
+	}
+
+	return c.ptzEndpoint, nil
 }
 
 // ptzPanTiltXML is a shared type for PTZ pan/tilt XML serialization.
@@ -78,9 +96,9 @@ func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedXML {
 
 // ContinuousMove starts continuous PTZ movement.
 func (c *Client) ContinuousMove(ctx context.Context, profileToken string, velocity *PTZSpeed, timeout *string) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type ContinuousMove struct {
@@ -110,9 +128,9 @@ func (c *Client) ContinuousMove(ctx context.Context, profileToken string, veloci
 
 // AbsoluteMove moves PTZ to an absolute position.
 func (c *Client) AbsoluteMove(ctx context.Context, profileToken string, position *PTZVector, speed *PTZSpeed) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type AbsoluteMove struct {
@@ -142,9 +160,9 @@ func (c *Client) AbsoluteMove(ctx context.Context, profileToken string, position
 
 // RelativeMove moves PTZ relative to current position.
 func (c *Client) RelativeMove(ctx context.Context, profileToken string, translation *PTZVector, speed *PTZSpeed) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type RelativeMove struct {
@@ -174,9 +192,9 @@ func (c *Client) RelativeMove(ctx context.Context, profileToken string, translat
 
 // Stop stops PTZ movement.
 func (c *Client) Stop(ctx context.Context, profileToken string, panTilt, zoom bool) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type Stop struct {
@@ -211,9 +229,9 @@ func (c *Client) Stop(ctx context.Context, profileToken string, panTilt, zoom bo
 
 // GetStatus retrieves PTZ status.
 func (c *Client) GetStatus(ctx context.Context, profileToken string) (*PTZStatus, error) {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetStatus struct {
@@ -292,9 +310,9 @@ func (c *Client) GetStatus(ctx context.Context, profileToken string) (*PTZStatus
 
 // GetPresets retrieves PTZ presets.
 func (c *Client) GetPresets(ctx context.Context, profileToken string) ([]*PTZPreset, error) {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetPresets struct {
@@ -368,9 +386,9 @@ func (c *Client) GetPresets(ctx context.Context, profileToken string) ([]*PTZPre
 
 // GotoPreset moves PTZ to a preset position.
 func (c *Client) GotoPreset(ctx context.Context, profileToken, presetToken string, speed *PTZSpeed) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type GotoPreset struct {
@@ -400,9 +418,9 @@ func (c *Client) GotoPreset(ctx context.Context, profileToken, presetToken strin
 
 // SetPreset sets a preset position.
 func (c *Client) SetPreset(ctx context.Context, profileToken, presetName, presetToken string) (string, error) {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return "", ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return "", err
 	}
 
 	type SetPreset struct {
@@ -444,9 +462,9 @@ func (c *Client) SetPreset(ctx context.Context, profileToken, presetName, preset
 
 // RemovePreset removes a preset.
 func (c *Client) RemovePreset(ctx context.Context, profileToken, presetToken string) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type RemovePreset struct {
@@ -474,9 +492,9 @@ func (c *Client) RemovePreset(ctx context.Context, profileToken, presetToken str
 
 // GotoHomePosition moves PTZ to home position.
 func (c *Client) GotoHomePosition(ctx context.Context, profileToken string, speed *PTZSpeed) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type GotoHomePosition struct {
@@ -504,9 +522,9 @@ func (c *Client) GotoHomePosition(ctx context.Context, profileToken string, spee
 
 // SetHomePosition sets the current position as home position.
 func (c *Client) SetHomePosition(ctx context.Context, profileToken string) error {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type SetHomePosition struct {
@@ -532,9 +550,9 @@ func (c *Client) SetHomePosition(ctx context.Context, profileToken string) error
 
 // GetConfiguration retrieves PTZ configuration.
 func (c *Client) GetConfiguration(ctx context.Context, configurationToken string) (*PTZConfiguration, error) {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetConfiguration struct {
@@ -577,9 +595,9 @@ func (c *Client) GetConfiguration(ctx context.Context, configurationToken string
 
 // GetConfigurations retrieves all PTZ configurations.
 func (c *Client) GetConfigurations(ctx context.Context) ([]*PTZConfiguration, error) {
-	endpoint := c.getPTZEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getPTZEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetConfigurations struct {
