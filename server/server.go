@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"time"
 
@@ -122,42 +124,41 @@ func (s *Server) Start(ctx context.Context) error {
 	// Add snapshot endpoint
 	mux.HandleFunc(s.config.BasePath+"/snapshot", s.handleSnapshot)
 
-	// Create HTTP server
+	// Bind before serving, as a distinct step. ListenAndServe resolves the
+	// address internally, which left a caller unable to learn the port an
+	// OS-assigned Port: 0 produced, and unable to know when the server had
+	// started accepting - forcing tests to hardcode a port and then sleep or
+	// poll-dial. Binding here also surfaces an "address already in use"
+	// failure as Start's own return value instead of racing through errChan.
 	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(ctx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("failed to listen on %s: %w", addr, err)
+	}
+
+	s.listenerMu.Lock()
+	s.listener = listener
+	s.listenerMu.Unlock()
+
 	httpServer := &http.Server{
-		Addr:         addr,
 		Handler:      mux,
 		ReadTimeout:  s.config.Timeout,
 		WriteTimeout: s.config.Timeout,
 	}
 
-	// Start server in goroutine
+	// Report the address actually bound, not the requested one, so Port: 0
+	// prints a URL that can be used.
+	s.printBanner(listener.Addr().String())
+
+	// The listener is already queueing connections, so anything dialing after
+	// this point cannot be refused.
+	s.signalReady()
+
 	errChan := make(chan error, 1)
 	go func() {
-		fmt.Printf("🎥 ONVIF Server starting on %s\n", addr)
-		fmt.Printf("📡 Device Service: http://%s%s/device_service\n", addr, s.config.BasePath)
-		fmt.Printf("🎬 Media Service: http://%s%s/media_service\n", addr, s.config.BasePath)
-		if s.config.SupportPTZ {
-			fmt.Printf("🎮 PTZ Service: http://%s%s/ptz_service\n", addr, s.config.BasePath)
-		}
-		if s.config.SupportImaging {
-			fmt.Printf("📷 Imaging Service: http://%s%s/imaging_service\n", addr, s.config.BasePath)
-		}
-		fmt.Printf("\n🌐 Virtual Camera Profiles:\n")
-		s.streamsMu.RLock()
-		//nolint:gocritic // Range value copy is acceptable for small structs
-		for i, profile := range s.config.Profiles {
-			stream := s.streams[profile.Token]
-			fmt.Printf("   [%d] %s - %s (%dx%d @ %dfps)\n",
-				i+1, profile.Name, stream.StreamURI,
-				profile.VideoEncoder.Resolution.Width,
-				profile.VideoEncoder.Resolution.Height,
-				profile.VideoEncoder.Framerate)
-		}
-		s.streamsMu.RUnlock()
-		fmt.Printf("\n✅ Server is ready!\n\n")
-
-		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := httpServer.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
 	}()
@@ -165,7 +166,7 @@ func (s *Server) Start(ctx context.Context) error {
 	// Wait for context cancellation or error
 	select {
 	case <-ctx.Done():
-		fmt.Println("\n🛑 Shutting down server...")
+		fmt.Fprintf(s.output(), "\n🛑 Shutting down server...\n")
 		const shutdownTimeout = 5 // Server shutdown timeout in seconds
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
 		defer cancel()
@@ -178,6 +179,121 @@ func (s *Server) Start(ctx context.Context) error {
 	case err := <-errChan:
 		return err
 	}
+}
+
+// output returns the writer for the startup banner and shutdown notice,
+// defaulting to io.Discard so that merely importing this package never writes
+// to a program's stdout. See Config.Output.
+func (s *Server) output() io.Writer {
+	if s.config.Output == nil {
+		return io.Discard
+	}
+
+	return s.config.Output
+}
+
+// signalReady closes Config.Ready if one was supplied, at most once.
+func (s *Server) signalReady() {
+	if s.config.Ready == nil {
+		return
+	}
+
+	s.readyOnce.Do(func() {
+		close(s.config.Ready)
+	})
+}
+
+// Addr returns the address the server is listening on, or "" before Start has
+// bound one. With Config.Port set to 0 this is how a caller learns the port the
+// OS assigned.
+func (s *Server) Addr() string {
+	s.listenerMu.RLock()
+	defer s.listenerMu.RUnlock()
+
+	if s.listener == nil {
+		return ""
+	}
+
+	return s.listener.Addr().String()
+}
+
+// advertisedHost returns the host to put in URLs the server hands out. A
+// wildcard bind has no single reachable host, so it degrades to localhost.
+func (s *Server) advertisedHost() string {
+	host := s.config.Host
+	if host == defaultHost || host == "" {
+		host = defaultHostname
+	}
+
+	return host
+}
+
+// advertisedHostPort returns the host and port for URLs the server hands out.
+//
+// The port comes from the bound listener when there is one, in preference to
+// Config.Port. With Config.Port 0 the configured value stays 0, which would
+// make every advertised URL point at port 0 - including the
+// SubscriptionReference that pull-point clients genuinely call back on, and the
+// XAddrs a client uses to reach every other service after GetCapabilities. The
+// host still comes from config, for the wildcard-bind reason in
+// advertisedHost.
+func (s *Server) advertisedHostPort() (host string, port int) {
+	port = s.config.Port
+
+	s.listenerMu.RLock()
+	listener := s.listener
+	s.listenerMu.RUnlock()
+
+	if listener != nil {
+		if tcpAddr, ok := listener.Addr().(*net.TCPAddr); ok {
+			port = tcpAddr.Port
+		}
+	}
+
+	return s.advertisedHost(), port
+}
+
+// advertisedBaseURL returns the http://host:port/basepath prefix shared by the
+// service XAddrs and the snapshot URI.
+func (s *Server) advertisedBaseURL() string {
+	host, port := s.advertisedHostPort()
+
+	return fmt.Sprintf("http://%s:%d%s", host, port, s.config.BasePath)
+}
+
+// printBanner writes the human-readable startup summary for a server listening
+// on addr. It writes nothing unless Config.Output is set.
+func (s *Server) printBanner(addr string) {
+	out := s.output()
+	if out == io.Discard {
+		return
+	}
+
+	fmt.Fprintf(out, "🎥 ONVIF Server starting on %s\n", addr)
+	fmt.Fprintf(out, "📡 Device Service: http://%s%s/device_service\n", addr, s.config.BasePath)
+	fmt.Fprintf(out, "🎬 Media Service: http://%s%s/media_service\n", addr, s.config.BasePath)
+	if s.config.SupportPTZ {
+		fmt.Fprintf(out, "🎮 PTZ Service: http://%s%s/ptz_service\n", addr, s.config.BasePath)
+	}
+	if s.config.SupportImaging {
+		fmt.Fprintf(out, "📷 Imaging Service: http://%s%s/imaging_service\n", addr, s.config.BasePath)
+	}
+	if s.config.SupportEvents {
+		fmt.Fprintf(out, "🔔 Event Service: http://%s%s/events_service\n", addr, s.config.BasePath)
+	}
+	fmt.Fprintf(out, "\n🌐 Virtual Camera Profiles:\n")
+	s.streamsMu.RLock()
+	//nolint:gocritic // Range value copy is acceptable for small structs
+	for i, profile := range s.config.Profiles {
+		stream := s.streams[profile.Token]
+		fmt.Fprintf(out, "   [%d] %s - %s (%dx%d @ %dfps)\n",
+			i+1, profile.Name, stream.StreamURI,
+			profile.VideoEncoder.Resolution.Width,
+			profile.VideoEncoder.Resolution.Height,
+			profile.VideoEncoder.Framerate)
+	}
+	s.streamsMu.RUnlock()
+	fmt.Fprintf(out, "\n✅ Server is ready!\n\n")
 }
 
 // registerDeviceService registers the device service handler.

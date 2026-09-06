@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"io"
+	"net"
 	"sync"
 	"time"
 
@@ -68,6 +70,22 @@ type Config struct {
 	SupportPTZ     bool
 	SupportImaging bool
 	SupportEvents  bool
+
+	// Output receives the human-readable startup banner and shutdown notice.
+	//
+	// It defaults to io.Discard when nil. This package is a library, and a
+	// program whose stdout carries framed protocol data rather than console
+	// text would have it corrupted by banner output, so nothing is printed
+	// unless a caller asks for it. cmd/onvif-server and the examples set this
+	// to os.Stdout explicitly; ServerInfo also returns the same information as
+	// a string for callers that would rather format it themselves.
+	Output io.Writer
+
+	// Ready, when non-nil, is closed by Start once the listener is bound and
+	// accepting connections, so a caller need not sleep or poll-dial before
+	// its first request. It is closed at most once even if Start is called
+	// again.
+	Ready chan<- struct{}
 }
 
 // DeviceInfo contains device identification information.
@@ -216,6 +234,16 @@ type Server struct {
 	// subscription (nil when none is active). Guarded by subscriptionMu.
 	subscription   *eventSubscription
 	subscriptionMu sync.RWMutex
+
+	// listener is set once Start has bound an address, and is what Addr
+	// reports. Guarded by listenerMu because Addr is normally called from a
+	// different goroutine than the one blocked in Start.
+	listener   net.Listener
+	listenerMu sync.RWMutex
+
+	// readyOnce guards closing config.Ready so a second Start call cannot
+	// panic on a double close.
+	readyOnce sync.Once
 }
 
 // PTZState represents the current PTZ state.

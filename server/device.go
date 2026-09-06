@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/xml"
-	"fmt"
 	"time"
 
 	"github.com/0x524a/onvif-go/server/soap"
@@ -164,14 +163,7 @@ func (s *Server) HandleGetDeviceInformation(body interface{}) (interface{}, erro
 
 // HandleGetCapabilities handles GetCapabilities request.
 func (s *Server) HandleGetCapabilities(body interface{}) (interface{}, error) {
-	// Get the host from the request (in a real implementation)
-	// For now, use a placeholder
-	host := s.config.Host
-	if host == defaultHost || host == "" {
-		host = defaultHostname
-	}
-
-	baseURL := fmt.Sprintf("http://%s:%d%s", host, s.config.Port, s.config.BasePath)
+	baseURL := s.advertisedBaseURL()
 
 	capabilities := &Capabilities{
 		Device: &DeviceCapabilities{
@@ -260,12 +252,7 @@ func (s *Server) HandleGetSystemDateAndTime(body interface{}) (interface{}, erro
 
 // HandleGetServices handles GetServices request.
 func (s *Server) HandleGetServices(body interface{}) (interface{}, error) {
-	host := s.config.Host
-	if host == defaultHost || host == "" {
-		host = defaultHostname
-	}
-
-	baseURL := fmt.Sprintf("http://%s:%d%s", host, s.config.Port, s.config.BasePath)
+	baseURL := s.advertisedBaseURL()
 
 	services := []Service{
 		{
