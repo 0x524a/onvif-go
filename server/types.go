@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"io"
+	"net"
 	"sync"
 	"time"
 
@@ -68,6 +70,23 @@ type Config struct {
 	SupportPTZ     bool
 	SupportImaging bool
 	SupportEvents  bool
+
+	// Output receives the human-readable startup banner and shutdown notice.
+	// It defaults to os.Stdout when nil, preserving the behavior of callers
+	// written before this field existed.
+	//
+	// Set it to io.Discard to silence the server. Do that in tests, where one
+	// banner per server instance is noise, and in any program whose stdout
+	// carries framed protocol data rather than console text - banner output
+	// would corrupt it. ServerInfo returns the same information as a string for
+	// callers that would rather place it themselves.
+	Output io.Writer
+
+	// Ready, when non-nil, is closed by Start once the listener is bound and
+	// accepting connections, so a caller need not sleep or poll-dial before
+	// its first request. It is closed at most once even if Start is called
+	// again.
+	Ready chan<- struct{}
 }
 
 // DeviceInfo contains device identification information.
@@ -216,6 +235,16 @@ type Server struct {
 	// subscription (nil when none is active). Guarded by subscriptionMu.
 	subscription   *eventSubscription
 	subscriptionMu sync.RWMutex
+
+	// listener is set once Start has bound an address, and is what Addr
+	// reports. Guarded by listenerMu because Addr is normally called from a
+	// different goroutine than the one blocked in Start.
+	listener   net.Listener
+	listenerMu sync.RWMutex
+
+	// readyOnce guards closing config.Ready so a second Start call cannot
+	// panic on a double close.
+	readyOnce sync.Once
 }
 
 // PTZState represents the current PTZ state.

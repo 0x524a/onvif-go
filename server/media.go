@@ -289,12 +289,9 @@ func (s *Server) HandleGetStreamURI(body interface{}) (interface{}, error) {
 	s.streamsMu.RUnlock()
 
 	if uri == "" {
-		// Default URI construction
-		host := s.config.Host
-		if host == defaultHost || host == "" {
-			host = defaultHostname
-		}
-		uri = fmt.Sprintf("rtsp://%s:8554%s", host, rtspPath)
+		// Default URI construction. The RTSP port is the media server's, not
+		// this HTTP server's, so only the host is shared.
+		uri = fmt.Sprintf("rtsp://%s:8554%s", s.advertisedHost(), rtspPath)
 	}
 
 	return &GetStreamURIResponse{
@@ -336,12 +333,7 @@ func (s *Server) HandleGetSnapshotURI(body interface{}) (interface{}, error) {
 	}
 
 	// Build snapshot URI
-	host := s.config.Host
-	if host == defaultHost || host == "" {
-		host = defaultHostname
-	}
-	uri := fmt.Sprintf("http://%s:%d%s/snapshot?profile=%s",
-		host, s.config.Port, s.config.BasePath, req.ProfileToken)
+	uri := fmt.Sprintf("%s/snapshot?profile=%s", s.advertisedBaseURL(), req.ProfileToken)
 
 	return &GetSnapshotURIResponse{
 		MediaURI: MediaURI{
