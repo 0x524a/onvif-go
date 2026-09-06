@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 	"errors"
-	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -371,58 +371,37 @@ func TestScheduleSettleFires(t *testing.T) {
 // TestServeHTTPEndToEndEventSubscriptionLifecycle drives the real
 // onvif.Client's pull-point event methods (CreatePullPointSubscription ->
 // PullMessages -> RenewSubscription -> Unsubscribe -> PullMessages again)
-// through a real HTTP round trip against registerEventService, for #62.
+// through a real HTTP round trip against a running server, for #62.
 //
-// Unlike GetStreamURI/GetSnapshotURI (whose returned URIs are just
-// descriptive - existing e2e tests never dereference them), PullMessages/
+// Unlike GetStreamURI/GetSnapshotURI, whose returned URIs are merely
+// descriptive and which no e2e test ever dereferences, PullMessages/
 // RenewSubscription/Unsubscribe all call back on the server-returned
-// SubscriptionReference.Address, and that address is built from
-// s.config.Host/Port (eventsServiceURL, matching every other service's
-// baseURL construction). createTestConfig() hardcodes Port: 8080, which
-// httptest.NewServer's usual random port would not match, so the
-// subscription reference the client calls back on would point nowhere.
-// Fixed here, in the test, not in the implementation: bind a listener on
-// 127.0.0.1:0 first, read back its actual port, set config.Port to that
-// before constructing the Server, then hand the listener to
-// httptest.NewUnstartedServer - so the config the server advertises
-// through and the address it's actually reachable at agree, exactly as
-// they would for a real deployment.
+// SubscriptionReference.Address. That makes this test the one place where the
+// address the server advertises has to genuinely match the address it is
+// reachable at.
+//
+// Before #63 that agreement had to be forced by hand: bind a listener on
+// :0, read its port back, poke it into config.Port before constructing the
+// Server, then swap the listener into httptest.NewUnstartedServer - because
+// createTestConfig hardcoded Port: 8080 while httptest binds elsewhere. The
+// server now takes an ephemeral port itself and advertises the port it
+// actually bound, so the whole dance reduces to startTestServer.
 func TestServeHTTPEndToEndEventSubscriptionLifecycle(t *testing.T) {
-	var listenConfig net.ListenConfig
-	listener, err := listenConfig.Listen(context.Background(), "tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Listen() failed: %v", err)
-	}
-
 	config := createTestConfig()
+	config.Host = testLoopbackHost
 	config.SupportEvents = true
-	config.Host = "127.0.0.1"
-	config.Port = listener.Addr().(*net.TCPAddr).Port
 
-	srv, err := New(config)
-	if err != nil {
-		t.Fatalf("New() failed: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	srv.registerEventService(mux)
-
-	testServer := httptest.NewUnstartedServer(mux)
-	_ = testServer.Listener.Close()
-	testServer.Listener = listener
-	testServer.Start()
-	defer testServer.Close()
+	_, addr := startTestServer(t, config)
 
 	client, err := onvif.NewClient(
-		testServer.URL+config.BasePath+"/events_service",
+		"http://"+addr+config.BasePath+"/events_service",
 		onvif.WithCredentials(config.Username, config.Password),
-		onvif.WithHTTPClient(testServer.Client()),
 	)
 	if err != nil {
 		t.Fatalf("onvif.NewClient() failed: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	sub, err := client.CreatePullPointSubscription(ctx, "", nil, "")
@@ -431,6 +410,12 @@ func TestServeHTTPEndToEndEventSubscriptionLifecycle(t *testing.T) {
 	}
 	if sub.SubscriptionReference == "" {
 		t.Fatal("expected a non-empty SubscriptionReference")
+	}
+	// The reference must point at the port actually bound, not the configured
+	// 0 - this is what makes the follow-up calls below reachable at all.
+	if !strings.Contains(sub.SubscriptionReference, addr) {
+		t.Fatalf("SubscriptionReference = %q, want it to point at the bound address %q",
+			sub.SubscriptionReference, addr)
 	}
 
 	msgs, err := client.PullMessages(ctx, sub.SubscriptionReference, 2*time.Second, 10)

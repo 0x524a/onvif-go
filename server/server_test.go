@@ -364,7 +364,7 @@ func TestStartContextTimeout(t *testing.T) {
 
 func createTestConfig() *Config {
 	return &Config{
-		Host:     "127.0.0.1",
+		Host:     testLoopbackHost,
 		Port:     8080,
 		BasePath: onvifBasePath,
 		Timeout:  30 * time.Second,
