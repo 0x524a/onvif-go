@@ -43,6 +43,13 @@ type Client struct {
 	ptzEndpoint     string
 	imagingEndpoint string
 	eventEndpoint   string
+
+	// initialized reports whether Initialize has successfully fetched the
+	// device's capabilities at least once. It distinguishes "this client has
+	// not looked for the service yet" from "the device reported it does not
+	// have the service", which are indistinguishable from an empty endpoint
+	// field alone. Guarded by mu.
+	initialized bool
 }
 
 // ClientOption is a functional option for configuring the Client.
@@ -194,7 +201,18 @@ func (c *Client) fixLocalhostURL(serviceURL string) string {
 	return serviceURL
 }
 
-// Initialize discovers and initializes service endpoints.
+// Initialize discovers and initializes service endpoints by fetching the
+// device's capabilities.
+//
+// Services differ in how they behave before Initialize has succeeded:
+//
+//   - PTZ and Imaging operations require it. Until it succeeds they return
+//     ErrNotInitialized, because the client has no way to know whether the
+//     device supports those services. Once it succeeds, a service the device
+//     did not report yields ErrServiceNotSupported instead.
+//   - Media and Events operations fall back to the device endpoint, which
+//     many cameras also serve those operations on, so they often work
+//     without Initialize.
 func (c *Client) Initialize(ctx context.Context) error {
 	// Get device information and capabilities
 	capabilities, err := c.GetCapabilities(ctx)
@@ -217,6 +235,10 @@ func (c *Client) Initialize(ctx context.Context) error {
 	if capabilities.Events != nil && capabilities.Events.XAddr != "" {
 		c.eventEndpoint = c.fixLocalhostURL(capabilities.Events.XAddr)
 	}
+	// Set last, in the same critical section as the endpoints it describes:
+	// from here on an empty PTZ/Imaging endpoint means the device reported no
+	// such service, not that nobody has asked yet.
+	c.initialized = true
 	c.mu.Unlock()
 
 	return nil
