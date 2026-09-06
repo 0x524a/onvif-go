@@ -30,7 +30,11 @@ var (
 	// ErrInvalidParameter is returned when a parameter is invalid.
 	ErrInvalidParameter = errors.New("invalid parameter")
 
-	// ErrNotInitialized is returned when the client is not initialized.
+	// ErrNotInitialized is returned by PTZ and Imaging operations when
+	// Initialize has not successfully run, so the client does not yet know
+	// whether the device offers the service. It is a recoverable client-state
+	// problem - call Initialize and retry - and is deliberately distinct from
+	// ErrServiceNotSupported, which reports a permanent device limitation.
 	ErrNotInitialized = errors.New("client not initialized")
 
 	// ErrNoProbeMatches is returned when no probe matches are found during discovery.

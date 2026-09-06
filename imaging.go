@@ -11,21 +11,38 @@ import (
 // Imaging service namespace.
 const imagingNamespace = "http://www.onvif.org/ver20/imaging/wsdl"
 
-// getImagingEndpoint returns the imaging endpoint.
-func (c *Client) getImagingEndpoint() string {
+// getImagingEndpoint returns the discovered Imaging service endpoint.
+//
+// It reports ErrNotInitialized or ErrServiceNotSupported on an unknown
+// endpoint for the same reasons, and with the same caller contract, as
+// getPTZEndpoint - see its documentation.
+//
+// Every Imaging operation goes through here. Three of them previously fell
+// back to the device endpoint while the other four returned an error, so the
+// same client state produced a working call or a "not supported" error
+// depending only on which Imaging method you happened to reach for.
+func (c *Client) getImagingEndpoint() (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	return c.imagingEndpoint
+	if c.imagingEndpoint == "" {
+		if !c.initialized {
+			return "", ErrNotInitialized
+		}
+
+		return "", ErrServiceNotSupported
+	}
+
+	return c.imagingEndpoint, nil
 }
 
 // GetImagingSettings retrieves imaging settings for a video source.
 //
 //nolint:funlen // GetImagingSettings has many statements due to parsing complex imaging settings
 func (c *Client) GetImagingSettings(ctx context.Context, videoSourceToken string) (*ImagingSettings, error) {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		endpoint = c.endpoint
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetImagingSettings struct {
@@ -155,9 +172,9 @@ func (c *Client) GetImagingSettings(ctx context.Context, videoSourceToken string
 func (c *Client) SetImagingSettings(
 	ctx context.Context, videoSourceToken string, settings *ImagingSettings, forcePersistence bool,
 ) error {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		endpoint = c.endpoint
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type SetImagingSettings struct {
@@ -305,9 +322,9 @@ func (c *Client) SetImagingSettings(
 
 // Move performs a focus move operation.
 func (c *Client) Move(ctx context.Context, videoSourceToken string, focus *FocusMove) error {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		endpoint = c.endpoint
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type Move struct {
@@ -368,9 +385,9 @@ type FocusMove struct {
 
 // GetOptions retrieves imaging options for a video source.
 func (c *Client) GetOptions(ctx context.Context, videoSourceToken string) (*ImagingOptions, error) {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetOptions struct {
@@ -465,9 +482,9 @@ func (c *Client) GetOptions(ctx context.Context, videoSourceToken string) (*Imag
 
 // GetMoveOptions retrieves imaging move options for focus.
 func (c *Client) GetMoveOptions(ctx context.Context, videoSourceToken string) (*MoveOptions, error) {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetMoveOptions struct {
@@ -564,9 +581,9 @@ func (c *Client) GetMoveOptions(ctx context.Context, videoSourceToken string) (*
 
 // StopFocus stops focus movement.
 func (c *Client) StopFocus(ctx context.Context, videoSourceToken string) error {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		return ErrServiceNotSupported
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return err
 	}
 
 	type Stop struct {
@@ -592,9 +609,9 @@ func (c *Client) StopFocus(ctx context.Context, videoSourceToken string) error {
 
 // GetImagingStatus retrieves imaging status.
 func (c *Client) GetImagingStatus(ctx context.Context, videoSourceToken string) (*ImagingStatus, error) {
-	endpoint := c.getImagingEndpoint()
-	if endpoint == "" {
-		return nil, ErrServiceNotSupported
+	endpoint, err := c.getImagingEndpoint()
+	if err != nil {
+		return nil, err
 	}
 
 	type GetStatus struct {

@@ -1231,11 +1231,11 @@ func TestClientEndpointAndCredentialRace(t *testing.T) {
 		}()
 		go func() {
 			defer wg.Done()
-			_ = client.getPTZEndpoint()
+			_, _ = client.getPTZEndpoint()
 		}()
 		go func() {
 			defer wg.Done()
-			_ = client.getImagingEndpoint()
+			_, _ = client.getImagingEndpoint()
 		}()
 		go func(n int) {
 			defer wg.Done()
