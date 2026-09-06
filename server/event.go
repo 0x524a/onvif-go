@@ -210,12 +210,7 @@ func (s *Server) scheduleExpiry(sub *eventSubscription, delay time.Duration) {
 // at, using the same host-normalization and base-URL construction as
 // HandleGetCapabilities (device.go).
 func (s *Server) eventsServiceURL() string {
-	host := s.config.Host
-	if host == defaultHost || host == "" {
-		host = defaultHostname
-	}
-
-	return fmt.Sprintf("http://%s:%d%s/events_service", host, s.config.Port, s.config.BasePath)
+	return s.advertisedBaseURL() + "/events_service"
 }
 
 // isoDurationPattern matches the limited ISO-8601 duration grammar this

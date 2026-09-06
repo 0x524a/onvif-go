@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
@@ -364,8 +365,12 @@ func TestStartContextTimeout(t *testing.T) {
 
 func createTestConfig() *Config {
 	return &Config{
-		Host:     "127.0.0.1",
-		Port:     8080,
+		Host: testLoopbackHost,
+		Port: 8080,
+		// Config.Output defaults to os.Stdout for backward compatibility, so
+		// tests have to opt out or every server instance prints a banner into
+		// the test log - one of the three complaints in #63.
+		Output:   io.Discard,
 		BasePath: onvifBasePath,
 		Timeout:  30 * time.Second,
 		DeviceInfo: DeviceInfo{
