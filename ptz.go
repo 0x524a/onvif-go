@@ -13,6 +13,9 @@ const ptzNamespace = "http://www.onvif.org/ver20/ptz/wsdl"
 
 // getPTZEndpoint returns the PTZ endpoint.
 func (c *Client) getPTZEndpoint() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.ptzEndpoint
 }
 
