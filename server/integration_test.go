@@ -3,14 +3,54 @@ package server
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
 
+	onvif "github.com/0x524a/onvif-go"
 	internalsoap "github.com/0x524a/onvif-go/internal/soap"
 )
+
+// readPTZState returns a snapshot of the PTZ state for profileToken, taken
+// while holding srv.ptzMu.
+//
+// GetPTZState returns a *pointer* to shared mutable state and releases the
+// lock before the caller reads any field, so reading those fields directly
+// races with scheduleSettle's timer callback, which writes them under
+// ptzMu. Every PTZ move leaves such a timer pending past the end of the
+// test that started it, so these reads must snapshot under the lock.
+func readPTZState(t *testing.T, srv *Server, profileToken string) (PTZState, bool) {
+	t.Helper()
+
+	srv.ptzMu.RLock()
+	defer srv.ptzMu.RUnlock()
+
+	state, ok := srv.ptzState[profileToken]
+	if !ok {
+		return PTZState{}, false
+	}
+
+	return *state, true
+}
+
+// readImagingState is readPTZState's imaging counterpart, for the same
+// pointer-escapes-the-lock reason.
+func readImagingState(t *testing.T, srv *Server, videoSourceToken string) (ImagingState, bool) {
+	t.Helper()
+
+	srv.imagingMu.RLock()
+	defer srv.imagingMu.RUnlock()
+
+	state, ok := srv.imagingState[videoSourceToken]
+	if !ok {
+		return ImagingState{}, false
+	}
+
+	return *state, true
+}
 
 // TestServeHTTPEndToEndContinuousMove is a regression test for a bug where
 // every parameterized server operation always received a nil request body
@@ -56,7 +96,7 @@ func TestServeHTTPEndToEndContinuousMove(t *testing.T) {
 		t.Fatalf("ContinuousMove over the real wire path failed: %v", err)
 	}
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -136,7 +176,7 @@ func TestPTZSettleTimerCancelledOnRepeatedMove(t *testing.T) {
 
 	time.Sleep(300 * time.Millisecond)
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -168,7 +208,7 @@ func TestPTZStopCancelsSettleTimer(t *testing.T) {
 		t.Fatalf("HandleAbsoluteMove() error = %v", err)
 	}
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -180,6 +220,12 @@ func TestPTZStopCancelsSettleTimer(t *testing.T) {
 		t.Fatalf("HandleStop() error = %v", err)
 	}
 
+	// Re-snapshot: the first snapshot is a copy, so it still holds the
+	// pre-Stop timer pointer and would not reflect Stop clearing it.
+	state, ok = readPTZState(t, srv, profileToken)
+	if !ok {
+		t.Fatalf("expected PTZ state for profile %q", profileToken)
+	}
 	if state.settleTimer != nil {
 		t.Errorf("expected Stop to cancel and clear the pending settle timer, it's still set")
 	}
@@ -213,7 +259,7 @@ func TestHandleRelativeMove(t *testing.T) {
 		t.Fatalf("expected *RelativeMoveResponse, got %T", resp)
 	}
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -252,7 +298,7 @@ func TestHandleMove(t *testing.T) {
 		t.Fatalf("expected *MoveResponse, got %T", resp)
 	}
 
-	state, ok := srv.GetImagingState(videoSourceToken)
+	state, ok := readImagingState(t, srv, videoSourceToken)
 	if !ok {
 		t.Fatalf("expected imaging state for video source %q", videoSourceToken)
 	}
@@ -296,26 +342,123 @@ func TestScheduleSettleFires(t *testing.T) {
 	}
 	profileToken := config.Profiles[0].Token
 
-	state, ok := srv.GetPTZState(profileToken)
+	// The pointer is needed to hand the live state to scheduleSettle; the
+	// mutations below are done under ptzMu, as scheduleSettle requires.
+	statePtr, ok := srv.GetPTZState(profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
 
 	srv.ptzMu.Lock()
-	state.Moving = true
-	state.PanMoving = true
-	state.TiltMoving = true
-	state.ZoomMoving = true
-	srv.scheduleSettle(state, 10*time.Millisecond)
+	statePtr.Moving = true
+	statePtr.PanMoving = true
+	statePtr.TiltMoving = true
+	statePtr.ZoomMoving = true
+	srv.scheduleSettle(statePtr, 10*time.Millisecond)
 	srv.ptzMu.Unlock()
 
 	time.Sleep(150 * time.Millisecond)
 
-	state, ok = srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
 	if state.Moving || state.PanMoving || state.TiltMoving || state.ZoomMoving {
 		t.Errorf("expected the settle timer to have cleared all Moving flags, got %+v", state)
+	}
+}
+
+// TestServeHTTPEndToEndEventSubscriptionLifecycle drives the real
+// onvif.Client's pull-point event methods (CreatePullPointSubscription ->
+// PullMessages -> RenewSubscription -> Unsubscribe -> PullMessages again)
+// through a real HTTP round trip against registerEventService, for #62.
+//
+// Unlike GetStreamURI/GetSnapshotURI (whose returned URIs are just
+// descriptive - existing e2e tests never dereference them), PullMessages/
+// RenewSubscription/Unsubscribe all call back on the server-returned
+// SubscriptionReference.Address, and that address is built from
+// s.config.Host/Port (eventsServiceURL, matching every other service's
+// baseURL construction). createTestConfig() hardcodes Port: 8080, which
+// httptest.NewServer's usual random port would not match, so the
+// subscription reference the client calls back on would point nowhere.
+// Fixed here, in the test, not in the implementation: bind a listener on
+// 127.0.0.1:0 first, read back its actual port, set config.Port to that
+// before constructing the Server, then hand the listener to
+// httptest.NewUnstartedServer - so the config the server advertises
+// through and the address it's actually reachable at agree, exactly as
+// they would for a real deployment.
+func TestServeHTTPEndToEndEventSubscriptionLifecycle(t *testing.T) {
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(context.Background(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Listen() failed: %v", err)
+	}
+
+	config := createTestConfig()
+	config.SupportEvents = true
+	config.Host = "127.0.0.1"
+	config.Port = listener.Addr().(*net.TCPAddr).Port
+
+	srv, err := New(config)
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	srv.registerEventService(mux)
+
+	testServer := httptest.NewUnstartedServer(mux)
+	_ = testServer.Listener.Close()
+	testServer.Listener = listener
+	testServer.Start()
+	defer testServer.Close()
+
+	client, err := onvif.NewClient(
+		testServer.URL+config.BasePath+"/events_service",
+		onvif.WithCredentials(config.Username, config.Password),
+		onvif.WithHTTPClient(testServer.Client()),
+	)
+	if err != nil {
+		t.Fatalf("onvif.NewClient() failed: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	sub, err := client.CreatePullPointSubscription(ctx, "", nil, "")
+	if err != nil {
+		t.Fatalf("CreatePullPointSubscription over the real wire path failed: %v", err)
+	}
+	if sub.SubscriptionReference == "" {
+		t.Fatal("expected a non-empty SubscriptionReference")
+	}
+
+	msgs, err := client.PullMessages(ctx, sub.SubscriptionReference, 2*time.Second, 10)
+	if err != nil {
+		t.Fatalf("PullMessages over the real wire path failed: %v", err)
+	}
+	if len(msgs) != 0 {
+		t.Errorf("expected zero notification messages from the simulator, got %d", len(msgs))
+	}
+
+	beforeRenew := time.Now()
+
+	_, newTerm, err := client.RenewSubscription(ctx, sub.SubscriptionReference, 30*time.Second)
+	if err != nil {
+		t.Fatalf("RenewSubscription over the real wire path failed: %v", err)
+	}
+	// Renew requests a fresh 30s duration from now, which is shorter than
+	// CreatePullPointSubscription's 10-minute default - so the correct
+	// check is against the requested duration, not against sub.TerminationTime.
+	if diff := newTerm.Sub(beforeRenew); diff < 25*time.Second || diff > 35*time.Second {
+		t.Errorf("expected renewed termination time ~30s from now, got diff %v", diff)
+	}
+
+	if err := client.Unsubscribe(ctx, sub.SubscriptionReference); err != nil {
+		t.Fatalf("Unsubscribe over the real wire path failed: %v", err)
+	}
+
+	if _, err := client.PullMessages(ctx, sub.SubscriptionReference, 2*time.Second, 10); err == nil {
+		t.Error("expected PullMessages after Unsubscribe to fail, got nil error")
 	}
 }

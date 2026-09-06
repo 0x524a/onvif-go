@@ -230,9 +230,9 @@ func (s *Server) HandleGetCapabilities(body interface{}) (interface{}, error) {
 	if s.config.SupportEvents {
 		capabilities.Events = &EventCapabilities{
 			XAddr:                         baseURL + "/events_service",
-			WSSubscriptionPolicySupport:   false,
-			WSPullPointSupport:            false,
-			WSPausableSubscriptionSupport: false,
+			WSSubscriptionPolicySupport:   false, // Filter/SubscriptionPolicy not implemented
+			WSPullPointSupport:            true,  // CreatePullPointSubscription/PullMessages/Renew/Unsubscribe implemented
+			WSPausableSubscriptionSupport: false, // pause/seek not implemented
 		}
 	}
 
