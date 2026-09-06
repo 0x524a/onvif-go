@@ -115,6 +115,10 @@ func (s *Server) Start(ctx context.Context) error {
 		s.registerImagingService(mux)
 	}
 
+	if s.config.SupportEvents {
+		s.registerEventService(mux)
+	}
+
 	// Add snapshot endpoint
 	mux.HandleFunc(s.config.BasePath+"/snapshot", s.handleSnapshot)
 
@@ -234,6 +238,19 @@ func (s *Server) registerImagingService(mux *http.ServeMux) {
 	handler.RegisterHandler("Move", s.HandleMove)
 
 	mux.Handle(s.config.BasePath+"/imaging_service", handler)
+}
+
+// registerEventService registers the event service handler.
+func (s *Server) registerEventService(mux *http.ServeMux) {
+	handler := soap.NewHandler(s.config.Username, s.config.Password)
+
+	// Register event service handlers
+	handler.RegisterHandler("CreatePullPointSubscription", s.HandleCreatePullPointSubscription)
+	handler.RegisterHandler("PullMessages", s.HandlePullMessages)
+	handler.RegisterHandler("Renew", s.HandleRenew)
+	handler.RegisterHandler("Unsubscribe", s.HandleUnsubscribe)
+
+	mux.Handle(s.config.BasePath+"/events_service", handler)
 }
 
 // handleSnapshot handles HTTP snapshot requests.

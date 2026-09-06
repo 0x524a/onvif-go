@@ -211,6 +211,11 @@ type Server struct {
 	// Server instances in one process don't serialize through one lock.
 	ptzMu     sync.RWMutex
 	imagingMu sync.RWMutex
+
+	// subscription holds the server's single implicit pull-point event
+	// subscription (nil when none is active). Guarded by subscriptionMu.
+	subscription   *eventSubscription
+	subscriptionMu sync.RWMutex
 }
 
 // PTZState represents the current PTZ state.
@@ -226,6 +231,22 @@ type PTZState struct {
 	// Moving/PanMoving/TiltMoving/ZoomMoving flags once a simulated move
 	// settles. Guarded by the owning Server's ptzMu.
 	settleTimer *time.Timer
+}
+
+// eventSubscription represents the server's single implicit pull-point
+// event subscription. There is no per-request subscription identifier in
+// the ONVIF wire format for PullMessages/Renew/Unsubscribe - the callback
+// URL itself is the only thing that identifies a subscription - so this
+// simulator supports exactly one active subscription at a time, replaced
+// wholesale by a new CreatePullPointSubscription call. Guarded by the
+// owning Server's subscriptionMu.
+type eventSubscription struct {
+	terminationTime time.Time
+
+	// expiryTimer, when non-nil, is the pending timer that will clear the
+	// owning Server's subscription field once this subscription's
+	// termination time elapses. Mirrors PTZState.settleTimer.
+	expiryTimer *time.Timer
 }
 
 // ImagingState represents the current imaging settings state.
