@@ -204,6 +204,7 @@ func (c *Client) Initialize(ctx context.Context) error {
 
 	// Extract service endpoints and fix any localhost addresses
 	// Some cameras incorrectly report localhost instead of their actual IP
+	c.mu.Lock()
 	if capabilities.Media != nil && capabilities.Media.XAddr != "" {
 		c.mediaEndpoint = c.fixLocalhostURL(capabilities.Media.XAddr)
 	}
@@ -216,6 +217,7 @@ func (c *Client) Initialize(ctx context.Context) error {
 	if capabilities.Events != nil && capabilities.Events.XAddr != "" {
 		c.eventEndpoint = c.fixLocalhostURL(capabilities.Events.XAddr)
 	}
+	c.mu.Unlock()
 
 	return nil
 }
@@ -274,8 +276,9 @@ func (c *Client) downloadWithBasicAuth(ctx context.Context, downloadURL string) 
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	if c.username != "" {
-		req.SetBasicAuth(c.username, c.password)
+	username, password := c.GetCredentials()
+	if username != "" {
+		req.SetBasicAuth(username, password)
 	}
 
 	req.Header.Set("User-Agent", "onvif-go-client")
@@ -325,7 +328,8 @@ func (c *Client) downloadWithBasicAuth(ctx context.Context, downloadURL string) 
 
 // downloadWithDigestAuth performs an HTTP download with Digest authentication.
 func (c *Client) downloadWithDigestAuth(ctx context.Context, downloadURL string) ([]byte, error) {
-	if c.username == "" {
+	username, password := c.GetCredentials()
+	if username == "" {
 		return nil, fmt.Errorf("%w", ErrDigestAuthRequiresCredentials)
 	}
 
@@ -344,8 +348,8 @@ func (c *Client) downloadWithDigestAuth(ctx context.Context, downloadURL string)
 	digestClient := &http.Client{
 		Transport: &digestAuthTransport{
 			transport: tr,
-			username:  c.username,
-			password:  c.password,
+			username:  username,
+			password:  password,
 		},
 		Timeout: DefaultTimeout,
 	}
