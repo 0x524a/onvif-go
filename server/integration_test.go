@@ -14,6 +14,44 @@ import (
 	internalsoap "github.com/0x524a/onvif-go/internal/soap"
 )
 
+// readPTZState returns a snapshot of the PTZ state for profileToken, taken
+// while holding srv.ptzMu.
+//
+// GetPTZState returns a *pointer* to shared mutable state and releases the
+// lock before the caller reads any field, so reading those fields directly
+// races with scheduleSettle's timer callback, which writes them under
+// ptzMu. Every PTZ move leaves such a timer pending past the end of the
+// test that started it, so these reads must snapshot under the lock.
+func readPTZState(t *testing.T, srv *Server, profileToken string) (PTZState, bool) {
+	t.Helper()
+
+	srv.ptzMu.RLock()
+	defer srv.ptzMu.RUnlock()
+
+	state, ok := srv.ptzState[profileToken]
+	if !ok {
+		return PTZState{}, false
+	}
+
+	return *state, true
+}
+
+// readImagingState is readPTZState's imaging counterpart, for the same
+// pointer-escapes-the-lock reason.
+func readImagingState(t *testing.T, srv *Server, videoSourceToken string) (ImagingState, bool) {
+	t.Helper()
+
+	srv.imagingMu.RLock()
+	defer srv.imagingMu.RUnlock()
+
+	state, ok := srv.imagingState[videoSourceToken]
+	if !ok {
+		return ImagingState{}, false
+	}
+
+	return *state, true
+}
+
 // TestServeHTTPEndToEndContinuousMove is a regression test for a bug where
 // every parameterized server operation always received a nil request body
 // (originsoap.Body.Content was interface{}, which encoding/xml cannot
@@ -58,7 +96,7 @@ func TestServeHTTPEndToEndContinuousMove(t *testing.T) {
 		t.Fatalf("ContinuousMove over the real wire path failed: %v", err)
 	}
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -138,7 +176,7 @@ func TestPTZSettleTimerCancelledOnRepeatedMove(t *testing.T) {
 
 	time.Sleep(300 * time.Millisecond)
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -170,7 +208,7 @@ func TestPTZStopCancelsSettleTimer(t *testing.T) {
 		t.Fatalf("HandleAbsoluteMove() error = %v", err)
 	}
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -182,6 +220,12 @@ func TestPTZStopCancelsSettleTimer(t *testing.T) {
 		t.Fatalf("HandleStop() error = %v", err)
 	}
 
+	// Re-snapshot: the first snapshot is a copy, so it still holds the
+	// pre-Stop timer pointer and would not reflect Stop clearing it.
+	state, ok = readPTZState(t, srv, profileToken)
+	if !ok {
+		t.Fatalf("expected PTZ state for profile %q", profileToken)
+	}
 	if state.settleTimer != nil {
 		t.Errorf("expected Stop to cancel and clear the pending settle timer, it's still set")
 	}
@@ -215,7 +259,7 @@ func TestHandleRelativeMove(t *testing.T) {
 		t.Fatalf("expected *RelativeMoveResponse, got %T", resp)
 	}
 
-	state, ok := srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
@@ -254,7 +298,7 @@ func TestHandleMove(t *testing.T) {
 		t.Fatalf("expected *MoveResponse, got %T", resp)
 	}
 
-	state, ok := srv.GetImagingState(videoSourceToken)
+	state, ok := readImagingState(t, srv, videoSourceToken)
 	if !ok {
 		t.Fatalf("expected imaging state for video source %q", videoSourceToken)
 	}
@@ -298,22 +342,24 @@ func TestScheduleSettleFires(t *testing.T) {
 	}
 	profileToken := config.Profiles[0].Token
 
-	state, ok := srv.GetPTZState(profileToken)
+	// The pointer is needed to hand the live state to scheduleSettle; the
+	// mutations below are done under ptzMu, as scheduleSettle requires.
+	statePtr, ok := srv.GetPTZState(profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
 
 	srv.ptzMu.Lock()
-	state.Moving = true
-	state.PanMoving = true
-	state.TiltMoving = true
-	state.ZoomMoving = true
-	srv.scheduleSettle(state, 10*time.Millisecond)
+	statePtr.Moving = true
+	statePtr.PanMoving = true
+	statePtr.TiltMoving = true
+	statePtr.ZoomMoving = true
+	srv.scheduleSettle(statePtr, 10*time.Millisecond)
 	srv.ptzMu.Unlock()
 
 	time.Sleep(150 * time.Millisecond)
 
-	state, ok = srv.GetPTZState(profileToken)
+	state, ok := readPTZState(t, srv, profileToken)
 	if !ok {
 		t.Fatalf("expected PTZ state for profile %q", profileToken)
 	}
