@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -1199,6 +1200,53 @@ func TestClientConcurrency(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		<-done
 	}
+}
+
+// TestClientEndpointAndCredentialRace exercises Initialize concurrently with
+// reads of the discovered service endpoints and with SetCredentials/
+// GetCredentials, catching the data races that existed before c.mu guarded
+// mediaEndpoint/ptzEndpoint/imagingEndpoint and the download helpers. Run
+// with -race.
+func TestClientEndpointAndCredentialRace(t *testing.T) {
+	mock := NewMockONVIFServer()
+	defer mock.Close()
+
+	client, err := NewClient(mock.URL(), WithCredentials(testUsername, "password"))
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	ctx := context.Background()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 50; i++ {
+		wg.Add(6)
+		go func() {
+			defer wg.Done()
+			_ = client.Initialize(ctx)
+		}()
+		go func() {
+			defer wg.Done()
+			_ = client.getMediaEndpoint()
+		}()
+		go func() {
+			defer wg.Done()
+			_ = client.getPTZEndpoint()
+		}()
+		go func() {
+			defer wg.Done()
+			_ = client.getImagingEndpoint()
+		}()
+		go func(n int) {
+			defer wg.Done()
+			client.SetCredentials(fmt.Sprintf("user%d", n), "pass")
+		}(i)
+		go func() {
+			defer wg.Done()
+			_, _ = client.GetCredentials()
+		}()
+	}
+	wg.Wait()
 }
 
 // TestNormalizeEndpointErrorCases tests error cases for normalizeEndpoint.

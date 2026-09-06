@@ -15,6 +15,9 @@ const mediaNamespace = "http://www.onvif.org/ver10/media/wsdl"
 
 // getMediaEndpoint returns the media endpoint, falling back to the default endpoint if not set.
 func (c *Client) getMediaEndpoint() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	if c.mediaEndpoint != "" {
 		return c.mediaEndpoint
 	}
