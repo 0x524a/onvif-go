@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/0x524a/onvif-go/server/soap"
@@ -182,11 +183,11 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 // output returns the writer for the startup banner and shutdown notice,
-// defaulting to io.Discard so that merely importing this package never writes
-// to a program's stdout. See Config.Output.
+// defaulting to os.Stdout so that callers written before Config.Output existed
+// keep the output they had. See Config.Output.
 func (s *Server) output() io.Writer {
 	if s.config.Output == nil {
-		return io.Discard
+		return os.Stdout
 	}
 
 	return s.config.Output

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -126,21 +127,42 @@ func TestAddrBeforeStart(t *testing.T) {
 	}
 }
 
-// TestOutputQuietByDefault is the regression test for the stdout problem: a
-// program whose stdout carries protocol data must not have banner text
-// injected into it just because it imported this package.
-func TestOutputQuietByDefault(t *testing.T) {
-	srv, err := New(createTestConfig())
+// TestOutputDefaultsToStdout pins the backward-compatible default: a caller
+// written before Config.Output existed keeps the banner it had.
+//
+// createTestConfig sets io.Discard, so this builds a config with Output left
+// unset on purpose - the whole point is the nil case.
+func TestOutputDefaultsToStdout(t *testing.T) {
+	config := createTestConfig()
+	config.Output = nil
+
+	srv, err := New(config)
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+
+	if got := srv.output(); got != os.Stdout {
+		t.Errorf("output() with Config.Output unset = %v, want os.Stdout", got)
+	}
+}
+
+// TestOutputSilencedByDiscard covers the opt-out that tests and any program
+// whose stdout carries framed protocol data rather than console text need,
+// since banner output would corrupt such a stream.
+func TestOutputSilencedByDiscard(t *testing.T) {
+	config := createTestConfig()
+	config.Output = io.Discard
+
+	srv, err := New(config)
 	if err != nil {
 		t.Fatalf("New() failed: %v", err)
 	}
 
 	if got := srv.output(); got != io.Discard {
-		t.Errorf("output() with Config.Output unset = %v, want io.Discard", got)
+		t.Errorf("output() with Config.Output io.Discard = %v, want io.Discard", got)
 	}
 
-	// And printBanner must actually respect it rather than reaching for
-	// stdout directly.
+	// printBanner must honor it rather than reaching for stdout directly.
 	srv.printBanner("127.0.0.1:1")
 }
 

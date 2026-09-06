@@ -141,8 +141,6 @@ func buildConfig(host string, port int, username, password, manufacturer, model,
 		SupportImaging: imaging,
 		SupportEvents:  events,
 		Profiles:       make([]server.ProfileConfig, numProfiles),
-		// The library defaults to silence; this is a console tool, so opt in.
-		Output: os.Stdout,
 	}
 
 	// Define profile templates

@@ -35,9 +35,6 @@ func main() {
 		SupportPTZ:     true,
 		SupportImaging: true,
 		SupportEvents:  false,
-		// The library defaults to silence so it never writes to an importing
-		// program's stdout; a console demo wants the banner.
-		Output: os.Stdout,
 		Profiles: []server.ProfileConfig{
 			// Profile 1: Main camera with 4K resolution
 			{
