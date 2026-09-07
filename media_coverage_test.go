@@ -2,9 +2,6 @@ package onvif
 
 import (
 	"context"
-	"io"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -25,19 +22,14 @@ import (
 // fields (Width/Height, Port/TTL, ...) actually fails the test instead of
 // passing by coincidence.
 //
-// It deliberately does not assert on AudioEncoderConfiguration.SessionTimeout
-// or MetadataConfiguration.SessionTimeout. media.go parses SessionTimeout off
-// the wire in both Get methods but never copies it into the returned struct,
-// and never populates it in either Set method's request - tracked separately
-// as #86/#87 on a branch meant to land below this one. Asserting today's
-// behavior would encode the bug as intended; asserting the eventual fix would
-// fail against this branch's current base.
+// The Set* mapping tests here assert what the client marshals rather than what
+// it parses back, so they use newRequestCapturingServer (session_timeout_test.go)
+// instead of the response-shaped servers in soap_harness_test.go.
 //
-// Two local helpers are deliberately not reused across this file and the rest
-// of the package: newSOAPTestServer and newSOAPFaultTestServer (both in
-// soap_harness_test.go) cover every response-mapping and fault-path case here,
-// but neither offers a hook to inspect the outgoing request body, which the
-// SetAudioEncoderConfiguration and SetMetadataConfiguration mapping tests need.
+// The one field an AllOptionalsPresent subtest here does not assert is
+// SessionTimeout, and only because session_timeout_test.go already asserts it
+// across all twelve methods that carry it - including these - as part of the
+// #86 fix. Duplicating it here would add nothing.
 
 // osdTestToken and ptzConfigTestToken back the fault-path ops below; they are
 // named constants rather than repeated literals only because each is used by
@@ -665,40 +657,6 @@ func TestGetMetadataConfigurationMapping(t *testing.T) {
 			t.Errorf("Multicast = %+v, want nil", cfg.Multicast)
 		}
 	})
-}
-
-// setAckBody is returned by newRequestCapturingServer. Its content is never
-// inspected: every Set* method under test here passes a nil response to
-// soapClient.Call, so internal/soap skips unmarshaling entirely and only
-// requires an HTTP 200 with a non-empty body.
-const setAckBody = `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-    <soap:Body><trt:Ack xmlns:trt="http://www.onvif.org/ver10/media/wsdl"/></soap:Body>
-</soap:Envelope>`
-
-// newRequestCapturingServer starts a server that records the raw request body
-// into *gotBody and always answers with setAckBody. It exists because
-// SetAudioEncoderConfiguration and SetMetadataConfiguration are tested by
-// inspecting what they marshal, not by what they parse back - the opposite of
-// what newSOAPTestServer is for - so the harness in soap_harness_test.go does
-// not fit.
-func newRequestCapturingServer(t *testing.T, gotBody *string) *httptest.Server {
-	t.Helper()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		raw, err := io.ReadAll(r.Body)
-		if err != nil {
-			t.Fatalf("failed to read request body: %v", err)
-		}
-		*gotBody = string(raw)
-
-		w.Header().Set("Content-Type", "application/soap+xml")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(setAckBody))
-	}))
-	t.Cleanup(server.Close)
-
-	return server
 }
 
 // TestSetAudioEncoderConfigurationMapping covers how SetAudioEncoderConfiguration
