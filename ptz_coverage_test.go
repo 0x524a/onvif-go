@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 // This file closes the ptz.go coverage gaps left by ptz_test.go: the
@@ -268,12 +269,9 @@ func TestGetStatusResponseMapping(t *testing.T) {
 		t.Errorf("Error = %q, want %q", status.Error, "SomeError")
 	}
 
-	// status.UTCTime is not asserted: GetStatus reads PTZStatus/UtcTime off
-	// the wire into an internal string field but never assigns or parses it
-	// onto the returned status.UTCTime, so it is always the zero time.Time -
-	// an absent mapping, not an untested one. This is a separate gap from
-	// the PTZConfiguration partial mapping (#87); flagged to team-lead
-	// rather than fixed here, per the #11 brief's "do not edit ptz.go".
+	if want := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC); !status.UTCTime.Equal(want) {
+		t.Errorf("UTCTime = %v, want %v", status.UTCTime, want)
+	}
 }
 
 // TestGetPresetsResponseMapping pins the per-preset PTZPosition mapping that
@@ -321,49 +319,14 @@ func TestGetPresetsResponseMapping(t *testing.T) {
 	}
 }
 
-// TestGetConfigurationResponseMapping pins the 4 fields GetConfiguration
-// actually maps, giving each its own distinct value. TestGetConfiguration in
-// ptz_test.go only asserts Token and NodeToken, leaving Name and UseCount
-// unchecked.
+// TestGetConfigurationsResponseMapping checks that GetConfigurations' loop
+// keeps entries in order and does not cross values between them.
 //
-// Only Token/Name/UseCount/NodeToken are asserted: GetConfiguration does
-// not parse the remaining PTZConfiguration fields at all (see issue #87),
-// so asserting them would encode that gap as expected behavior.
-func TestGetConfigurationResponseMapping(t *testing.T) {
-	body := `<GetConfigurationResponse>
-        <PTZConfiguration token="cfgToken">
-            <Name>ConfigNameSentinel</Name>
-            <UseCount>7</UseCount>
-            <NodeToken>nodeTokenSentinel</NodeToken>
-        </PTZConfiguration>
-    </GetConfigurationResponse>`
-	client := newPTZTestClient(t, newSOAPTestServer(t, body))
-
-	cfg, err := client.GetConfiguration(context.Background(), "cfgToken")
-	if err != nil {
-		t.Fatalf("GetConfiguration() error = %v", err)
-	}
-
-	if cfg.Token != "cfgToken" {
-		t.Errorf("Token = %q, want %q", cfg.Token, "cfgToken")
-	}
-	if cfg.Name != "ConfigNameSentinel" {
-		t.Errorf("Name = %q, want %q", cfg.Name, "ConfigNameSentinel")
-	}
-	if cfg.UseCount != 7 {
-		t.Errorf("UseCount = %v, want 7", cfg.UseCount)
-	}
-	if cfg.NodeToken != "nodeTokenSentinel" {
-		t.Errorf("NodeToken = %q, want %q", cfg.NodeToken, "nodeTokenSentinel")
-	}
-}
-
-// TestGetConfigurationsResponseMapping pins the same 4-field mapping as
-// TestGetConfigurationResponseMapping, but across two entries, so an index
-// mix-up in GetConfigurations' loop would be caught.
-//
-// Only Token/Name/UseCount/NodeToken are asserted per entry: see the same
-// #87 gap noted on TestGetConfigurationResponseMapping.
+// Whether each entry is mapped completely is settled by
+// TestGetConfigurationsMapsEveryPTZConfigurationField, which asserts all 14
+// fields against a single entry. This test covers what that one cannot: with
+// one configuration in the response, an index mix-up has nothing to mix up.
+// Four fields per entry are enough for that, given distinct values.
 func TestGetConfigurationsResponseMapping(t *testing.T) {
 	body := `<GetConfigurationsResponse>
         <PTZConfiguration token="cfgTokenA">
