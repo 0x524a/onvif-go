@@ -94,6 +94,118 @@ func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedXML {
 	return result
 }
 
+// ptzFloatRangeXML is the wire form of a float range, used for the pan/tilt
+// and zoom limit descriptions.
+type ptzFloatRangeXML struct {
+	Min float64 `xml:"Min"`
+	Max float64 `xml:"Max"`
+}
+
+// ptzConfigurationXML is the wire form of a PTZConfiguration.
+//
+// Shared by GetConfiguration and GetConfigurations, which return the same
+// element and previously each declared their own four-field subset of it.
+//
+// The misspelling in DefaultAbsolutePantTiltPositionSpace ("Pant") is the
+// ONVIF WSDL's own and must be reproduced exactly for the element to match.
+type ptzConfigurationXML struct {
+	Token                                  string       `xml:"token,attr"`
+	Name                                   string       `xml:"Name"`
+	UseCount                               int          `xml:"UseCount"`
+	NodeToken                              string       `xml:"NodeToken"`
+	DefaultAbsolutePantTiltPositionSpace   string       `xml:"DefaultAbsolutePantTiltPositionSpace"`
+	DefaultAbsoluteZoomPositionSpace       string       `xml:"DefaultAbsoluteZoomPositionSpace"`
+	DefaultRelativePanTiltTranslationSpace string       `xml:"DefaultRelativePanTiltTranslationSpace"`
+	DefaultRelativeZoomTranslationSpace    string       `xml:"DefaultRelativeZoomTranslationSpace"`
+	DefaultContinuousPanTiltVelocitySpace  string       `xml:"DefaultContinuousPanTiltVelocitySpace"`
+	DefaultContinuousZoomVelocitySpace     string       `xml:"DefaultContinuousZoomVelocitySpace"`
+	DefaultPTZSpeed                        *ptzSpeedXML `xml:"DefaultPTZSpeed"`
+	DefaultPTZTimeout                      string       `xml:"DefaultPTZTimeout"`
+	PanTiltLimits                          *struct {
+		Range *struct {
+			URI    string            `xml:"URI"`
+			XRange *ptzFloatRangeXML `xml:"XRange"`
+			YRange *ptzFloatRangeXML `xml:"YRange"`
+		} `xml:"Range"`
+	} `xml:"PanTiltLimits"`
+	ZoomLimits *struct {
+		Range *struct {
+			URI    string            `xml:"URI"`
+			XRange *ptzFloatRangeXML `xml:"XRange"`
+		} `xml:"Range"`
+	} `xml:"ZoomLimits"`
+}
+
+// toPTZConfiguration converts the wire form into the library's type.
+//
+// DefaultPTZTimeout is an xs:duration, which is why it needs
+// parseXSDurationOrZero rather than a direct assignment - the reason it, and
+// the rest of these fields, went unmapped until #87.
+func (x *ptzConfigurationXML) toPTZConfiguration() *PTZConfiguration {
+	config := &PTZConfiguration{
+		Token:                                  x.Token,
+		Name:                                   x.Name,
+		UseCount:                               x.UseCount,
+		NodeToken:                              x.NodeToken,
+		DefaultAbsolutePantTiltPositionSpace:   x.DefaultAbsolutePantTiltPositionSpace,
+		DefaultAbsoluteZoomPositionSpace:       x.DefaultAbsoluteZoomPositionSpace,
+		DefaultRelativePanTiltTranslationSpace: x.DefaultRelativePanTiltTranslationSpace,
+		DefaultRelativeZoomTranslationSpace:    x.DefaultRelativeZoomTranslationSpace,
+		DefaultContinuousPanTiltVelocitySpace:  x.DefaultContinuousPanTiltVelocitySpace,
+		DefaultContinuousZoomVelocitySpace:     x.DefaultContinuousZoomVelocitySpace,
+		DefaultPTZTimeout:                      parseXSDurationOrZero(x.DefaultPTZTimeout),
+	}
+
+	if x.DefaultPTZSpeed != nil {
+		config.DefaultPTZSpeed = &PTZSpeed{}
+		if x.DefaultPTZSpeed.PanTilt != nil {
+			config.DefaultPTZSpeed.PanTilt = &Vector2D{
+				X:     x.DefaultPTZSpeed.PanTilt.X,
+				Y:     x.DefaultPTZSpeed.PanTilt.Y,
+				Space: x.DefaultPTZSpeed.PanTilt.Space,
+			}
+		}
+		if x.DefaultPTZSpeed.Zoom != nil {
+			config.DefaultPTZSpeed.Zoom = &Vector1D{
+				X:     x.DefaultPTZSpeed.Zoom.X,
+				Space: x.DefaultPTZSpeed.Zoom.Space,
+			}
+		}
+	}
+
+	if x.PanTiltLimits != nil {
+		config.PanTiltLimits = &PanTiltLimits{}
+		if r := x.PanTiltLimits.Range; r != nil {
+			config.PanTiltLimits.Range = &Space2DDescription{
+				URI:    r.URI,
+				XRange: toFloatRange(r.XRange),
+				YRange: toFloatRange(r.YRange),
+			}
+		}
+	}
+
+	if x.ZoomLimits != nil {
+		config.ZoomLimits = &ZoomLimits{}
+		if r := x.ZoomLimits.Range; r != nil {
+			config.ZoomLimits.Range = &Space1DDescription{
+				URI:    r.URI,
+				XRange: toFloatRange(r.XRange),
+			}
+		}
+	}
+
+	return config
+}
+
+// toFloatRange converts a wire float range, preserving nil.
+func toFloatRange(r *ptzFloatRangeXML) *FloatRange {
+	if r == nil {
+		return nil
+	}
+
+	return &FloatRange{Min: r.Min, Max: r.Max}
+}
+
 // ContinuousMove starts continuous PTZ movement.
 func (c *Client) ContinuousMove(ctx context.Context, profileToken string, velocity *PTZSpeed, timeout *string) error {
 	endpoint, err := c.getPTZEndpoint()
@@ -562,13 +674,8 @@ func (c *Client) GetConfiguration(ctx context.Context, configurationToken string
 	}
 
 	type GetConfigurationResponse struct {
-		XMLName          xml.Name `xml:"GetConfigurationResponse"`
-		PTZConfiguration struct {
-			Token     string `xml:"token,attr"`
-			Name      string `xml:"Name"`
-			UseCount  int    `xml:"UseCount"`
-			NodeToken string `xml:"NodeToken"`
-		} `xml:"PTZConfiguration"`
+		XMLName          xml.Name            `xml:"GetConfigurationResponse"`
+		PTZConfiguration ptzConfigurationXML `xml:"PTZConfiguration"`
 	}
 
 	req := GetConfiguration{
@@ -585,12 +692,7 @@ func (c *Client) GetConfiguration(ctx context.Context, configurationToken string
 		return nil, fmt.Errorf("GetConfiguration failed: %w", err)
 	}
 
-	return &PTZConfiguration{
-		Token:     resp.PTZConfiguration.Token,
-		Name:      resp.PTZConfiguration.Name,
-		UseCount:  resp.PTZConfiguration.UseCount,
-		NodeToken: resp.PTZConfiguration.NodeToken,
-	}, nil
+	return resp.PTZConfiguration.toPTZConfiguration(), nil
 }
 
 // GetConfigurations retrieves all PTZ configurations.
@@ -606,13 +708,8 @@ func (c *Client) GetConfigurations(ctx context.Context) ([]*PTZConfiguration, er
 	}
 
 	type GetConfigurationsResponse struct {
-		XMLName          xml.Name `xml:"GetConfigurationsResponse"`
-		PTZConfiguration []struct {
-			Token     string `xml:"token,attr"`
-			Name      string `xml:"Name"`
-			UseCount  int    `xml:"UseCount"`
-			NodeToken string `xml:"NodeToken"`
-		} `xml:"PTZConfiguration"`
+		XMLName          xml.Name              `xml:"GetConfigurationsResponse"`
+		PTZConfiguration []ptzConfigurationXML `xml:"PTZConfiguration"`
 	}
 
 	req := GetConfigurations{
@@ -629,13 +726,8 @@ func (c *Client) GetConfigurations(ctx context.Context) ([]*PTZConfiguration, er
 	}
 
 	configs := make([]*PTZConfiguration, len(resp.PTZConfiguration))
-	for i, cfg := range resp.PTZConfiguration {
-		configs[i] = &PTZConfiguration{
-			Token:     cfg.Token,
-			Name:      cfg.Name,
-			UseCount:  cfg.UseCount,
-			NodeToken: cfg.NodeToken,
-		}
+	for i := range resp.PTZConfiguration {
+		configs[i] = resp.PTZConfiguration[i].toPTZConfiguration()
 	}
 
 	return configs, nil
