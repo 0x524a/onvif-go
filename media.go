@@ -275,6 +275,7 @@ func (c *Client) GetVideoEncoderConfiguration(
 				EncodingInterval int `xml:"EncodingInterval"`
 				BitrateLimit     int `xml:"BitrateLimit"`
 			} `xml:"RateControl"`
+			SessionTimeout string `xml:"SessionTimeout"`
 		} `xml:"Configuration"`
 	}
 
@@ -293,11 +294,12 @@ func (c *Client) GetVideoEncoderConfiguration(
 	}
 
 	config := &VideoEncoderConfiguration{
-		Token:    resp.Configuration.Token,
-		Name:     resp.Configuration.Name,
-		UseCount: resp.Configuration.UseCount,
-		Encoding: resp.Configuration.Encoding,
-		Quality:  resp.Configuration.Quality,
+		Token:          resp.Configuration.Token,
+		Name:           resp.Configuration.Name,
+		UseCount:       resp.Configuration.UseCount,
+		Encoding:       resp.Configuration.Encoding,
+		Quality:        resp.Configuration.Quality,
+		SessionTimeout: parseXSDurationOrZero(resp.Configuration.SessionTimeout),
 	}
 
 	if resp.Configuration.Resolution != nil {
@@ -541,6 +543,7 @@ func (c *Client) SetVideoEncoderConfiguration(
 				EncodingInterval int `xml:"tt:EncodingInterval"`
 				BitrateLimit     int `xml:"tt:BitrateLimit"`
 			} `xml:"tt:RateControl,omitempty"`
+			SessionTimeout string `xml:"tt:SessionTimeout,omitempty"`
 		} `xml:"trt:Configuration"`
 		ForcePersistence bool `xml:"trt:ForcePersistence"`
 	}
@@ -568,6 +571,10 @@ func (c *Client) SetVideoEncoderConfiguration(
 
 	if config.Quality > 0 {
 		req.Configuration.Quality = &config.Quality
+	}
+
+	if config.SessionTimeout > 0 {
+		req.Configuration.SessionTimeout = formatDuration(config.SessionTimeout)
 	}
 
 	if config.RateControl != nil {
@@ -847,12 +854,13 @@ func (c *Client) GetAudioEncoderConfiguration(
 	}
 
 	config := &AudioEncoderConfiguration{
-		Token:      resp.Configuration.Token,
-		Name:       resp.Configuration.Name,
-		UseCount:   resp.Configuration.UseCount,
-		Encoding:   resp.Configuration.Encoding,
-		Bitrate:    resp.Configuration.Bitrate,
-		SampleRate: resp.Configuration.SampleRate,
+		Token:          resp.Configuration.Token,
+		Name:           resp.Configuration.Name,
+		UseCount:       resp.Configuration.UseCount,
+		Encoding:       resp.Configuration.Encoding,
+		Bitrate:        resp.Configuration.Bitrate,
+		SampleRate:     resp.Configuration.SampleRate,
+		SessionTimeout: parseXSDurationOrZero(resp.Configuration.SessionTimeout),
 	}
 
 	if resp.Configuration.Multicast != nil {
@@ -922,6 +930,9 @@ func (c *Client) SetAudioEncoderConfiguration(
 	}
 	if config.SampleRate > 0 {
 		req.Configuration.SampleRate = config.SampleRate
+	}
+	if config.SessionTimeout > 0 {
+		req.Configuration.SessionTimeout = formatDuration(config.SessionTimeout)
 	}
 
 	if config.Multicast != nil {
@@ -1016,10 +1027,11 @@ func (c *Client) GetMetadataConfiguration(
 	}
 
 	config := &MetadataConfiguration{
-		Token:     resp.Configuration.Token,
-		Name:      resp.Configuration.Name,
-		UseCount:  resp.Configuration.UseCount,
-		Analytics: resp.Configuration.Analytics,
+		Token:          resp.Configuration.Token,
+		Name:           resp.Configuration.Name,
+		UseCount:       resp.Configuration.UseCount,
+		Analytics:      resp.Configuration.Analytics,
+		SessionTimeout: parseXSDurationOrZero(resp.Configuration.SessionTimeout),
 	}
 
 	if resp.Configuration.PTZStatus != nil {
@@ -1098,6 +1110,9 @@ func (c *Client) SetMetadataConfiguration(
 	req.Configuration.Name = config.Name
 	req.Configuration.UseCount = config.UseCount
 	req.Configuration.Analytics = config.Analytics
+	if config.SessionTimeout > 0 {
+		req.Configuration.SessionTimeout = formatDuration(config.SessionTimeout)
+	}
 
 	if config.PTZStatus != nil {
 		req.Configuration.PTZStatus = &struct {
@@ -2407,11 +2422,12 @@ func (c *Client) GetVideoEncoderConfigurations(ctx context.Context) ([]*VideoEnc
 	configs := make([]*VideoEncoderConfiguration, len(resp.Configurations))
 	for i, cfg := range resp.Configurations {
 		config := &VideoEncoderConfiguration{
-			Token:    cfg.Token,
-			Name:     cfg.Name,
-			UseCount: cfg.UseCount,
-			Encoding: cfg.Encoding,
-			Quality:  cfg.Quality,
+			Token:          cfg.Token,
+			Name:           cfg.Name,
+			UseCount:       cfg.UseCount,
+			Encoding:       cfg.Encoding,
+			Quality:        cfg.Quality,
+			SessionTimeout: parseXSDurationOrZero(cfg.SessionTimeout),
 		}
 
 		if cfg.Resolution != nil {
@@ -2512,12 +2528,13 @@ func (c *Client) GetAudioEncoderConfigurations(ctx context.Context) ([]*AudioEnc
 	configs := make([]*AudioEncoderConfiguration, len(resp.Configurations))
 	for i, cfg := range resp.Configurations {
 		config := &AudioEncoderConfiguration{
-			Token:      cfg.Token,
-			Name:       cfg.Name,
-			UseCount:   cfg.UseCount,
-			Encoding:   cfg.Encoding,
-			Bitrate:    cfg.Bitrate,
-			SampleRate: cfg.SampleRate,
+			Token:          cfg.Token,
+			Name:           cfg.Name,
+			UseCount:       cfg.UseCount,
+			Encoding:       cfg.Encoding,
+			Bitrate:        cfg.Bitrate,
+			SampleRate:     cfg.SampleRate,
+			SessionTimeout: parseXSDurationOrZero(cfg.SessionTimeout),
 		}
 
 		if cfg.Multicast != nil {
@@ -2880,6 +2897,7 @@ func (c *Client) GetCompatibleVideoEncoderConfigurations(
 				EncodingInterval int `xml:"EncodingInterval"`
 				BitrateLimit     int `xml:"BitrateLimit"`
 			} `xml:"RateControl"`
+			SessionTimeout string `xml:"SessionTimeout"`
 		} `xml:"Configurations"`
 	}
 
@@ -2900,11 +2918,12 @@ func (c *Client) GetCompatibleVideoEncoderConfigurations(
 	configs := make([]*VideoEncoderConfiguration, len(resp.Configurations))
 	for i, cfg := range resp.Configurations {
 		config := &VideoEncoderConfiguration{
-			Token:    cfg.Token,
-			Name:     cfg.Name,
-			UseCount: cfg.UseCount,
-			Encoding: cfg.Encoding,
-			Quality:  cfg.Quality,
+			Token:          cfg.Token,
+			Name:           cfg.Name,
+			UseCount:       cfg.UseCount,
+			Encoding:       cfg.Encoding,
+			Quality:        cfg.Quality,
+			SessionTimeout: parseXSDurationOrZero(cfg.SessionTimeout),
 		}
 
 		if cfg.Resolution != nil {
@@ -3009,12 +3028,13 @@ func (c *Client) GetCompatibleAudioEncoderConfigurations(
 	type GetCompatibleAudioEncoderConfigurationsResponse struct {
 		XMLName        xml.Name `xml:"GetCompatibleAudioEncoderConfigurationsResponse"`
 		Configurations []struct {
-			Token      string `xml:"token,attr"`
-			Name       string `xml:"Name"`
-			UseCount   int    `xml:"UseCount"`
-			Encoding   string `xml:"Encoding"`
-			Bitrate    int    `xml:"Bitrate"`
-			SampleRate int    `xml:"SampleRate"`
+			Token          string `xml:"token,attr"`
+			Name           string `xml:"Name"`
+			UseCount       int    `xml:"UseCount"`
+			Encoding       string `xml:"Encoding"`
+			Bitrate        int    `xml:"Bitrate"`
+			SampleRate     int    `xml:"SampleRate"`
+			SessionTimeout string `xml:"SessionTimeout"`
 		} `xml:"Configurations"`
 	}
 
@@ -3035,12 +3055,13 @@ func (c *Client) GetCompatibleAudioEncoderConfigurations(
 	configs := make([]*AudioEncoderConfiguration, len(resp.Configurations))
 	for i, cfg := range resp.Configurations {
 		configs[i] = &AudioEncoderConfiguration{
-			Token:      cfg.Token,
-			Name:       cfg.Name,
-			UseCount:   cfg.UseCount,
-			Encoding:   cfg.Encoding,
-			Bitrate:    cfg.Bitrate,
-			SampleRate: cfg.SampleRate,
+			Token:          cfg.Token,
+			Name:           cfg.Name,
+			UseCount:       cfg.UseCount,
+			Encoding:       cfg.Encoding,
+			Bitrate:        cfg.Bitrate,
+			SampleRate:     cfg.SampleRate,
+			SessionTimeout: parseXSDurationOrZero(cfg.SessionTimeout),
 		}
 	}
 
@@ -3154,10 +3175,11 @@ func (c *Client) GetCompatibleMetadataConfigurations(ctx context.Context, profil
 	type GetCompatibleMetadataConfigurationsResponse struct {
 		XMLName        xml.Name `xml:"GetCompatibleMetadataConfigurationsResponse"`
 		Configurations []struct {
-			Token     string `xml:"token,attr"`
-			Name      string `xml:"Name"`
-			UseCount  int    `xml:"UseCount"`
-			Analytics bool   `xml:"Analytics"`
+			Token          string `xml:"token,attr"`
+			Name           string `xml:"Name"`
+			UseCount       int    `xml:"UseCount"`
+			Analytics      bool   `xml:"Analytics"`
+			SessionTimeout string `xml:"SessionTimeout"`
 		} `xml:"Configurations"`
 	}
 
@@ -3178,10 +3200,11 @@ func (c *Client) GetCompatibleMetadataConfigurations(ctx context.Context, profil
 	configs := make([]*MetadataConfiguration, len(resp.Configurations))
 	for i, cfg := range resp.Configurations {
 		configs[i] = &MetadataConfiguration{
-			Token:     cfg.Token,
-			Name:      cfg.Name,
-			UseCount:  cfg.UseCount,
-			Analytics: cfg.Analytics,
+			Token:          cfg.Token,
+			Name:           cfg.Name,
+			UseCount:       cfg.UseCount,
+			Analytics:      cfg.Analytics,
+			SessionTimeout: parseXSDurationOrZero(cfg.SessionTimeout),
 		}
 	}
 
@@ -3292,10 +3315,11 @@ func (c *Client) GetMetadataConfigurations(ctx context.Context) ([]*MetadataConf
 	type GetMetadataConfigurationsResponse struct {
 		XMLName        xml.Name `xml:"GetMetadataConfigurationsResponse"`
 		Configurations []struct {
-			Token     string `xml:"token,attr"`
-			Name      string `xml:"Name"`
-			UseCount  int    `xml:"UseCount"`
-			Analytics bool   `xml:"Analytics"`
+			Token          string `xml:"token,attr"`
+			Name           string `xml:"Name"`
+			UseCount       int    `xml:"UseCount"`
+			Analytics      bool   `xml:"Analytics"`
+			SessionTimeout string `xml:"SessionTimeout"`
 		} `xml:"Configurations"`
 	}
 
@@ -3315,10 +3339,11 @@ func (c *Client) GetMetadataConfigurations(ctx context.Context) ([]*MetadataConf
 	configs := make([]*MetadataConfiguration, len(resp.Configurations))
 	for i, cfg := range resp.Configurations {
 		configs[i] = &MetadataConfiguration{
-			Token:     cfg.Token,
-			Name:      cfg.Name,
-			UseCount:  cfg.UseCount,
-			Analytics: cfg.Analytics,
+			Token:          cfg.Token,
+			Name:           cfg.Name,
+			UseCount:       cfg.UseCount,
+			Analytics:      cfg.Analytics,
+			SessionTimeout: parseXSDurationOrZero(cfg.SessionTimeout),
 		}
 	}
 
