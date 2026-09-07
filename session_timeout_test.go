@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -26,12 +27,21 @@ const (
 // newRequestCapturingServer returns a server that records the body of each
 // request it receives before replying, for asserting what the client actually
 // put on the wire.
+//
+// io.ReadAll rather than a single Read into a ContentLength-sized buffer: one
+// Read is only obliged to return some of the bytes, so the short-read case
+// would silently truncate the captured body and turn a Contains assertion
+// into a flake.
 func newRequestCapturingServer(t *testing.T, captured *string) *httptest.Server {
 	t.Helper()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body := make([]byte, r.ContentLength)
-		_, _ = r.Body.Read(body)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("failed to read captured request body: %v", err)
+
+			return
+		}
 		*captured = string(body)
 
 		w.Header().Set("Content-Type", "application/soap+xml")
