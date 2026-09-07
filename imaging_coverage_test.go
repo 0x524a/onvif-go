@@ -527,6 +527,14 @@ func TestSetImagingSettingsOmitsNilOptionalBlocks(t *testing.T) {
 // fields the existing TestImagingGetOptions did not: ColorSaturation and
 // Contrast, alongside a re-check of Brightness with a distinct value so a
 // three-way swap between the three FloatRange blocks would be caught.
+//
+// Three fields is the whole of what GetOptions returns today, not the whole
+// of ImagingOptions: it parses BacklightCompensation, Exposure and Focus and
+// then discards them, and never parses Sharpness, WideDynamicRange,
+// WhiteBalance or IrCutFilterModes at all. That is #90. Asserting those here
+// would either fail or, worse, pin their zero values as though a camera had
+// reported nothing - so this test deliberately covers only what is mapped,
+// and #90 carries the rest.
 func TestGetOptionsMapsColorSaturationAndContrast(t *testing.T) {
 	body := `<GetOptionsResponse>
         <ImagingOptions>
