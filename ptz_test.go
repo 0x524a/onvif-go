@@ -2,30 +2,9 @@ package onvif
 
 import (
 	"context"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 )
-
-// newSOAPTestServer returns an httptest.Server that responds to every
-// request with a fixed SOAP envelope wrapping body. Each test below only
-// ever calls one client method against it, so no action-based dispatch
-// (unlike MockONVIFServer's) is needed.
-func newSOAPTestServer(t *testing.T, body string) *httptest.Server {
-	t.Helper()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/soap+xml")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-    <soap:Body>` + body + `</soap:Body>
-</soap:Envelope>`))
-	}))
-	t.Cleanup(server.Close)
-
-	return server
-}
 
 // newPTZTestClient returns a Client whose ptzEndpoint points at server.
 func newPTZTestClient(t *testing.T, server *httptest.Server) *Client {
