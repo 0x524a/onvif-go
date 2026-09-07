@@ -211,6 +211,43 @@ func TestGetConfigurationOptionalsAbsent(t *testing.T) {
 	}
 }
 
+// TestGetConfigurationPartialLimits covers a camera that reports a limit range
+// but omits one of its axes. The axis must come back nil, so that "no limit
+// reported for this axis" stays distinguishable from "this axis is limited to
+// 0..0" - a range a caller would read as the axis being immovable.
+func TestGetConfigurationPartialLimits(t *testing.T) {
+	body := `<GetConfigurationResponse>
+        <PTZConfiguration token="cfg-partial">
+            <Name>Partial</Name>
+            <UseCount>1</UseCount>
+            <NodeToken>node-1</NodeToken>
+            <PanTiltLimits>
+                <Range>
+                    <URI>space/pantilt-limit</URI>
+                    <XRange><Min>-1</Min><Max>2</Max></XRange>
+                </Range>
+            </PanTiltLimits>
+        </PTZConfiguration>
+    </GetConfigurationResponse>`
+	client := newPTZTestClient(t, newSOAPTestServer(t, body))
+
+	config, err := client.GetConfiguration(context.Background(), "cfg-partial")
+	if err != nil {
+		t.Fatalf("GetConfiguration() error = %v", err)
+	}
+
+	if config.PanTiltLimits == nil || config.PanTiltLimits.Range == nil {
+		t.Fatalf("PanTiltLimits = %+v, want the range from the response", config.PanTiltLimits)
+	}
+	if config.PanTiltLimits.Range.XRange == nil {
+		t.Error("PanTiltLimits.Range.XRange = nil, want the reported range")
+	}
+	if config.PanTiltLimits.Range.YRange != nil {
+		t.Errorf("PanTiltLimits.Range.YRange = %+v, want nil when the camera omits it",
+			config.PanTiltLimits.Range.YRange)
+	}
+}
+
 // TestGetStatusMapsUTCTime covers #89. The zero time was indistinguishable
 // from a camera that reported no timestamp, which is why no existing GetStatus
 // assertion could fail on it.
