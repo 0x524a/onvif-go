@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"time"
 
 	"github.com/0x524a/onvif-go/internal/soap"
 )
@@ -415,6 +416,13 @@ func (c *Client) GetStatus(ctx context.Context, profileToken string) (*PTZStatus
 			PanTilt: resp.PTZStatus.MoveStatus.PanTilt,
 			Zoom:    resp.PTZStatus.MoveStatus.Zoom,
 		}
+	}
+
+	// A timestamp the camera formats unexpectedly leaves UTCTime zero rather
+	// than failing the call, matching how event.go treats the same field: the
+	// position and move status are the point of GetStatus and are still good.
+	if t, err := time.Parse(time.RFC3339, resp.PTZStatus.UTCTime); err == nil {
+		status.UTCTime = t
 	}
 
 	return status, nil

@@ -6,9 +6,12 @@ import (
 	"time"
 )
 
-// Tests for #87: GetConfiguration and GetConfigurations returned a
-// PTZConfiguration with 10 of its 14 fields permanently zero, because the
-// response structs declared only the other four.
+// Tests for #87 and #89: PTZ responses that parsed fields off the wire and
+// then dropped them.
+//
+// #87: GetConfiguration and GetConfigurations returned a PTZConfiguration with
+// 10 of its 14 fields permanently zero, because the response structs declared
+// only the other four. #89: GetStatus declared UtcTime and never assigned it.
 //
 // Every value below is distinct. That is deliberate: a mapping test whose
 // fields share values cannot catch two of them being swapped, which is the
@@ -205,5 +208,51 @@ func TestGetConfigurationOptionalsAbsent(t *testing.T) {
 	// The four fields that always worked must keep working.
 	if config.Token != "cfg-min" || config.NodeToken != "node-1" {
 		t.Errorf("Token/NodeToken = %q/%q, want cfg-min/node-1", config.Token, config.NodeToken)
+	}
+}
+
+// TestGetStatusMapsUTCTime covers #89. The zero time was indistinguishable
+// from a camera that reported no timestamp, which is why no existing GetStatus
+// assertion could fail on it.
+func TestGetStatusMapsUTCTime(t *testing.T) {
+	tests := []struct {
+		name    string
+		element string
+		want    time.Time
+	}{
+		{
+			name:    "reported",
+			element: "<UtcTime>2026-09-06T14:30:45Z</UtcTime>",
+			want:    time.Date(2026, time.September, 6, 14, 30, 45, 0, time.UTC),
+		},
+		// Both remaining cases yield the zero time, deliberately: a status
+		// reading is still worth returning without a usable timestamp.
+		{name: "absent", element: ""},
+		{name: "malformed", element: "<UtcTime>yesterday</UtcTime>"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body := `<GetStatusResponse>
+                <PTZStatus>
+                    <Position><Zoom x="0.5"/></Position>
+                    ` + tt.element + `
+                </PTZStatus>
+            </GetStatusResponse>`
+			client := newPTZTestClient(t, newSOAPTestServer(t, body))
+
+			status, err := client.GetStatus(context.Background(), testProfileToken)
+			if err != nil {
+				t.Fatalf("GetStatus() error = %v", err)
+			}
+			if !status.UTCTime.Equal(tt.want) {
+				t.Errorf("UTCTime = %v, want %v", status.UTCTime, tt.want)
+			}
+
+			// The rest of the status must survive either way.
+			if status.Position == nil || status.Position.Zoom == nil || status.Position.Zoom.X != 0.5 {
+				t.Errorf("Position = %+v, want Zoom.X 0.5", status.Position)
+			}
+		})
 	}
 }
