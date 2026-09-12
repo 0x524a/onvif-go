@@ -3,6 +3,7 @@ package onvif
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -32,6 +33,10 @@ const (
 	testHTTPScheme               = "http"
 	testInvalidSchemeMarker      = "://invalid"
 )
+
+// errRegular is a plain (non-ONVIF) error used to test that IsONVIFError
+// correctly rejects errors that aren't *ONVIFError.
+var errRegular = errors.New("regular error")
 
 func TestNormalizeEndpoint(t *testing.T) {
 	tests := []struct {
@@ -1161,7 +1166,7 @@ func TestErrorTypes(t *testing.T) {
 	})
 
 	t.Run("IsONVIFError with regular error", func(t *testing.T) {
-		err := ErrRegularError
+		err := errRegular
 		if IsONVIFError(err) {
 			t.Error("IsONVIFError() returned true for regular error")
 		}
@@ -1421,13 +1426,13 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 	// Make concurrent requests to verify no race conditions
 	const numRequests = 10
 	done := make(chan bool, numRequests)
-	errors := make(chan error, numRequests)
+	errCh := make(chan error, numRequests)
 
 	for i := 0; i < numRequests; i++ {
 		go func(id int) {
 			req, err := http.NewRequestWithContext(context.Background(), "GET", server.URL, http.NoBody)
 			if err != nil {
-				errors <- fmt.Errorf("request %d: %w", id, fmt.Errorf("%w", ErrTestRequestNewFailed))
+				errCh <- fmt.Errorf("request %d: %w", id, fmt.Errorf("%w", ErrTestRequestNewFailed))
 				done <- true
 
 				return
@@ -1435,7 +1440,7 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 
 			resp, err := digestClient.Do(req)
 			if err != nil {
-				errors <- fmt.Errorf("request %d: %w", id, fmt.Errorf("%w", ErrTestRequestDoFailed))
+				errCh <- fmt.Errorf("request %d: %w", id, fmt.Errorf("%w", ErrTestRequestDoFailed))
 				done <- true
 
 				return
@@ -1443,7 +1448,7 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 			defer func() { _ = resp.Body.Close() }()
 
 			if resp.StatusCode != http.StatusOK {
-				errors <- fmt.Errorf("request %d: expected 200, got %d: %w", id, resp.StatusCode, ErrTestRequestUnexpectedStatus)
+				errCh <- fmt.Errorf("request %d: expected 200, got %d: %w", id, resp.StatusCode, ErrTestRequestUnexpectedStatus)
 			}
 			done <- true
 		}(i)
@@ -1455,8 +1460,8 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 	}
 
 	// Check for errors
-	close(errors)
-	for err := range errors {
+	close(errCh)
+	for err := range errCh {
 		if err != nil {
 			t.Error(err)
 		}

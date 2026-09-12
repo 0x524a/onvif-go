@@ -3,6 +3,8 @@ package onvif
 import (
 	"errors"
 	"fmt"
+
+	"github.com/0x524a/onvif-go/internal/soap"
 )
 
 var (
@@ -18,8 +20,10 @@ var (
 	// ErrServiceNotSupported is returned when a service is not supported by the device.
 	ErrServiceNotSupported = errors.New("service not supported")
 
-	// ErrInvalidResponse is returned when the response is invalid.
-	ErrInvalidResponse = errors.New("invalid response")
+	// ErrInvalidResponse is returned when the response is invalid. Aliased to
+	// internal/soap's sentinel of the same name for the same reason as
+	// ErrHTTPRequestFailed above.
+	ErrInvalidResponse = soap.ErrInvalidResponse
 
 	// ErrTimeout is returned when a request times out.
 	ErrTimeout = errors.New("request timeout")
@@ -43,11 +47,14 @@ var (
 	// ErrNetworkInterfaceNotFound is returned when a network interface is not found.
 	ErrNetworkInterfaceNotFound = errors.New("network interface not found")
 
-	// ErrHTTPRequestFailed is returned when an HTTP request fails.
-	ErrHTTPRequestFailed = errors.New("HTTP request failed")
+	// ErrHTTPRequestFailed is returned when an HTTP request fails. It is the
+	// same sentinel internal/soap.Call returns, so errors.Is matches across
+	// the package boundary instead of comparing two distinct errors.New values.
+	ErrHTTPRequestFailed = soap.ErrHTTPRequestFailed
 
-	// ErrEmptyResponseBody is returned when a response body is empty.
-	ErrEmptyResponseBody = errors.New("received empty response body")
+	// ErrEmptyResponseBody is returned when a response body is empty. See
+	// ErrHTTPRequestFailed above for why this aliases internal/soap's sentinel.
+	ErrEmptyResponseBody = soap.ErrEmptyResponseBody
 
 	// ErrVideoSourceNotFound is returned when a video source is not found.
 	ErrVideoSourceNotFound = errors.New("video source not found")
@@ -87,9 +94,6 @@ var (
 
 	// ErrDownloadFailed is returned when a download fails.
 	ErrDownloadFailed = errors.New("download failed")
-
-	// ErrRegularError is a test error used for testing error handling.
-	ErrRegularError = errors.New("regular error")
 )
 
 // ONVIFError represents an ONVIF-specific error.

@@ -27,9 +27,37 @@ type Header struct {
 }
 
 // Body represents a SOAP body.
+//
+// Content is marshaled by reflecting on whatever concrete request/response
+// type is stored in it (its XMLName tag supplies the element name) - the
+// default struct-tag-based marshaling already handles this correctly, so
+// only UnmarshalXML needs a custom implementation: encoding/xml cannot
+// unmarshal into a bare interface{} field and silently leaves it nil, so
+// Content ends up holding the raw inner XML as []byte instead, which the
+// caller then unmarshals into its own concrete type.
 type Body struct {
 	Content interface{} `xml:",omitempty"`
 	Fault   *Fault      `xml:"Fault,omitempty"`
+}
+
+// UnmarshalXML implements xml.Unmarshaler. Content and Fault are mutually
+// exclusive on the wire; when both would otherwise be present, Fault wins.
+func (b *Body) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var raw struct {
+		Fault   *Fault `xml:"Fault"`
+		Content []byte `xml:",innerxml"`
+	}
+
+	if err := d.DecodeElement(&raw, &start); err != nil {
+		return fmt.Errorf("failed to decode SOAP body: %w", err)
+	}
+
+	b.Fault = raw.Fault
+	if raw.Fault == nil {
+		b.Content = raw.Content
+	}
+
+	return nil
 }
 
 // Fault represents a SOAP fault.
@@ -171,24 +199,46 @@ func (c *Client) Call(ctx context.Context, endpoint, action string, request, res
 
 	// Unmarshal response content if response is provided
 	if response != nil {
-		// Create a flexible envelope structure for parsing responses
-		var envelope struct {
-			Body struct {
-				Content []byte `xml:",innerxml"`
-			} `xml:"Body"`
-		}
-
-		if err := xml.Unmarshal(respBody, &envelope); err != nil {
-			return fmt.Errorf("failed to unmarshal SOAP envelope: %w", err)
-		}
-
-		// Unmarshal the body content into the response
-		if err := xml.Unmarshal(envelope.Body.Content, response); err != nil {
-			return fmt.Errorf("failed to unmarshal response: %w", err)
+		if err := unmarshalResponse(respBody, response); err != nil {
+			return err
 		}
 	}
 
 	return nil
+}
+
+// unmarshalResponse decodes a SOAP response body into response, or returns
+// an error describing a SOAP fault if the server returned one instead.
+func unmarshalResponse(respBody []byte, response interface{}) error {
+	var envelope Envelope
+	if err := xml.Unmarshal(respBody, &envelope); err != nil {
+		return fmt.Errorf("failed to unmarshal SOAP envelope: %w", err)
+	}
+
+	if fault := envelope.Body.Fault; fault != nil {
+		return faultError(fault)
+	}
+
+	// Body.UnmarshalXML always leaves Content holding a []byte here - Fault
+	// is checked above, the only other case it sets Content to.
+	//nolint:errcheck // see comment above; the assertion cannot fail
+	content, _ := envelope.Body.Content.([]byte)
+
+	if err := xml.Unmarshal(content, response); err != nil {
+		return fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	return nil
+}
+
+// faultError builds an error describing a SOAP fault, including its Detail
+// text when present.
+func faultError(fault *Fault) error {
+	if fault.Detail != "" {
+		return fmt.Errorf("%w: [%s] %s: %s", ErrSOAPFault, fault.Code, fault.Reason, fault.Detail)
+	}
+
+	return fmt.Errorf("%w: [%s] %s", ErrSOAPFault, fault.Code, fault.Reason)
 }
 
 // createSecurityHeader creates a WS-Security header with username token digest.
