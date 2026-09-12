@@ -565,10 +565,9 @@ func TestServeHTTPDecodesParameterizedRequestBody(t *testing.T) {
 	}
 }
 
-// TestServeHTTPRejectsNonSOAPRoot ensures the decode-only requestEnvelope
-// type still validates the root element namespace/name like the original
-// originsoap.Envelope did, rather than silently accepting anything with a
-// Body element.
+// TestServeHTTPRejectsNonSOAPRoot ensures originsoap.Envelope's XMLName tag
+// validates the root element namespace/name, rather than silently accepting
+// anything with a Body element.
 func TestServeHTTPRejectsNonSOAPRoot(t *testing.T) {
 	handler := NewHandler("", "")
 	handler.RegisterHandler("TestAction", func(body interface{}) (interface{}, error) {

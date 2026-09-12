@@ -53,21 +53,6 @@ func (h *Handler) RegisterHandler(action string, handler MessageHandler) {
 	h.handlers[action] = handler
 }
 
-// requestEnvelope decodes an incoming SOAP request. Unlike originsoap.Envelope
-// (which is used for marshaling outgoing requests/responses across the whole
-// package), Body.Content here is []byte with ",innerxml" rather than
-// interface{} — encoding/xml cannot populate a bare interface{} field, so
-// using originsoap.Envelope here would leave the request body silently nil.
-// The XMLName tag must match originsoap.Envelope's own tag so a non-SOAP
-// root element still gets rejected instead of unmarshaling successfully.
-type requestEnvelope struct {
-	XMLName xml.Name           `xml:"http://www.w3.org/2003/05/soap-envelope Envelope"`
-	Header  *originsoap.Header `xml:"Header,omitempty"`
-	Body    struct {
-		Content []byte `xml:",innerxml"`
-	} `xml:"Body"`
-}
-
 // ServeHTTP implements http.Handler interface.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Only accept POST requests
@@ -95,7 +80,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse SOAP envelope
-	var envelope requestEnvelope
+	var envelope originsoap.Envelope
 	if err := xml.Unmarshal(body, &envelope); err != nil {
 		h.sendFault(w, "Sender", "Invalid SOAP envelope", err.Error())
 
@@ -296,28 +281,6 @@ func (h *Handler) sendFault(w http.ResponseWriter, code, reason, detail string) 
 	w.WriteHeader(statusCode)
 	//nolint:errcheck // Write error is not critical after WriteHeader
 	_, _ = w.Write(xmlBody)
-}
-
-// RequestWrapper wraps incoming SOAP request structures.
-type RequestWrapper struct {
-	XMLName xml.Name
-	Content []byte `xml:",innerxml"`
-}
-
-// ParseRequest parses a SOAP request into a specific structure.
-func ParseRequest(bodyContent, target interface{}) error {
-	// Marshal the body content back to XML
-	bodyXML, err := xml.Marshal(bodyContent)
-	if err != nil {
-		return fmt.Errorf("failed to marshal body content: %w", err)
-	}
-
-	// Unmarshal into target structure
-	if err := xml.Unmarshal(bodyXML, target); err != nil {
-		return fmt.Errorf("failed to unmarshal request: %w", err)
-	}
-
-	return nil
 }
 
 // Common SOAP request/response structures for ONVIF
