@@ -473,6 +473,7 @@ func (s *Server) ServerInfo() string {
 	info += fmt.Sprintf("\nServer Address: %s:%d\n", s.config.Host, s.config.Port)
 	info += fmt.Sprintf("Base Path: %s\n", s.config.BasePath)
 	info += fmt.Sprintf("\nProfiles (%d):\n", len(s.config.Profiles))
+	s.streamsMu.RLock()
 	//nolint:gocritic // Range value copy is acceptable for small structs
 	for i, profile := range s.config.Profiles {
 		info += fmt.Sprintf("  [%d] %s (%s)\n", i+1, profile.Name, profile.Token)
@@ -488,6 +489,7 @@ func (s *Server) ServerInfo() string {
 			info += "      PTZ: Enabled\n"
 		}
 	}
+	s.streamsMu.RUnlock()
 	info += "\nCapabilities:\n"
 	info += fmt.Sprintf("  PTZ: %v\n", s.config.SupportPTZ)
 	info += fmt.Sprintf("  Imaging: %v\n", s.config.SupportImaging)

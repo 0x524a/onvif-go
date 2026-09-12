@@ -1,22 +1,29 @@
 package server
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/0x524a/onvif-go"
+)
 
 var (
 	// ErrVideoSourceNotFound is returned when a video source is not found.
-	ErrVideoSourceNotFound = errors.New("video source not found")
+	// Aliased to the client package's sentinel so errors.Is matches
+	// regardless of whether the caller is comparing against the server or
+	// client package's error variable.
+	ErrVideoSourceNotFound = onvif.ErrVideoSourceNotFound
 
 	// ErrProfileNotFound is returned when a profile is not found.
-	ErrProfileNotFound = errors.New("profile not found")
+	ErrProfileNotFound = onvif.ErrProfileNotFound
 
 	// ErrSnapshotNotSupported is returned when snapshot is not supported for a profile.
-	ErrSnapshotNotSupported = errors.New("snapshot not supported for profile")
+	ErrSnapshotNotSupported = onvif.ErrSnapshotNotSupported
 
 	// ErrPTZNotSupported is returned when PTZ is not supported for a profile.
-	ErrPTZNotSupported = errors.New("PTZ not supported for profile")
+	ErrPTZNotSupported = onvif.ErrPTZNotSupported
 
 	// ErrPresetNotFound is returned when a preset is not found.
-	ErrPresetNotFound = errors.New("preset not found")
+	ErrPresetNotFound = onvif.ErrPresetNotFound
 
 	// ErrSubscriptionNotFound is returned when there is no active pull-point
 	// event subscription.
