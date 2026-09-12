@@ -2,8 +2,11 @@ package soap
 
 import (
 	"context"
+	"encoding/xml"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -168,6 +171,20 @@ func TestClientCall(t *testing.T) {
 			password: testSoapPassword,
 			wantErr:  true,
 		},
+		{
+			name: "malformed envelope",
+			setupServer: func(t *testing.T) *httptest.Server {
+				t.Helper()
+
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write([]byte("not xml at all"))
+				}))
+			},
+			username: testSoapUsername,
+			password: testSoapPassword,
+			wantErr:  true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -224,6 +241,131 @@ func TestClientCallWithTimeout(t *testing.T) {
 	err := client.Call(ctx, server.URL, "", req, &resp)
 	if err == nil {
 		t.Error("Expected timeout error, but got none")
+	}
+}
+
+func TestClientCallResponseUnmarshalFailure(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/soap+xml")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`<?xml version="1.0"?>
+<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope">
+	<Body>
+		<TestResponse>
+			<Value>not-a-number</Value>
+		</TestResponse>
+	</Body>
+</Envelope>`))
+	}))
+	defer server.Close()
+
+	httpClient := &http.Client{Timeout: 5 * time.Second}
+	client := NewClient(httpClient, "", "")
+
+	type testResponse struct {
+		Value int `xml:"Value"`
+	}
+	var resp testResponse
+
+	err := client.Call(context.Background(), server.URL, "", struct{}{}, &resp)
+	if err == nil {
+		t.Fatal("Call() error = nil, want an unmarshal error for a non-numeric Value")
+	}
+}
+
+func TestClientCallSOAPFault(t *testing.T) {
+	tests := []struct {
+		name      string
+		faultBody string
+		wantInErr []string
+	}{
+		{
+			name: "fault with detail",
+			faultBody: `<?xml version="1.0"?>
+<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope">
+	<Body>
+		<Fault>
+			<Code><Value>Sender</Value></Code>
+			<Reason><Text>Invalid argument</Text></Reason>
+			<Detail>ProfileToken not found</Detail>
+		</Fault>
+	</Body>
+</Envelope>`,
+			wantInErr: []string{"Sender", "Invalid argument", "ProfileToken not found"},
+		},
+		{
+			name: "fault without detail",
+			faultBody: `<?xml version="1.0"?>
+<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope">
+	<Body>
+		<Fault>
+			<Code><Value>Receiver</Value></Code>
+			<Reason><Text>Internal error</Text></Reason>
+		</Fault>
+	</Body>
+</Envelope>`,
+			wantInErr: []string{"Receiver", "Internal error"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/soap+xml")
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(tt.faultBody))
+			}))
+			defer server.Close()
+
+			httpClient := &http.Client{Timeout: 5 * time.Second}
+			client := NewClient(httpClient, "", "")
+
+			type testResponse struct {
+				Value string `xml:"Value"`
+			}
+			var resp testResponse
+
+			err := client.Call(context.Background(), server.URL, "", struct{}{}, &resp)
+			if err == nil {
+				t.Fatal("Call() error = nil, want a SOAP fault error")
+			}
+
+			if !errors.Is(err, ErrSOAPFault) {
+				t.Errorf("Call() error = %v, want errors.Is(err, ErrSOAPFault)", err)
+			}
+
+			for _, want := range tt.wantInErr {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("Call() error = %q, want it to contain %q", err.Error(), want)
+				}
+			}
+		})
+	}
+}
+
+func TestBodyUnmarshalXMLFault(t *testing.T) {
+	data := []byte(`<Body xmlns="http://www.w3.org/2003/05/soap-envelope">
+	<Fault>
+		<Code><Value>Sender</Value></Code>
+		<Reason><Text>bad request</Text></Reason>
+	</Fault>
+</Body>`)
+
+	var body Body
+	if err := xml.Unmarshal(data, &body); err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+
+	if body.Fault == nil {
+		t.Fatal("body.Fault = nil, want non-nil Fault")
+	}
+
+	if body.Fault.Code != "Sender" || body.Fault.Reason != "bad request" {
+		t.Errorf("body.Fault = %+v, want Code=Sender Reason=%q", body.Fault, "bad request")
+	}
+
+	if body.Content != nil {
+		t.Errorf("body.Content = %v, want nil when Fault is present", body.Content)
 	}
 }
 
