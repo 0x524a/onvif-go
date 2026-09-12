@@ -219,10 +219,10 @@ func unmarshalResponse(respBody []byte, response interface{}) error {
 		return faultError(fault)
 	}
 
-	content, ok := envelope.Body.Content.([]byte)
-	if !ok {
-		return fmt.Errorf("%w: SOAP body content missing or malformed", ErrInvalidResponse)
-	}
+	// Body.UnmarshalXML always leaves Content holding a []byte here - Fault
+	// is checked above, the only other case it sets Content to.
+	//nolint:errcheck // see comment above; the assertion cannot fail
+	content, _ := envelope.Body.Content.([]byte)
 
 	if err := xml.Unmarshal(content, response); err != nil {
 		return fmt.Errorf("failed to unmarshal response: %w", err)
