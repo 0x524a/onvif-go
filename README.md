@@ -67,7 +67,7 @@ ONVIF (Open Network Video Interface Forum) is an open industry standard for IP-b
 📦 **Easy Integration**
 - Simple, intuitive API
 - Well-documented with examples
-- No external dependencies beyond Go standard library and golang.org/x/net
+- Minimal dependencies: [rtspeek](https://github.com/0x524A/rtspeek) (RTSP stream inspection) and [google/uuid](https://github.com/google/uuid), plus the Go standard library
 
 ## Installation
 
@@ -686,7 +686,9 @@ onvif-go/
 ├── media.go            # Media service implementation
 ├── ptz.go              # PTZ service implementation
 ├── imaging.go          # Imaging service implementation
-├── soap/               # SOAP client with WS-Security
+├── event.go            # Event service implementation
+├── deviceio.go         # Device I/O and relay control
+├── internal/soap/      # SOAP client with WS-Security (not exported)
 │   └── soap.go
 ├── discovery/          # WS-Discovery implementation
 │   └── discovery.go
@@ -756,14 +758,14 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## Roadmap
 
-- [ ] Event service implementation
+- [x] Event service implementation
+- [x] CLI tools for camera management (see "CLI Tools" section below)
 - [ ] Analytics service implementation
 - [ ] Recording service implementation
 - [ ] Replay service implementation
 - [ ] Advanced security features (TLS, X.509 certificates)
 - [ ] Comprehensive test suite with mock cameras
 - [ ] Performance benchmarks
-- [ ] CLI tool for camera management
 
 ## Debugging Tools
 
@@ -842,6 +844,8 @@ go build -o onvif-cli ./cmd/onvif-cli/
 - 📹 Retrieve media profiles and stream URLs
 - 🎮 PTZ control (pan, tilt, zoom, presets)
 - 🎨 Imaging settings (brightness, contrast, exposure, etc.)
+- 🔔 Event operations (pull-point subscriptions, event brokers)
+- 🔌 Device I/O operations (relays, digital inputs, video outputs)
 - 📞 Network interface selection for multi-interface systems
 
 **Usage**:
@@ -853,10 +857,25 @@ go build -o onvif-cli ./cmd/onvif-cli/
   4. Media Operations
   5. PTZ Operations
   6. Imaging Operations
+  7. Event Operations
+  8. Device IO Operations
   0. Exit
 ```
 
 Note: The discovery function now intelligently detects multiple interfaces and shows options only when needed - no separate "List Network Interfaces" menu required.
+
+### Non-Interactive Mode
+
+`onvif-cli` also supports one-shot, non-interactive invocations for scripts, CI, and automation - no stdin prompts:
+
+```bash
+./onvif-cli -endpoint http://camera-ip/onvif/device_service -username admin -password pass -op info
+
+# Short flags, and discovery without credentials
+./onvif-cli -op discover -i eth0 -t 5
+```
+
+Supported `-op` values: `info`, `capabilities`, `profiles`, `stream`, `snapshot`, `datetime`, `discover`. Exits `0` on success, `1` on error. See [docs/CLI_NON_INTERACTIVE_MODE.md](docs/CLI_NON_INTERACTIVE_MODE.md) for the full flag reference and scripting examples.
 
 ### Quick Demo Tool
 
