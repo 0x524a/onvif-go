@@ -206,9 +206,10 @@ jobs:
         # broke v1.1.5/v1.1.6 when this was draft: false.
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
           files: all-releases/*
           draft: true
-          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-rc') || contains(steps.version.outputs.VERSION, '-beta') || contains(steps.version.outputs.VERSION, '-alpha') }}
           generate_release_notes: true
           body: |
             ## Release ${{ steps.version.outputs.VERSION }}
