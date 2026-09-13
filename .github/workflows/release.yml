@@ -197,14 +197,19 @@ jobs:
             echo "CHANGELOG=Initial release" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Release
+      - name: Create Release (draft)
+        # Created as a draft so every asset finishes uploading before the
+        # release is publicly visible or immutable. Publishing (below)
+        # happens only after all uploads here succeed - GitHub rejects
+        # further asset uploads to an already-published release
+        # ("Cannot upload assets to an immutable release"), which is what
+        # broke v1.1.5/v1.1.6 when this was draft: false.
         uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.2
         with:
           files: all-releases/*
-          draft: false
+          draft: true
           prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
           generate_release_notes: true
-          make_latest: true
           body: |
             ## Release ${{ steps.version.outputs.VERSION }}
             
@@ -238,6 +243,11 @@ jobs:
             ### 📝 Changes
             
             ${{ steps.version.outputs.CHANGELOG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release
+        run: gh release edit "${{ steps.version.outputs.VERSION }}" --draft=false --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
