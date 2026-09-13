@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -25,6 +26,13 @@ const (
 	readBufferSize        = 5
 	defaultBrightness     = "50.0"
 	unknownValue          = "unknown"
+
+	// defaultNonInteractiveTimeoutSeconds is the -timeout/-t default for
+	// non-interactive mode (see docs/CLI_NON_INTERACTIVE_MODE.md).
+	defaultNonInteractiveTimeoutSeconds = 30
+
+	exitSuccess = 0
+	exitFailure = 1
 )
 
 type CLI struct {
@@ -33,6 +41,41 @@ type CLI struct {
 }
 
 func main() {
+	var (
+		endpoint       string
+		username       string
+		password       string
+		operation      string
+		iface          string
+		timeoutSeconds int
+		nonInteractive bool
+	)
+
+	flag.StringVar(&endpoint, "endpoint", "", "Camera endpoint URL")
+	flag.StringVar(&endpoint, "e", "", "Camera endpoint URL (shorthand)")
+	flag.StringVar(&username, "username", "", "ONVIF username")
+	flag.StringVar(&username, "u", "", "ONVIF username (shorthand)")
+	flag.StringVar(&password, "password", "", "ONVIF password")
+	flag.StringVar(&password, "p", "", "ONVIF password (shorthand)")
+	flag.StringVar(&operation, "operation", "",
+		"Operation: info, capabilities, profiles, stream, snapshot, datetime, discover")
+	flag.StringVar(&operation, "op", "", "Operation (shorthand)")
+	flag.StringVar(&iface, "interface", "", "Network interface for discovery")
+	flag.StringVar(&iface, "i", "", "Network interface for discovery (shorthand)")
+	flag.IntVar(&timeoutSeconds, "timeout", defaultNonInteractiveTimeoutSeconds, "Request timeout in seconds")
+	flag.IntVar(&timeoutSeconds, "t", defaultNonInteractiveTimeoutSeconds, "Request timeout in seconds (shorthand)")
+	flag.BoolVar(&nonInteractive, "non-interactive", false, "Force non-interactive mode")
+	flag.BoolVar(&nonInteractive, "ni", false, "Force non-interactive mode (shorthand)")
+	flag.Parse()
+
+	// A supplied -op (or an explicit -non-interactive) means this run must not
+	// touch stdin. Falling through to the interactive menu below on
+	// unrecognized flags used to hang forever waiting on a menu choice that
+	// would never come (#see docs/CLI_NON_INTERACTIVE_MODE.md).
+	if operation != "" || nonInteractive {
+		os.Exit(runNonInteractive(operation, endpoint, username, password, iface, timeoutSeconds))
+	}
+
 	fmt.Println("🎥 ONVIF Camera CLI Tool")
 	fmt.Println("=======================")
 	fmt.Println()
@@ -72,6 +115,128 @@ func main() {
 		}
 		fmt.Println()
 	}
+}
+
+// runNonInteractive executes a single operation without touching stdin and
+// returns the process exit code. See docs/CLI_NON_INTERACTIVE_MODE.md.
+func runNonInteractive(operation, endpoint, username, password, iface string, timeoutSeconds int) int {
+	timeout := time.Duration(timeoutSeconds) * time.Second
+
+	if operation == "discover" {
+		return runNonInteractiveDiscover(iface, timeout)
+	}
+
+	if operation == "" {
+		fmt.Println("❌ -op/-operation is required in non-interactive mode (e.g. -op info)")
+
+		return exitFailure
+	}
+
+	if endpoint == "" {
+		fmt.Printf("❌ -endpoint/-e is required for operation %q\n", operation)
+
+		return exitFailure
+	}
+
+	client, err := onvif.NewClient(endpoint, onvif.WithCredentials(username, password), onvif.WithTimeout(timeout))
+	if err != nil {
+		fmt.Printf("❌ Failed to create client: %v\n", err)
+
+		return exitFailure
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	fmt.Printf("🔗 Connecting to %s...\n", endpoint)
+
+	info, err := client.GetDeviceInformation(ctx)
+	if err != nil {
+		fmt.Printf("❌ Failed to connect: %v\n", err)
+
+		return exitFailure
+	}
+	fmt.Printf("✅ Connected to %s %s\n", info.Manufacturer, info.Model)
+
+	// Service discovery only matters for media/PTZ/imaging operations; a
+	// device-only camera can still legitimately serve "info" without it, so
+	// its failure is a warning here rather than fatal - mirroring createClient.
+	if err := client.Initialize(ctx); err != nil {
+		fmt.Printf("⚠️  Service discovery failed: %v\n", err)
+	}
+
+	cli := &CLI{client: client}
+
+	return dispatchNonInteractiveOperation(cli, ctx, operation)
+}
+
+// dispatchNonInteractiveOperation runs the requested operation against an
+// already-connected client and returns the process exit code.
+func dispatchNonInteractiveOperation(cli *CLI, ctx context.Context, operation string) int {
+	var opErr error
+
+	switch operation {
+	case "info":
+		opErr = cli.getDeviceInformation(ctx)
+	case "capabilities":
+		opErr = cli.getCapabilities(ctx)
+	case "datetime":
+		opErr = cli.getSystemDateTime(ctx)
+	case "profiles":
+		opErr = cli.getMediaProfiles(ctx)
+	case "stream":
+		opErr = cli.getStreamURIs(ctx)
+	case "snapshot":
+		opErr = cli.getSnapshotURIs(ctx)
+	default:
+		fmt.Printf("❌ Unknown operation: %s\n", operation)
+
+		return exitFailure
+	}
+
+	if opErr != nil {
+		return exitFailure
+	}
+
+	return exitSuccess
+}
+
+// runNonInteractiveDiscover runs WS-Discovery once and prints results without
+// prompting to connect, unlike the interactive discoverCameras.
+func runNonInteractiveDiscover(iface string, timeout time.Duration) int {
+	fmt.Println("🔍 Discovering ONVIF cameras...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	opts := &discovery.DiscoverOptions{NetworkInterface: iface}
+
+	devices, err := discovery.DiscoverWithOptions(ctx, defaultRetryDelay*time.Second, opts)
+	if err != nil {
+		fmt.Printf("❌ Discovery failed: %v\n", err)
+
+		return exitFailure
+	}
+
+	if len(devices) == 0 {
+		fmt.Println("❌ No ONVIF cameras found on the network")
+
+		return exitFailure
+	}
+
+	fmt.Printf("✅ Found %d camera(s):\n\n", len(devices))
+
+	for i, device := range devices {
+		fmt.Printf("Camera %d:\n", i+1)
+		fmt.Printf("  Endpoint: %s\n", device.GetDeviceEndpoint())
+
+		if name := device.GetName(); name != "" {
+			fmt.Printf("  Name: %s\n", name)
+		}
+		fmt.Println()
+	}
+
+	return exitSuccess
 }
 
 func (c *CLI) showMainMenu() {
@@ -444,11 +609,17 @@ func (c *CLI) deviceOperations() {
 
 	switch choice {
 	case "1":
-		c.getDeviceInformation(ctx)
+		if err := c.getDeviceInformation(ctx); err != nil {
+			return
+		}
 	case "2":
-		c.getCapabilities(ctx)
+		if err := c.getCapabilities(ctx); err != nil {
+			return
+		}
 	case "3":
-		c.getSystemDateTime(ctx)
+		if err := c.getSystemDateTime(ctx); err != nil {
+			return
+		}
 	case "4":
 		c.rebootDevice(ctx)
 	case "0":
@@ -458,14 +629,14 @@ func (c *CLI) deviceOperations() {
 	}
 }
 
-func (c *CLI) getDeviceInformation(ctx context.Context) {
+func (c *CLI) getDeviceInformation(ctx context.Context) error {
 	fmt.Println("⏳ Getting device information...")
 
 	info, err := c.client.GetDeviceInformation(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
 
-		return
+		return fmt.Errorf("get device information: %w", err)
 	}
 
 	fmt.Println("✅ Device Information:")
@@ -474,16 +645,18 @@ func (c *CLI) getDeviceInformation(ctx context.Context) {
 	fmt.Printf("   Firmware Version: %s\n", info.FirmwareVersion)
 	fmt.Printf("   Serial Number: %s\n", info.SerialNumber)
 	fmt.Printf("   Hardware ID: %s\n", info.HardwareID)
+
+	return nil
 }
 
-func (c *CLI) getCapabilities(ctx context.Context) {
+func (c *CLI) getCapabilities(ctx context.Context) error {
 	fmt.Println("⏳ Getting capabilities...")
 
 	caps, err := c.client.GetCapabilities(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
 
-		return
+		return fmt.Errorf("get capabilities: %w", err)
 	}
 
 	fmt.Println("✅ Device Capabilities:")
@@ -506,19 +679,23 @@ func (c *CLI) getCapabilities(ctx context.Context) {
 	if caps.Analytics != nil {
 		fmt.Printf("   ✓ Analytics Service\n")
 	}
+
+	return nil
 }
 
-func (c *CLI) getSystemDateTime(ctx context.Context) {
+func (c *CLI) getSystemDateTime(ctx context.Context) error {
 	fmt.Println("⏳ Getting system date and time...")
 
 	dateTime, err := c.client.GetSystemDateAndTimeTyped(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
 
-		return
+		return fmt.Errorf("get system date and time: %w", err)
 	}
 
 	fmt.Printf("✅ System Date/Time: %v\n", dateTime)
+
+	return nil
 }
 
 func (c *CLI) rebootDevice(ctx context.Context) {
@@ -562,11 +739,17 @@ func (c *CLI) mediaOperations() {
 
 	switch choice {
 	case "1":
-		c.getMediaProfiles(ctx)
+		if err := c.getMediaProfiles(ctx); err != nil {
+			return
+		}
 	case "2":
-		c.getStreamURIs(ctx)
+		if err := c.getStreamURIs(ctx); err != nil {
+			return
+		}
 	case "3":
-		c.getSnapshotURIs(ctx)
+		if err := c.getSnapshotURIs(ctx); err != nil {
+			return
+		}
 	case "4":
 		c.getVideoEncoderConfig(ctx)
 	case "0":
@@ -576,14 +759,14 @@ func (c *CLI) mediaOperations() {
 	}
 }
 
-func (c *CLI) getMediaProfiles(ctx context.Context) {
+func (c *CLI) getMediaProfiles(ctx context.Context) error {
 	fmt.Println("⏳ Getting media profiles...")
 
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
 
-		return
+		return fmt.Errorf("get media profiles: %w", err)
 	}
 
 	fmt.Printf("✅ Found %d profile(s):\n\n", len(profiles))
@@ -608,6 +791,8 @@ func (c *CLI) getMediaProfiles(ctx context.Context) {
 
 		fmt.Println()
 	}
+
+	return nil
 }
 
 // inspectRTSPStream probes an RTSP URI to get stream details using rtspeek library.
@@ -708,18 +893,18 @@ func (c *CLI) tryRTSPConnection(ctx context.Context, streamURI string) map[strin
 	return details
 }
 
-func (c *CLI) getStreamURIs(ctx context.Context) {
+func (c *CLI) getStreamURIs(ctx context.Context) error {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error getting profiles: %v\n", err)
 
-		return
+		return fmt.Errorf("get profiles: %w", err)
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
 
-		return
+		return ErrNoProfilesFound
 	}
 
 	fmt.Println("📡 Stream URIs:")
@@ -770,20 +955,22 @@ func (c *CLI) getStreamURIs(ctx context.Context) {
 		}
 		fmt.Println()
 	}
+
+	return nil
 }
 
-func (c *CLI) getSnapshotURIs(ctx context.Context) {
+func (c *CLI) getSnapshotURIs(ctx context.Context) error {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error getting profiles: %v\n", err)
 
-		return
+		return fmt.Errorf("get profiles: %w", err)
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
 
-		return
+		return ErrNoProfilesFound
 	}
 
 	fmt.Println("📸 Snapshot URIs:")
@@ -809,6 +996,8 @@ func (c *CLI) getSnapshotURIs(ctx context.Context) {
 		}
 		fmt.Println()
 	}
+
+	return nil
 }
 
 func (c *CLI) getVideoEncoderConfig(ctx context.Context) {
