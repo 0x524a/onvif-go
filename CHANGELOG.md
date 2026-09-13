@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.6] - 2026-09-13
+## [1.1.7] - 2026-09-13
 
 ### Added
 - `GetSystemDateAndTimeTyped` for inspecting typed clock, timezone, and optional timestamp data without breaking existing callers (#61).
@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 - **Behavior change:** When a device response omits the `SystemDateAndTime` element entirely, `GetSystemDateAndTimeTyped` now returns an error. Previously, `FixedGetSystemDateAndTime` returned a zero-value struct with no error in this case.
+- `v1.1.6` was never published: GitHub rejected re-creation of that tag after its broken release was deleted, for reasons not exposed via any rules/tag-protection API. This release covers the same changes under `v1.1.7`.
 
 ## [1.1.3] - 2025-11-18
 
@@ -148,7 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 - README with usage guide
 
-[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.1.7...HEAD
+[1.1.7]: https://github.com/0x524a/onvif-go/compare/v1.1.5...v1.1.7
 [1.1.3]: https://github.com/0x524a/onvif-go/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/0x524a/onvif-go/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/0x524a/onvif-go/compare/v1.1.0...v1.1.1
