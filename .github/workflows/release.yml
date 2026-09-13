@@ -204,7 +204,7 @@ jobs:
         # further asset uploads to an already-published release
         # ("Cannot upload assets to an immutable release"), which is what
         # broke v1.1.5/v1.1.6 when this was draft: false.
-        uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: all-releases/*
           draft: true
