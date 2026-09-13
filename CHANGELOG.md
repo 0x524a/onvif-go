@@ -7,11 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.6] - 2026-09-13
+
 ### Added
-- Add `GetSystemDateAndTimeTyped` for inspecting typed clock, timezone, and optional timestamp data without breaking existing callers.
+- `GetSystemDateAndTimeTyped` for inspecting typed clock, timezone, and optional timestamp data without breaking existing callers (#61).
+- Minimal pull-point event service in the virtual server (`CreatePullPointSubscription`/`PullMessages`/`RenewSubscription`/`Unsubscribe`), so `Config.SupportEvents` no longer advertises a 404 endpoint (#62).
+- Ephemeral-port binding, `Addr()`, and a `Config.Ready` channel for the virtual server, so it can be used as an in-process test fixture without hardcoding a port (#63).
+- Non-interactive mode for `onvif-cli` (`-op`/`-endpoint`/`-username`/`-password`/`-interface`/`-timeout`), for scripts and CI (#97).
+
+### Fixed
+- `soap.Body.Content` (`interface{}`) was never populated by `encoding/xml` on unmarshal, so every parameterized client request and every server-side request with body parameters silently received a nil body regardless of what was sent (#80, #95).
+- Data races: `Client`'s endpoint/credential fields were written without locking (including a PTZ endpoint lock that was dropped after landing), and `Server.ServerInfo()` read the streams map without holding its mutex (#60, #95).
+- PTZ/imaging mutexes in the virtual server were package-global, serializing every `Server` instance in a process through one lock each; PTZ move handlers also leaked an untracked, uncancellable goroutine per call (#80).
+- `GetStreamUri`/`GetSnapshotUri` action-name casing on the virtual server didn't match the real ONVIF Media WSDL spelling the client sends, making both operations unreachable (#79).
+- Four public config duration fields (e.g. `SessionTimeout`, `DefaultPTZTimeout`) and nine `PTZConfiguration` fields (default position/velocity spaces, pan/tilt/zoom limits) were parsed by nothing and silently dropped on every read and write (#86, #87).
+- `PTZStatus.UtcTime` was never mapped onto the status returned by `GetStatus` (#89).
+- `Config.Output` defaulted to `io.Discard` instead of `os.Stdout`, silencing the virtual server's startup banner for existing callers.
+- WS-Security authentication hardening: constant-time digest comparison, a clock-skew check on `Created`, a per-handler nonce replay cache, and auth is no longer silently skipped when only one of username/password is configured (#80).
+- `onvif-cli -op ...` and every other flag were never parsed at all, so the tool always fell through to the interactive menu and hung on stdin regardless of arguments (#97).
+- Storage configuration XML tags/types, `PullMessages` XML parsing, and several SonarCloud/lint false positives.
+
+### Changed
+- Unified `ErrHTTPRequestFailed`/`ErrEmptyResponseBody`/`ErrInvalidResponse` and five duplicated sentinels between `server/errors.go`, the root package, and `internal/soap`, so `errors.Is` matches across package boundaries instead of comparing distinct `errors.New` values with the same text. Removed the leaked test-only `ErrRegularError` from the public API (#95).
+- PTZ/Imaging now return `ErrNotInitialized` vs `ErrServiceNotSupported` distinctly depending on whether `Initialize` has run. **Behavior change:** `GetOptions`/`GetMoveOptions`/`StopFocus`/`GetImagingStatus` no longer fall back to the device endpoint before `Initialize` has been called (#64).
+- Discovery's UUID generation now uses `google/uuid` (RFC 4122) instead of a wall-clock-derived string; `google/uuid` is now a direct dependency.
+- README accuracy fixes: dependency list, architecture diagram, roadmap status, and CLI documentation (#98).
 
 ### Deprecated
-- Deprecate `GetSystemDateAndTime` and `FixedGetSystemDateAndTime` in favor of `GetSystemDateAndTimeTyped`.
+- `GetSystemDateAndTime` and `FixedGetSystemDateAndTime` in favor of `GetSystemDateAndTimeTyped`.
 
 ### Notes
 - **Behavior change:** When a device response omits the `SystemDateAndTime` element entirely, `GetSystemDateAndTimeTyped` now returns an error. Previously, `FixedGetSystemDateAndTime` returned a zero-value struct with no error in this case.
