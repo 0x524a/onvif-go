@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WS-Security authentication hardening: constant-time digest comparison, a clock-skew check on `Created`, a per-handler nonce replay cache, and auth is no longer silently skipped when only one of username/password is configured (#80).
 - `onvif-cli -op ...` and every other flag were never parsed at all, so the tool always fell through to the interactive menu and hung on stdin regardless of arguments (#97).
 - Storage configuration XML tags/types, `PullMessages` XML parsing, and several SonarCloud/lint false positives.
+- Release workflow: publish the GitHub Release as a draft and only mark it public after all binary assets finish uploading. The prior `draft: false` regressed a fix already noted below (v1.1.3) and broke the `v1.1.5`/`v1.1.6` releases with "Cannot upload assets to an immutable release".
 
 ### Changed
 - Unified `ErrHTTPRequestFailed`/`ErrEmptyResponseBody`/`ErrInvalidResponse` and five duplicated sentinels between `server/errors.go`, the root package, and `internal/soap`, so `errors.Is` matches across package boundaries instead of comparing distinct `errors.New` values with the same text. Removed the leaked test-only `ErrRegularError` from the public API (#95).
