@@ -528,13 +528,8 @@ func TestSetImagingSettingsOmitsNilOptionalBlocks(t *testing.T) {
 // Contrast, alongside a re-check of Brightness with a distinct value so a
 // three-way swap between the three FloatRange blocks would be caught.
 //
-// Three fields is the whole of what GetOptions returns today, not the whole
-// of ImagingOptions: it parses BacklightCompensation, Exposure and Focus and
-// then discards them, and never parses Sharpness, WideDynamicRange,
-// WhiteBalance or IrCutFilterModes at all. That is #90. Asserting those here
-// would either fail or, worse, pin their zero values as though a camera had
-// reported nothing - so this test deliberately covers only what is mapped,
-// and #90 carries the rest.
+// The remaining ImagingOptions blocks are covered by
+// TestGetOptionsMapsAllBlocks (#90).
 func TestGetOptionsMapsColorSaturationAndContrast(t *testing.T) {
 	body := `<GetOptionsResponse>
         <ImagingOptions>
@@ -631,4 +626,161 @@ func checkMoveOptionsContinuous(t *testing.T, options *MoveOptions) {
 	if options.Continuous.Speed.Min != 9 || options.Continuous.Speed.Max != 10 {
 		t.Errorf("Continuous.Speed = %+v, want {Min:9 Max:10}", options.Continuous.Speed)
 	}
+}
+
+func wantRange(t *testing.T, name string, got *FloatRange, lo, hi float64) {
+	t.Helper()
+
+	if got == nil || got.Min != lo || got.Max != hi {
+		t.Errorf("%s = %+v, want {Min:%v Max:%v}", name, got, lo, hi)
+	}
+}
+
+func wantStrings(t *testing.T, name string, got []string, want ...string) {
+	t.Helper()
+
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Errorf("%s = %v, want %v", name, got, want)
+	}
+}
+
+// TestGetOptionsMapsAllBlocks gives every ImagingOptions block and sub-range a
+// distinct sentinel so a dropped block, or a mix-up between two of them, shows
+// up as a wrong value (#90).
+func TestGetOptionsMapsAllBlocks(t *testing.T) {
+	body := `<GetOptionsResponse>
+        <ImagingOptions>
+            <BacklightCompensation>
+                <Mode>OFF</Mode><Mode>ON</Mode>
+                <Level><Min>1</Min><Max>2</Max></Level>
+            </BacklightCompensation>
+            <Brightness><Min>3</Min><Max>4</Max></Brightness>
+            <ColorSaturation><Min>5</Min><Max>6</Max></ColorSaturation>
+            <Contrast><Min>7</Min><Max>8</Max></Contrast>
+            <Exposure>
+                <Mode>AUTO</Mode><Mode>MANUAL</Mode>
+                <Priority>LowNoise</Priority><Priority>FrameRate</Priority>
+                <MinExposureTime><Min>9</Min><Max>10</Max></MinExposureTime>
+                <MaxExposureTime><Min>11</Min><Max>12</Max></MaxExposureTime>
+                <MinGain><Min>13</Min><Max>14</Max></MinGain>
+                <MaxGain><Min>15</Min><Max>16</Max></MaxGain>
+                <MinIris><Min>17</Min><Max>18</Max></MinIris>
+                <MaxIris><Min>19</Min><Max>20</Max></MaxIris>
+                <ExposureTime><Min>21</Min><Max>22</Max></ExposureTime>
+                <Gain><Min>23</Min><Max>24</Max></Gain>
+                <Iris><Min>25</Min><Max>26</Max></Iris>
+            </Exposure>
+            <Focus>
+                <AutoFocusModes>AUTO</AutoFocusModes><AutoFocusModes>MANUAL</AutoFocusModes>
+                <DefaultSpeed><Min>27</Min><Max>28</Max></DefaultSpeed>
+                <NearLimit><Min>29</Min><Max>30</Max></NearLimit>
+                <FarLimit><Min>31</Min><Max>32</Max></FarLimit>
+            </Focus>
+            <IrCutFilterModes>ON</IrCutFilterModes>
+            <IrCutFilterModes>OFF</IrCutFilterModes>
+            <IrCutFilterModes>AUTO</IrCutFilterModes>
+            <Sharpness><Min>33</Min><Max>34</Max></Sharpness>
+            <WideDynamicRange>
+                <Mode>OFF</Mode><Mode>ON</Mode>
+                <Level><Min>35</Min><Max>36</Max></Level>
+            </WideDynamicRange>
+            <WhiteBalance>
+                <Mode>AUTO</Mode><Mode>MANUAL</Mode>
+                <YrGain><Min>37</Min><Max>38</Max></YrGain>
+                <YbGain><Min>39</Min><Max>40</Max></YbGain>
+            </WhiteBalance>
+        </ImagingOptions>
+    </GetOptionsResponse>`
+	client := newImagingTestClient(t, newSOAPTestServer(t, body))
+
+	o, err := client.GetOptions(context.Background(), testVideoSourceToken)
+	if err != nil {
+		t.Fatalf("GetOptions() error = %v", err)
+	}
+
+	wantRange(t, "Brightness", o.Brightness, 3, 4)
+	wantRange(t, "ColorSaturation", o.ColorSaturation, 5, 6)
+	wantRange(t, "Contrast", o.Contrast, 7, 8)
+	wantRange(t, "Sharpness", o.Sharpness, 33, 34)
+	wantStrings(t, "IrCutFilterModes", o.IrCutFilterModes, "ON", "OFF", "AUTO")
+
+	if o.BacklightCompensation == nil {
+		t.Fatal("BacklightCompensation = nil")
+	}
+
+	wantStrings(t, "BacklightCompensation.Mode", o.BacklightCompensation.Mode, "OFF", "ON")
+	wantRange(t, "BacklightCompensation.Level", o.BacklightCompensation.Level, 1, 2)
+
+	if o.Exposure == nil {
+		t.Fatal("Exposure = nil")
+	}
+
+	wantStrings(t, "Exposure.Mode", o.Exposure.Mode, "AUTO", "MANUAL")
+	wantStrings(t, "Exposure.Priority", o.Exposure.Priority, "LowNoise", "FrameRate")
+	wantRange(t, "Exposure.MinExposureTime", o.Exposure.MinExposureTime, 9, 10)
+	wantRange(t, "Exposure.MaxExposureTime", o.Exposure.MaxExposureTime, 11, 12)
+	wantRange(t, "Exposure.MinGain", o.Exposure.MinGain, 13, 14)
+	wantRange(t, "Exposure.MaxGain", o.Exposure.MaxGain, 15, 16)
+	wantRange(t, "Exposure.MinIris", o.Exposure.MinIris, 17, 18)
+	wantRange(t, "Exposure.MaxIris", o.Exposure.MaxIris, 19, 20)
+	wantRange(t, "Exposure.ExposureTime", o.Exposure.ExposureTime, 21, 22)
+	wantRange(t, "Exposure.Gain", o.Exposure.Gain, 23, 24)
+	wantRange(t, "Exposure.Iris", o.Exposure.Iris, 25, 26)
+
+	if o.Focus == nil {
+		t.Fatal("Focus = nil")
+	}
+
+	wantStrings(t, "Focus.AutoFocusModes", o.Focus.AutoFocusModes, "AUTO", "MANUAL")
+	wantRange(t, "Focus.DefaultSpeed", o.Focus.DefaultSpeed, 27, 28)
+	wantRange(t, "Focus.NearLimit", o.Focus.NearLimit, 29, 30)
+	wantRange(t, "Focus.FarLimit", o.Focus.FarLimit, 31, 32)
+
+	if o.WideDynamicRange == nil {
+		t.Fatal("WideDynamicRange = nil")
+	}
+
+	wantStrings(t, "WideDynamicRange.Mode", o.WideDynamicRange.Mode, "OFF", "ON")
+	wantRange(t, "WideDynamicRange.Level", o.WideDynamicRange.Level, 35, 36)
+
+	if o.WhiteBalance == nil {
+		t.Fatal("WhiteBalance = nil")
+	}
+
+	wantStrings(t, "WhiteBalance.Mode", o.WhiteBalance.Mode, "AUTO", "MANUAL")
+	wantRange(t, "WhiteBalance.YrGain", o.WhiteBalance.YrGain, 37, 38)
+	wantRange(t, "WhiteBalance.YbGain", o.WhiteBalance.YbGain, 39, 40)
+}
+
+// TestGetOptionsLeavesAbsentBlocksNil guards the other direction: a camera that
+// reports only some blocks (or only part of a block) must not get a fabricated
+// zero-valued range for the rest, since {0,0} reads as a real limit.
+func TestGetOptionsLeavesAbsentBlocksNil(t *testing.T) {
+	body := `<GetOptionsResponse>
+        <ImagingOptions>
+            <Exposure><Mode>AUTO</Mode></Exposure>
+            <Focus><NearLimit><Min>1</Min><Max>2</Max></NearLimit></Focus>
+        </ImagingOptions>
+    </GetOptionsResponse>`
+	client := newImagingTestClient(t, newSOAPTestServer(t, body))
+
+	o, err := client.GetOptions(context.Background(), testVideoSourceToken)
+	if err != nil {
+		t.Fatalf("GetOptions() error = %v", err)
+	}
+
+	if o.BacklightCompensation != nil || o.Sharpness != nil || o.WideDynamicRange != nil ||
+		o.WhiteBalance != nil || o.IrCutFilterModes != nil || o.Brightness != nil {
+		t.Errorf("absent blocks should be nil, got %+v", o)
+	}
+
+	if o.Exposure == nil || o.Exposure.MinExposureTime != nil || o.Exposure.Gain != nil || o.Exposure.Iris != nil {
+		t.Errorf("Exposure = %+v, want Mode only with nil ranges", o.Exposure)
+	}
+
+	if o.Focus == nil || o.Focus.DefaultSpeed != nil || o.Focus.FarLimit != nil {
+		t.Errorf("Focus = %+v, want only NearLimit set", o.Focus)
+	}
+
+	wantRange(t, "Focus.NearLimit", o.Focus.NearLimit, 1, 2)
 }
