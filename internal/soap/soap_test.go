@@ -437,3 +437,58 @@ func BenchmarkCreateSecurityHeader(b *testing.B) {
 		_ = client.createSecurityHeader()
 	}
 }
+
+func TestClientCallSOAPFaultOnErrorStatus(t *testing.T) {
+	const faultXML = `<?xml version="1.0"?>
+<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope">
+	<Body>
+		<Fault>
+			<Code><Value>Sender</Value></Code>
+			<Reason><Text>Invalid argument</Text></Reason>
+		</Fault>
+	</Body>
+</Envelope>`
+
+	tests := []struct {
+		name      string
+		status    int
+		body      string
+		wantFault bool
+	}{
+		{name: "fault on 500", status: http.StatusInternalServerError, body: faultXML, wantFault: true},
+		{name: "fault on 400", status: http.StatusBadRequest, body: faultXML, wantFault: true},
+		{name: "non-SOAP 500 body", status: http.StatusInternalServerError, body: "<html>boom</html>", wantFault: false},
+		{name: "empty 500 body", status: http.StatusInternalServerError, body: "", wantFault: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.status)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+
+			client := NewClient(&http.Client{Timeout: 5 * time.Second}, "", "")
+
+			var resp struct{}
+
+			err := client.Call(context.Background(), server.URL, "", struct{}{}, &resp)
+			if err == nil {
+				t.Fatal("Call() error = nil, want an error")
+			}
+
+			if !errors.Is(err, ErrHTTPRequestFailed) {
+				t.Errorf("Call() error = %v, want errors.Is(err, ErrHTTPRequestFailed)", err)
+			}
+
+			if got := errors.Is(err, ErrSOAPFault); got != tt.wantFault {
+				t.Errorf("errors.Is(err, ErrSOAPFault) = %v, want %v (err = %v)", got, tt.wantFault, err)
+			}
+
+			if tt.wantFault && !strings.Contains(err.Error(), "Invalid argument") {
+				t.Errorf("Call() error = %q, want it to contain the fault reason", err.Error())
+			}
+		})
+	}
+}

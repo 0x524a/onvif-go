@@ -189,6 +189,10 @@ func (c *Client) Call(ctx context.Context, endpoint, action string, request, res
 
 	// Check HTTP status
 	if resp.StatusCode != http.StatusOK {
+		if fault := parseFault(respBody); fault != nil {
+			return fmt.Errorf("%w with status %d: %w", ErrHTTPRequestFailed, resp.StatusCode, faultError(fault))
+		}
+
 		return fmt.Errorf("%w with status %d: %s", ErrHTTPRequestFailed, resp.StatusCode, string(respBody))
 	}
 
@@ -229,6 +233,17 @@ func unmarshalResponse(respBody []byte, response interface{}) error {
 	}
 
 	return nil
+}
+
+// parseFault returns the SOAP fault carried in respBody, or nil if the body is
+// not a SOAP envelope containing one.
+func parseFault(respBody []byte) *Fault {
+	var envelope Envelope
+	if err := xml.Unmarshal(respBody, &envelope); err != nil {
+		return nil
+	}
+
+	return envelope.Body.Fault
 }
 
 // faultError builds an error describing a SOAP fault, including its Detail
