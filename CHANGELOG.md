@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.8] - 2026-10-04
+
+### Fixed
+- `GetOptions` (imaging) parsed `BacklightCompensation`, `Exposure` and `Focus` and then discarded them, and never parsed `Sharpness`, `WideDynamicRange`, `WhiteBalance` or `IrCutFilterModes`, so callers could not learn the valid exposure or focus ranges before `SetImagingSettings`. All option blocks are now returned, including the Exposure gain/iris/time ranges and Focus near/far limits. A range the camera omits is now `nil` instead of a zero-valued `{0,0}` (#90, #112).
+- A SOAP fault carried on a non-200 response (HTTP 500 is the SOAP 1.2 norm) was reported as a generic `HTTP request failed with status N: <raw XML>` error, so `errors.Is(err, ErrSOAPFault)` was false. It is now wrapped together with `ErrHTTPRequestFailed`, so both match and the camera's reason text is in the message. Faults on HTTP 200 were already handled (#94, #111).
+- Release workflow: upgraded `softprops/action-gh-release` to v3.0.3 (asset uploads failed under GitHub's Node 24 runtime), pass `tag_name` explicitly so `workflow_dispatch` runs work, and fixed the Dockerfile builder image, which was older than the Go version `go.mod` requires.
+
+### Changed
+- Dependencies: `github.com/0x524A/rtspeek` 0.0.1 -> 0.2.0, which moves the indirect RTSP dependency from `gortsplib/v4` to `gortsplib/v5`. Docker builder image `golang:1.26-alpine` -> `1.27-alpine`. GitHub Actions bumped across all workflows (#106, #105, #110).
+- Added Dependabot version updates for Go modules, GitHub Actions and Docker, and corrected version comments on five SHA-pinned actions that named the wrong release (#104, #108).
+
 ## [1.1.7] - 2026-09-13
 
 ### Added
@@ -149,7 +160,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 - README with usage guide
 
-[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.1.7...HEAD
+[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.1.8...HEAD
+[1.1.8]: https://github.com/0x524a/onvif-go/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/0x524a/onvif-go/compare/v1.1.5...v1.1.7
 [1.1.3]: https://github.com/0x524a/onvif-go/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/0x524a/onvif-go/compare/v1.1.1...v1.1.2
