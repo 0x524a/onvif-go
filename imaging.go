@@ -383,6 +383,121 @@ type FocusMove struct {
 	// Can be extended with Absolute, Relative, Continuous move types
 }
 
+// imagingRangeXML is the wire form of an ONVIF FloatRange. It is used behind a
+// pointer so an element the camera omitted stays nil instead of becoming {0,0}.
+type imagingRangeXML struct {
+	Min float64 `xml:"Min"`
+	Max float64 `xml:"Max"`
+}
+
+func (r *imagingRangeXML) toFloatRange() *FloatRange {
+	if r == nil {
+		return nil
+	}
+
+	return &FloatRange{Min: r.Min, Max: r.Max}
+}
+
+// imagingOptionsXML is the wire form of ImagingOptions in a GetOptions response.
+type imagingOptionsXML struct {
+	BacklightCompensation *struct {
+		Mode  []string         `xml:"Mode"`
+		Level *imagingRangeXML `xml:"Level"`
+	} `xml:"BacklightCompensation"`
+	Brightness      *imagingRangeXML `xml:"Brightness"`
+	ColorSaturation *imagingRangeXML `xml:"ColorSaturation"`
+	Contrast        *imagingRangeXML `xml:"Contrast"`
+	Exposure        *struct {
+		Mode            []string         `xml:"Mode"`
+		Priority        []string         `xml:"Priority"`
+		MinExposureTime *imagingRangeXML `xml:"MinExposureTime"`
+		MaxExposureTime *imagingRangeXML `xml:"MaxExposureTime"`
+		MinGain         *imagingRangeXML `xml:"MinGain"`
+		MaxGain         *imagingRangeXML `xml:"MaxGain"`
+		MinIris         *imagingRangeXML `xml:"MinIris"`
+		MaxIris         *imagingRangeXML `xml:"MaxIris"`
+		ExposureTime    *imagingRangeXML `xml:"ExposureTime"`
+		Gain            *imagingRangeXML `xml:"Gain"`
+		Iris            *imagingRangeXML `xml:"Iris"`
+	} `xml:"Exposure"`
+	Focus *struct {
+		AutoFocusModes []string         `xml:"AutoFocusModes"`
+		DefaultSpeed   *imagingRangeXML `xml:"DefaultSpeed"`
+		NearLimit      *imagingRangeXML `xml:"NearLimit"`
+		FarLimit       *imagingRangeXML `xml:"FarLimit"`
+	} `xml:"Focus"`
+	IrCutFilterModes []string         `xml:"IrCutFilterModes"`
+	Sharpness        *imagingRangeXML `xml:"Sharpness"`
+	WideDynamicRange *struct {
+		Mode  []string         `xml:"Mode"`
+		Level *imagingRangeXML `xml:"Level"`
+	} `xml:"WideDynamicRange"`
+	WhiteBalance *struct {
+		Mode   []string         `xml:"Mode"`
+		YrGain *imagingRangeXML `xml:"YrGain"`
+		YbGain *imagingRangeXML `xml:"YbGain"`
+	} `xml:"WhiteBalance"`
+}
+
+func (x *imagingOptionsXML) toImagingOptions() *ImagingOptions {
+	options := &ImagingOptions{
+		Brightness:       x.Brightness.toFloatRange(),
+		ColorSaturation:  x.ColorSaturation.toFloatRange(),
+		Contrast:         x.Contrast.toFloatRange(),
+		Sharpness:        x.Sharpness.toFloatRange(),
+		IrCutFilterModes: x.IrCutFilterModes,
+	}
+
+	if b := x.BacklightCompensation; b != nil {
+		options.BacklightCompensation = &BacklightCompensationOptions{
+			Mode:  b.Mode,
+			Level: b.Level.toFloatRange(),
+		}
+	}
+
+	if e := x.Exposure; e != nil {
+		options.Exposure = &ExposureOptions{
+			Mode:            e.Mode,
+			Priority:        e.Priority,
+			MinExposureTime: e.MinExposureTime.toFloatRange(),
+			MaxExposureTime: e.MaxExposureTime.toFloatRange(),
+			MinGain:         e.MinGain.toFloatRange(),
+			MaxGain:         e.MaxGain.toFloatRange(),
+			MinIris:         e.MinIris.toFloatRange(),
+			MaxIris:         e.MaxIris.toFloatRange(),
+			ExposureTime:    e.ExposureTime.toFloatRange(),
+			Gain:            e.Gain.toFloatRange(),
+			Iris:            e.Iris.toFloatRange(),
+		}
+	}
+
+	if f := x.Focus; f != nil {
+		options.Focus = &FocusOptions{
+			AutoFocusModes: f.AutoFocusModes,
+			DefaultSpeed:   f.DefaultSpeed.toFloatRange(),
+			NearLimit:      f.NearLimit.toFloatRange(),
+			FarLimit:       f.FarLimit.toFloatRange(),
+		}
+	}
+
+	if w := x.WideDynamicRange; w != nil {
+		options.WideDynamicRange = &WideDynamicRangeOptions{
+			Mode:  w.Mode,
+			Level: w.Level.toFloatRange(),
+		}
+	}
+
+	if w := x.WhiteBalance; w != nil {
+		options.WhiteBalance = &WhiteBalanceOptions{
+			Mode:   w.Mode,
+			YrGain: w.YrGain.toFloatRange(),
+			YbGain: w.YbGain.toFloatRange(),
+		}
+	}
+
+	return options
+}
+
 // GetOptions retrieves imaging options for a video source.
 func (c *Client) GetOptions(ctx context.Context, videoSourceToken string) (*ImagingOptions, error) {
 	endpoint, err := c.getImagingEndpoint()
@@ -397,47 +512,8 @@ func (c *Client) GetOptions(ctx context.Context, videoSourceToken string) (*Imag
 	}
 
 	type GetOptionsResponse struct {
-		XMLName        xml.Name `xml:"GetOptionsResponse"`
-		ImagingOptions struct {
-			BacklightCompensation *struct {
-				Mode  []string `xml:"Mode"`
-				Level struct {
-					Min float64 `xml:"Min"`
-					Max float64 `xml:"Max"`
-				} `xml:"Level"`
-			} `xml:"BacklightCompensation"`
-			Brightness *struct {
-				Min float64 `xml:"Min"`
-				Max float64 `xml:"Max"`
-			} `xml:"Brightness"`
-			ColorSaturation *struct {
-				Min float64 `xml:"Min"`
-				Max float64 `xml:"Max"`
-			} `xml:"ColorSaturation"`
-			Contrast *struct {
-				Min float64 `xml:"Min"`
-				Max float64 `xml:"Max"`
-			} `xml:"Contrast"`
-			Exposure *struct {
-				Mode            []string `xml:"Mode"`
-				Priority        []string `xml:"Priority"`
-				MinExposureTime struct {
-					Min float64 `xml:"Min"`
-					Max float64 `xml:"Max"`
-				} `xml:"MinExposureTime"`
-				MaxExposureTime struct {
-					Min float64 `xml:"Min"`
-					Max float64 `xml:"Max"`
-				} `xml:"MaxExposureTime"`
-			} `xml:"Exposure"`
-			Focus *struct {
-				AutoFocusModes []string `xml:"AutoFocusModes"`
-				DefaultSpeed   struct {
-					Min float64 `xml:"Min"`
-					Max float64 `xml:"Max"`
-				} `xml:"DefaultSpeed"`
-			} `xml:"Focus"`
-		} `xml:"ImagingOptions"`
+		XMLName        xml.Name          `xml:"GetOptionsResponse"`
+		ImagingOptions imagingOptionsXML `xml:"ImagingOptions"`
 	}
 
 	req := GetOptions{
@@ -454,30 +530,7 @@ func (c *Client) GetOptions(ctx context.Context, videoSourceToken string) (*Imag
 		return nil, fmt.Errorf("GetOptions failed: %w", err)
 	}
 
-	options := &ImagingOptions{}
-
-	if resp.ImagingOptions.Brightness != nil {
-		options.Brightness = &FloatRange{
-			Min: resp.ImagingOptions.Brightness.Min,
-			Max: resp.ImagingOptions.Brightness.Max,
-		}
-	}
-
-	if resp.ImagingOptions.ColorSaturation != nil {
-		options.ColorSaturation = &FloatRange{
-			Min: resp.ImagingOptions.ColorSaturation.Min,
-			Max: resp.ImagingOptions.ColorSaturation.Max,
-		}
-	}
-
-	if resp.ImagingOptions.Contrast != nil {
-		options.Contrast = &FloatRange{
-			Min: resp.ImagingOptions.Contrast.Min,
-			Max: resp.ImagingOptions.Contrast.Max,
-		}
-	}
-
-	return options, nil
+	return resp.ImagingOptions.toImagingOptions(), nil
 }
 
 // GetMoveOptions retrieves imaging move options for focus.
