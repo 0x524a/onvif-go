@@ -693,9 +693,42 @@ func (c *CLI) getSystemDateTime(ctx context.Context) error {
 		return fmt.Errorf("get system date and time: %w", err)
 	}
 
-	fmt.Printf("✅ System Date/Time: %v\n", dateTime)
+	fmt.Println("✅ System Date/Time:")
+	fmt.Print(formatSystemDateTime(dateTime))
 
 	return nil
+}
+
+// formatSystemDateTime renders the camera's clock for display. Any part the
+// camera did not report is left out rather than printed as a nil pointer.
+func formatSystemDateTime(dt *onvif.SystemDateTime) string {
+	if dt == nil {
+		return "   (no date/time reported)\n"
+	}
+
+	var sb strings.Builder
+
+	fmt.Fprintf(&sb, "   Set by: %s\n", dt.DateTimeType)
+	fmt.Fprintf(&sb, "   Daylight savings: %t\n", dt.DaylightSavings)
+
+	if dt.TimeZone != nil {
+		fmt.Fprintf(&sb, "   Time zone: %s\n", dt.TimeZone.TZ)
+	}
+
+	if dt.UTCDateTime != nil {
+		fmt.Fprintf(&sb, "   UTC:   %s\n", formatDateTime(dt.UTCDateTime))
+	}
+
+	if dt.LocalDateTime != nil {
+		fmt.Fprintf(&sb, "   Local: %s\n", formatDateTime(dt.LocalDateTime))
+	}
+
+	return sb.String()
+}
+
+func formatDateTime(dt *onvif.DateTime) string {
+	return fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+		dt.Date.Year, dt.Date.Month, dt.Date.Day, dt.Time.Hour, dt.Time.Minute, dt.Time.Second)
 }
 
 func (c *CLI) rebootDevice(ctx context.Context) {

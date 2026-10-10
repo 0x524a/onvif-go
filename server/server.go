@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/0x524a/onvif-go/server/soap"
@@ -409,13 +410,21 @@ func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// In a real implementation, this would capture a frame from the video source
-	// For now, return a placeholder response
+	// There is no real video source, so serve a generated test pattern.
+	frame, err := renderSnapshot(profileCfg, time.Now())
+	if err != nil {
+		http.Error(w, "Failed to render snapshot", http.StatusInternalServerError)
+
+		return
+	}
+
 	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Content-Length", "0")
+	w.Header().Set("Content-Length", strconv.Itoa(len(frame)))
+	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
 
-	// TODO: Generate or capture actual JPEG snapshot
+	//nolint:errcheck // a failed write after WriteHeader cannot be reported to the client
+	_, _ = w.Write(frame)
 }
 
 // GetConfig returns the server configuration.
