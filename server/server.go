@@ -20,7 +20,7 @@ func New(config *Config) (*Server, error) {
 		config = DefaultConfig()
 	}
 
-	endpointURN, err := normalizeEndpointUUID(config.EndpointUUID)
+	endpointURN, err := normalizeEndpointUUID(config.EndpointUUID, config.EndpointSeed)
 	if err != nil {
 		return nil, err
 	}

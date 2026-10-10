@@ -538,3 +538,26 @@ func TestServerBackedDeviceIsDiscovered(t *testing.T) {
 		t.Errorf("GUID %q != discovered EndpointRef %q", guid, found[0].EndpointRef)
 	}
 }
+
+func TestEndpointSeedIsStableAcrossRestarts(t *testing.T) {
+	mk := func(uuid string) string {
+		c := DefaultConfig()
+		c.EndpointSeed = "farm1/cam-07"
+		c.EndpointUUID = uuid
+
+		s, err := New(c)
+		if err != nil {
+			t.Fatalf("New() error = %v", err)
+		}
+
+		return s.EndpointReference()
+	}
+
+	if a, b := mk(""), mk(""); a != b || a != discovery.StableEndpointRef("farm1/cam-07") {
+		t.Errorf("seeded refs differ across instances: %q vs %q", a, b)
+	}
+
+	if got := mk("12345678-1234-1234-1234-123456789abc"); got != "urn:uuid:12345678-1234-1234-1234-123456789abc" {
+		t.Errorf("EndpointUUID should win over seed, got %q", got)
+	}
+}

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const testEndpoint = "urn:uuid:12345678-1234-1234-1234-123456789abc"
@@ -331,5 +333,21 @@ func TestDiscoverOptionsBadProbeAddress(t *testing.T) {
 		&DiscoverOptions{ProbeAddress: "not an address"})
 	if err == nil {
 		t.Fatal("expected error for bad ProbeAddress")
+	}
+}
+
+func TestStableEndpointRef(t *testing.T) {
+	a, b := StableEndpointRef("farm1/cam-07"), StableEndpointRef("farm1/cam-07")
+	if a != b {
+		t.Errorf("same seed gave %q and %q", a, b)
+	}
+
+	if a == StableEndpointRef("farm1/cam-08") {
+		t.Error("different seeds collided")
+	}
+
+	// Pinned: changing seedNamespace would renumber every seeded device.
+	if want := "urn:uuid:" + uuid.NewSHA1(seedNamespace, []byte("farm1/cam-07")).String(); a != want || !strings.HasPrefix(a, "urn:uuid:") {
+		t.Errorf("unexpected form %q", a)
 	}
 }

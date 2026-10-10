@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -38,6 +40,19 @@ const (
 // DefaultType is the type a registered device advertises when it lists none:
 // dn:NetworkVideoTransmitter, which is what ONVIF clients probe for.
 const DefaultType = "{" + nsONVIFNet + "}NetworkVideoTransmitter"
+
+// seedNamespace scopes StableEndpointRef so seeds hash to UUIDs unique to this
+// library. It must never change: doing so would renumber every device.
+var seedNamespace = uuid.NewSHA1(uuid.NameSpaceURL, []byte("https://github.com/0x524a/onvif-go/endpoint"))
+
+// StableEndpointRef derives a "urn:uuid:" endpoint reference from seed. The
+// same seed always yields the same reference, on any host and across restarts,
+// so a device keeps its identity without anything being persisted. Use a name
+// that is stable for the device (for example "farm1/cam-07"); an empty seed is
+// valid but gives every caller the same reference.
+func StableEndpointRef(seed string) string {
+	return "urn:uuid:" + uuid.NewSHA1(seedNamespace, []byte(seed)).String()
+}
 
 // ErrInvalidDevice is returned by Responder.Register for a device that cannot
 // be advertised.

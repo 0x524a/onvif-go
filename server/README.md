@@ -251,6 +251,7 @@ _ = responder.Register(srv.DiscoveryDevice()) // repeat for every camera
 go responder.Start(ctx)                       // Hello on start, Bye when ctx ends
 ```
 
+- **Stable identity across restarts**: pin the ID with `Config.EndpointUUID`, or set `Config.EndpointSeed: "farm1/cam-07"` and the UUID is derived from that name (`discovery.StableEndpointRef`), so a restarted service gets the same IDs back with nothing persisted. Without either, a random UUID is generated per run. Devices registered directly with the responder can use `discovery.StableEndpointRef(seed)` or any fixed `EndpointRef`.
 - **Opt-in**: nothing changes unless you create a `Responder`.
 - **Unicast mode for tests and CI**: set `ResponderConfig.ListenAddr: "127.0.0.1:0"` and probe with `discovery.DiscoverOptions{ProbeAddress: responder.Addr().String()}`. No multicast routing is needed, which is what containers and CI runners lack.
 - **Multicast limits**: a multicast responder and the `discovery` client on the *same host* both bind port 3702, so replies can reach the wrong socket. Probe from another host, or use unicast mode.
