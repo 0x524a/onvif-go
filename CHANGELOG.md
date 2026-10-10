@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `onvif-server` and `onvif-diagnostics` reported version 1.0.0 whatever the release: the version was a lowercase variable (or a constant) that the release build's `-X main.Version=` could not set. It is now an exported `Version` that the build sets, and `dev` for plain `go build`.
+
 ## [1.2.0] - 2026-10-10
 
 ### Added

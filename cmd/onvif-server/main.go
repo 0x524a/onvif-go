@@ -13,9 +13,8 @@ import (
 	"github.com/0x524a/onvif-go/server"
 )
 
-var (
-	version = "1.0.0"
-)
+// Version is set at build time with -ldflags "-X main.Version=...".
+var Version = "dev"
 
 const (
 	defaultPort    = 8080
@@ -66,7 +65,7 @@ func main() {
 
 	// Handle version flag
 	if *showVersion {
-		fmt.Printf("onvif-server version %s\n", version)
+		fmt.Printf("onvif-server version %s\n", Version)
 		os.Exit(0)
 	}
 
@@ -237,7 +236,7 @@ func printBanner() {
 ║     🎥  ONVIF Virtual Camera Server  🎥                  ║
 ║                                                           ║
 ║     Simulate multi-lens IP cameras with ONVIF support    ║
-║     Version: ` + version + `                                        ║
+║     Version: ` + Version + `                                        ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 `

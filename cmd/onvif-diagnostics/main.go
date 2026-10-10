@@ -23,8 +23,10 @@ import (
 	onviftesting "github.com/0x524a/onvif-go/testing"
 )
 
+// Version is set at build time with -ldflags "-X main.Version=...".
+var Version = "dev"
+
 const (
-	version           = "1.0.0"
 	defaultTimeoutSec = 30
 	maxRetryAttempts  = 10
 	retryDelaySec     = 5
@@ -161,7 +163,7 @@ var (
 func main() {
 	flag.Parse()
 
-	fmt.Printf("ONVIF Camera Diagnostic Utility v%s\n", version)
+	fmt.Printf("ONVIF Camera Diagnostic Utility v%s\n", Version)
 	fmt.Println("========================================")
 	fmt.Println()
 
@@ -187,7 +189,7 @@ func main() {
 	// Initialize report
 	report := &CameraReport{
 		Timestamp:      time.Now().Format(time.RFC3339),
-		UtilityVersion: version,
+		UtilityVersion: Version,
 		ConnectionInfo: ConnectionInfo{
 			Endpoint: *endpoint,
 			Username: *username,
@@ -1662,7 +1664,7 @@ func (t *LoggingTransport) GenerateMetadata(report *CameraReport) *onviftesting.
 	metadata := &onviftesting.CaptureMetadata{
 		Version:        onviftesting.CaptureVersion,
 		CreatedAt:      time.Now(),
-		ToolVersion:    version,
+		ToolVersion:    Version,
 		TotalExchanges: len(t.captures),
 		ServiceMap:     t.serviceMap,
 	}
