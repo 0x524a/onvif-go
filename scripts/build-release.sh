@@ -3,6 +3,9 @@
 
 set -e
 
+# Run from the repository root whatever the caller's working directory.
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 VERSION=${1:-$(git describe --tags --always --dirty 2>/dev/null || echo "dev")}
 echo "Building release binaries for version: $VERSION"
 

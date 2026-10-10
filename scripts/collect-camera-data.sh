@@ -3,6 +3,9 @@
 
 set -e
 
+# Run from the repository root whatever the caller's working directory.
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 # Color output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -105,7 +108,7 @@ fi
 echo ""
 echo -e "${GREEN}Next steps:${NC}"
 echo "1. Review the capture files in ${BATCH_DIR}/"
-echo "2. Copy .tar.gz files to testdata/captures/"
+echo "2. Copy .tar.gz files to testing/captures/"
 echo "3. Run: go build -o bin/generate-tests ./cmd/generate-tests"
 echo "4. Generate tests for each camera capture"
 echo ""

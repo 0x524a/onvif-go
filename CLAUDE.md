@@ -118,7 +118,7 @@ onvif-go/
 │   ├── onvif-server/      # Server CLI
 │   └── generate-tests/    # Test generation from XML captures
 ├── testing/               # Test utilities (mock_server.go)
-├── testdata/captures/     # Real camera SOAP response captures
+├── testing/captures/      # Real camera SOAP response captures and the tests that replay them
 └── examples/              # Usage examples
 ```
 
@@ -200,7 +200,7 @@ All network operations require `context.Context` as first parameter:
 - Unit tests alongside implementation files (`*_test.go`)
 - Real camera tests in `*_real_camera_test.go` (skipped without `-tags=real_camera`)
 - Mock server in `testing/mock_server.go` for integration tests
-- XML captures in `testdata/captures/` for regression testing
+- XML captures in `testing/captures/` for regression testing
 - Comprehensive test coverage tracked in `docs/testing/`
 
 ### Authentication Implementation
@@ -274,10 +274,10 @@ Use the diagnostic tool to capture real camera responses:
 ./onvif-diagnostics -endpoint http://camera/onvif/device_service -username user -password pass -capture-xml
 
 # 2. Generate test from capture
-./generate-tests -capture camera-logs/*_xmlcapture_*.tar.gz -output testdata/captures/
+./generate-tests -capture camera-logs/*_xmlcapture_*.tar.gz -output testing/captures/
 
 # 3. Run generated tests
-go test -v ./testdata/captures/
+go test -v ./testing/captures/
 ```
 
 This allows testing library changes against real camera behavior without physical hardware.

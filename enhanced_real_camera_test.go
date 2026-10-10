@@ -1,6 +1,6 @@
 //go:build real_camera
 
-package onvif
+package onvif_test
 
 import (
 	"context"

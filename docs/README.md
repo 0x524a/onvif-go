@@ -1,61 +1,34 @@
-# ONVIF Go Library Documentation
+# onvif-go documentation
 
-This directory contains comprehensive documentation for the ONVIF Go library.
+The package reference lives on [pkg.go.dev](https://pkg.go.dev/github.com/0x524a/onvif-go),
+and a searchable API reference is published on the
+[project site](https://0x524a.github.io/onvif-go/api.html). These guides cover
+what the reference cannot.
 
-## Directory Structure
+## Getting started
 
-### `/api` - API Documentation
-- **DEVICE_API_STATUS.md** - Complete Device Service API implementation status
-- **DEVICE_API_QUICKREF.md** - Quick reference for Device Service APIs
-- **CERTIFICATE_WIFI_SUMMARY.md** - Certificate and WiFi API documentation
-- **STORAGE_API_SUMMARY.md** - Storage API documentation
-- **ADDITIONAL_APIS_SUMMARY.md** - Additional APIs documentation
+- [Quick start](QUICKSTART.md): install, connect, and make your first calls.
+- [Architecture](ARCHITECTURE.md): how the client, SOAP layer, discovery and server fit together.
 
-### `/implementation` - Implementation Details
-- **IMPLEMENTATION_COMPLETE.md** - Complete implementation status (79/79 Media operations)
-- **IMPLEMENTATION_STATUS.md** - Overall implementation and test status
-- **MEDIA_WSDL_OPERATIONS_ANALYSIS.md** - Complete analysis of all 79 Media Service operations
-- **MEDIA_OPERATIONS_ANALYSIS.md** - Media operations analysis and recommendations
+## Command-line tools
 
-### `/testing` - Testing Documentation
-- **COMPREHENSIVE_TEST_SUMMARY.md** - Comprehensive test results summary
-- **CAMERA_TEST_REPORT.md** - Detailed camera test report
-- **CAMERA_TESTING_FLOW.md** - Camera testing workflow
-- **DEVICE_API_TEST_COVERAGE.md** - Device API test coverage details
-- **COVERAGE_SETUP.md** - Code coverage setup instructions
+- [Non-interactive mode](CLI_NON_INTERACTIVE_MODE.md): using `onvif-cli` in scripts and CI.
+- [Network interface selection](CLI_NETWORK_INTERFACE_USAGE.md): choosing an interface for discovery on multi-homed hosts.
 
-### Root Documentation Files
-- **README.md** - Main project documentation
-- **CHANGELOG.md** - Version history and changes
-- **CONTRIBUTING.md** - Contribution guidelines
-- **BUILDING.md** - Build instructions
-- **QUICKSTART.md** - Quick start guide
-- **START_HERE.md** - Getting started guide
-- **DOCUMENTATION_INDEX.md** - Documentation index
-- **RTSP_STREAM_INSPECTION.md** - RTSP stream inspection guide
-- **RELEASE_NOTES_v1.0.1.md** - Release notes
+## Device API
 
-## Quick Links
+- [Device API status](api/DEVICE_API_STATUS.md): every Device Management operation and whether it is implemented.
+- [Device API quick reference](api/DEVICE_API_QUICKREF.md): common calls with examples.
 
-### Getting Started
-- [Quick Start Guide](QUICKSTART.md)
-- [Start Here](START_HERE.md)
-- [Documentation Index](DOCUMENTATION_INDEX.md)
+## Testing
 
-### API Reference
-- [Device API Status](../docs/api/DEVICE_API_STATUS.md)
-- [Device API Quick Reference](../docs/api/DEVICE_API_QUICKREF.md)
-- [Media Operations Analysis](../docs/implementation/MEDIA_WSDL_OPERATIONS_ANALYSIS.md)
+- [Camera tests](CAMERA_TESTS.md): how camera-specific regression tests work.
+- [Adding your camera](testing/CAMERA_TESTING_FLOW.md): capture a camera and turn it into tests.
+- [Coverage setup](testing/COVERAGE_SETUP.md): coverage, Codecov and SonarCloud.
+- [XML debugging](XML_DEBUGGING_SOLUTION.md): capturing raw SOAP to diagnose a camera.
+- [RTSP stream inspection](RTSP_STREAM_INSPECTION.md): checking that a stream URI is reachable.
 
-### Testing
-- [Comprehensive Test Summary](../docs/testing/COMPREHENSIVE_TEST_SUMMARY.md)
-- [Camera Test Report](../docs/testing/CAMERA_TEST_REPORT.md)
-- [Test Coverage](../docs/testing/DEVICE_API_TEST_COVERAGE.md)
+## Project
 
-### Implementation
-- [Implementation Complete](../docs/implementation/IMPLEMENTATION_COMPLETE.md)
-- [Implementation Status](../docs/implementation/IMPLEMENTATION_STATUS.md)
-
----
-
-*Last Updated: December 2, 2025*
+- [CI/CD](CI_CD.md): the workflows and what each one checks.
+- [Changelog](../CHANGELOG.md) and [contributing](../CONTRIBUTING.md).

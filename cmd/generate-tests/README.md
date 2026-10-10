@@ -13,7 +13,7 @@ This tool reads XML capture archives (created by `onvif-diagnostics -capture-xml
 ```bash
 ./generate-tests \
   -capture camera-logs/Camera_Model_xmlcapture_timestamp.tar.gz \
-  -output testdata/captures/
+  -output testing/captures/
 ```
 
 ### Options
@@ -35,10 +35,10 @@ This tool reads XML capture archives (created by `onvif-diagnostics -capture-xml
 # Generate test from Bosch camera capture
 ./generate-tests \
   -capture camera-logs/Bosch_FLEXIDOME_indoor_5100i_IR_8.71.0066_xmlcapture_20251110-120000.tar.gz \
-  -output testdata/captures/
+  -output testing/captures/
 
 # Output:
-# ✓ Generated test file: testdata/captures/bosch_flexidome_indoor_5100i_ir_8.71.0066_test.go
+# ✓ Generated test file: testing/captures/bosch_flexidome_indoor_5100i_ir_8.71.0066_test.go
 #   Camera: Bosch FLEXIDOME indoor 5100i IR (Firmware: 8.71.0066)
 #   Captured operations: 18
 ```
@@ -128,13 +128,13 @@ func Test<CameraName>(t *testing.T) {
 ```bash
 ./generate-tests \
   -capture camera-logs/Camera_*_xmlcapture_*.tar.gz \
-  -output testdata/captures/
+  -output testing/captures/
 ```
 
 ### 3. Run Test
 
 ```bash
-go test -v ./testdata/captures/ -run TestCamera
+go test -v ./testing/captures/ -run TestCamera
 ```
 
 ## Customization
@@ -197,7 +197,7 @@ The generator automatically handles archive paths:
 
 - If archive is in output directory, uses filename only
 - Otherwise uses relative path from output directory
-- Tests can find archives when run with `go test ./testdata/captures/`
+- Tests can find archives when run with `go test ./testing/captures/`
 
 ## Troubleshooting
 
@@ -231,6 +231,6 @@ Potential improvements:
 
 ## See Also
 
-- `testdata/captures/README.md` - Using generated tests
+- `testing/captures/README.md` - Using generated tests
 - `testing/mock_server.go` - Mock server implementation
 - `cmd/onvif-diagnostics/` - Capturing tool

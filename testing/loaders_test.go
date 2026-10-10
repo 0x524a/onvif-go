@@ -3,8 +3,13 @@ package onviftesting
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -188,4 +193,85 @@ func TestLoadGoldenManifestAndFiles(t *testing.T) {
 	if _, err := LoadGoldenManifest(dir); err == nil {
 		t.Error("malformed manifest: expected error")
 	}
+}
+
+// A captured response that advertises the camera's own address must be served
+// with the mock server's address instead, or the client would leave the mock.
+func TestMockServerRewritesCapturedCameraAddress(t *testing.T) {
+	const caps = `<GetCapabilitiesResponse><XAddr>http://192.168.2.9:8000/onvif/media_service</XAddr>` +
+		`<XAddr>http://192.168.2.9/onvif/ptz_service</XAddr><Other>http://example.org/keep</Other></GetCapabilitiesResponse>`
+
+	exchange := `{"timestamp":"t","operation":1,"operation_name":"GetCapabilities",` +
+		`"endpoint":"http://192.168.2.9:8000/onvif/device_service",` +
+		`"request_body":"<Body><GetCapabilities/></Body>","response_body":` + quoteJSON(caps) + `,"status_code":200}`
+
+	path := writeArchive(t, map[string]string{"001_GetCapabilities.json": exchange})
+
+	for name, start := range map[string]func(string) (url string, closeFn func(), err error){
+		"v1": func(p string) (string, func(), error) {
+			m, err := NewMockSOAPServer(p)
+			if err != nil {
+				return "", nil, err
+			}
+
+			return m.URL(), m.Close, nil
+		},
+		"v2": func(p string) (string, func(), error) {
+			m, err := NewMockSOAPServerV2(p)
+			if err != nil {
+				return "", nil, err
+			}
+
+			return m.URL(), m.Close, nil
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			base, closeFn, err := start(path)
+			if err != nil {
+				t.Fatalf("start mock: %v", err)
+			}
+			defer closeFn()
+
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, base+"/onvif/device_service",
+				strings.NewReader("<Body><GetCapabilities/></Body>"))
+			if err != nil {
+				t.Fatalf("build request: %v", err)
+			}
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatalf("POST: %v", err)
+			}
+			defer func() { _ = resp.Body.Close() }()
+
+			raw, _ := io.ReadAll(resp.Body)
+			body := string(raw)
+
+			if strings.Contains(body, "192.168.2.9") {
+				t.Errorf("response still points at the captured camera:\n%s", body)
+			}
+
+			for _, want := range []string{base + "/onvif/media_service", base + "/onvif/ptz_service", "http://example.org/keep"} {
+				if !strings.Contains(body, want) {
+					t.Errorf("response missing %q:\n%s", want, body)
+				}
+			}
+		})
+	}
+}
+
+func TestCapturedCameraPatternNoHosts(t *testing.T) {
+	if p := capturedCameraPattern([]string{"", "::bad::"}); p != nil {
+		t.Errorf("pattern = %v, want nil when no host is known", p)
+	}
+
+	if got := redirectToMock("http://x/y", nil, "http://mock"); got != "http://x/y" {
+		t.Errorf("nil pattern must leave the body alone, got %q", got)
+	}
+}
+
+func quoteJSON(s string) string {
+	b, _ := json.Marshal(s)
+
+	return string(b)
 }

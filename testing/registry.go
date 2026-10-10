@@ -45,7 +45,7 @@ type Coverage struct {
 const RegistryVersion = "1.0"
 
 // DefaultRegistryPath is the default path for the registry file.
-const DefaultRegistryPath = "testdata/captures/registry.json"
+const DefaultRegistryPath = "testing/captures/registry.json"
 
 // LoadRegistry loads the capture registry from a file.
 func LoadRegistry(path string) (*Registry, error) {

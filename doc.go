@@ -79,5 +79,23 @@
 //	settings.Brightness = &brightness
 //	client.SetImagingSettings(ctx, videoSourceToken, settings, true)
 //
+// # Testing without a camera
+//
+// The server subpackage runs a virtual camera that this client can talk to,
+// which makes it the easiest way to test code that depends on a camera:
+//
+//	cfg := server.DefaultConfig()
+//	cfg.Port = 0 // pick a free port
+//	srv, _ := server.New(cfg)
+//	go srv.Start(ctx)
+//
+// The discovery subpackage can announce that camera to WS-Discovery clients, so
+// it is found on the network like real hardware.
+//
+// # Subpackages
+//
+//   - discovery finds devices with WS-Discovery and answers probes for your own
+//   - server is a virtual ONVIF camera for tests and demos
+//
 // For more examples, see the examples directory in the repository.
 package onvif

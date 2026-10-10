@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Capture replay (`testing`): the mock SOAP servers now rewrite the captured camera's own address in replayed responses to the mock's address. Before, a client followed the `GetCapabilities`/`GetServices` URLs out of the mock and tried to reach the original camera, so replay tests timed out.
+- `generate-tests`: the generated test referenced its archive as `captures/<file>` instead of the bare file name, could emit an invalid test name such as `Testunknown_device`, and wrote unformatted code. Output is now gofmt-clean and marked as generated.
+- The camera replay tests under `testdata/captures/` were never run, because Go ignores `testdata/`. They now live in `testing/captures/` and run with `go test ./...`; tests for the January captures were added (the broken `real_camera` test moved to the repository root and compiles).
+
+### Changed
+- Repository layout: debug and test programs moved from `examples/` to `tools/`, shell scripts to `scripts/`, 19 redundant status documents removed from `docs/`, and a committed 8.7 MB example binary removed.
+
 ## [1.2.0] - 2026-10-10
 
 ### Added
