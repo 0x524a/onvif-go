@@ -28,7 +28,12 @@ jobs:
       - name: Run gosec
         uses: securego/gosec@deb54465fea23d19a77f037e11e6589021f8501d # v2.29.0
         with:
-          args: -no-fail -fmt json -out gosec-report.json ./...
+          # Blocks on high-severity findings. Reviewed exceptions carry an inline
+          # '// #nosec Gxxx -- reason' (not '//nolint', which gosec cannot see).
+          # examples/ is sample code and is excluded: its demo configs trip G101
+          # on ONVIF "Token" field names, and gosec cannot suppress a finding on
+          # an element nested in a composite literal.
+          args: -severity high -exclude-dir=examples -fmt json -out gosec-report.json ./...
       
       - name: Upload gosec report
         if: always()

@@ -42,6 +42,16 @@ jobs:
           fi
           echo "✅ All files are properly formatted"
 
+      # Fails when go.mod/go.sum are not what `go mod tidy` would produce, so a
+      # dependency change cannot land with stale or missing entries.
+      - name: Check go.mod and go.sum are tidy
+        run: |
+          if ! go mod tidy -diff; then
+            echo "❌ go.mod/go.sum are not tidy. Run 'go mod tidy' and commit the result."
+            exit 1
+          fi
+          echo "✅ go.mod and go.sum are tidy"
+
   # Stage 2: Lint (depends on fmt)
   lint:
     name: Lint
@@ -79,7 +89,10 @@ jobs:
         run: go mod download
 
       - name: Run go vet
-        run: go vet ./...
+        run: |
+          go vet ./...
+          # Files behind the real_camera build tag are skipped by the default vet.
+          go vet -tags=real_camera ./...
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
@@ -122,20 +135,29 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      # A failing test fails this job (and so CI Success). The steps below use
+      # `if: ${{ !cancelled() }}` so coverage and the JSON report are still
+      # uploaded when tests fail, which is when they are most useful. Only
+      # stdout goes to the report: stderr (build errors) stays in the log.
       - name: Run tests with coverage
+        run: go test -v -race -covermode=atomic -coverprofile=coverage.out -json ./... > test-report.json
+
+      - name: List failing tests
+        if: ${{ failure() }}
         run: |
-          go test -v -race -covermode=atomic -coverprofile=coverage.out -json ./... > test-report.json 2>&1 || true
-          # Ensure coverage file exists even if tests fail
-          if [ ! -f coverage.out ]; then
-            echo "mode: atomic" > coverage.out
-          fi
+          echo "❌ Failing tests:"
+          jq -r 'select(.Action == "fail" and .Test != null) | "  \(.Package) \(.Test)"' test-report.json || true
+          echo "❌ Failing packages:"
+          jq -r 'select(.Action == "fail" and .Test == null) | "  \(.Package)"' test-report.json || true
 
       - name: Display coverage summary
+        if: ${{ !cancelled() && hashFiles('coverage.out') != '' }}
         run: |
           echo "📊 Coverage Summary:"
           go tool cover -func=coverage.out | tail -20
 
       - name: Upload coverage artifact
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-reports
@@ -145,6 +167,7 @@ jobs:
           retention-days: 7
 
       - name: Upload to Codecov
+        if: ${{ !cancelled() && hashFiles('coverage.out') != '' }}
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -158,6 +181,28 @@ jobs:
           # GPG key hosted on keybase.io, which now 404s (codecov/codecov-action#1955).
           # use_pypi installs the uploader from PyPI instead, bypassing that dead path.
           use_pypi: true
+
+  # Tests on the oldest Go that go.mod promises to support. The version is read
+  # from go.mod, so raising the minimum there moves this job with it. The main
+  # test job above runs the latest Go; this one catches use of newer APIs.
+  test-min-go:
+    name: Test (minimum Go)
+    runs-on: ubuntu-latest
+    needs: lint
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go (version from go.mod)
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests
+        run: go test -race -timeout=10m ./...
 
   # Stage 4: SonarCloud Analysis (depends on test)
   # Only runs on push to master/main when SONAR_TOKEN is available
@@ -249,7 +294,7 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [fmt, lint, test, sonarcloud, build]
+    needs: [fmt, lint, test, test-min-go, sonarcloud, build]
     if: always()
     # Only reads the `needs` context; doesn't check out code or call any API.
     permissions: {}
@@ -266,6 +311,10 @@ jobs:
           fi
           if [[ "${{ needs.test.result }}" != "success" ]]; then
             echo "❌ Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.test-min-go.result }}" != "success" ]]; then
+            echo "❌ Tests failed on the minimum supported Go version"
             exit 1
           fi
           # SonarCloud is optional - only fails if it ran and failed (not if skipped)
