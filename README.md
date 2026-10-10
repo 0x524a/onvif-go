@@ -66,7 +66,8 @@ for _, d := range devices {
 
 ### Connect and get a stream
 
-The endpoint can be a full URL, `host:port`, or a bare IP address.
+> [!TIP]
+> The endpoint can be a full URL, `host:port`, or a bare IP address. A bare IP gets `http://` and `/onvif/device_service` added.
 
 ```go
 client, err := onvif.NewClient(
@@ -109,7 +110,10 @@ presets, err := client.GetPresets(ctx, token)
 err = client.GotoPreset(ctx, token, presets[0].Token, nil)
 ```
 
-Every method takes a `context.Context` first, so timeouts and cancellation work everywhere. More runnable snippets are in the [Go docs](https://pkg.go.dev/github.com/0x524a/onvif-go#pkg-examples) and the [examples](examples/) directory.
+> [!NOTE]
+> Every method takes a `context.Context` first, so timeouts and cancellation work everywhere.
+
+More runnable snippets are in the [Go docs](https://pkg.go.dev/github.com/0x524a/onvif-go#pkg-examples) and the [examples](examples/) directory.
 
 ## Test without a camera
 
@@ -135,7 +139,8 @@ go install github.com/0x524a/onvif-go/cmd/onvif-server@latest
 onvif-server -profiles 3 -username admin -password admin -port 8080
 ```
 
-To make it discoverable on the network, register `srv.DiscoveryDevice()` with a `discovery.Responder`. See the [server README](server/README.md) for configuration, stable identities and the WS-Discovery responder.
+> [!TIP]
+> To make it discoverable on the network, register `srv.DiscoveryDevice()` with a `discovery.Responder`. See the [server README](server/README.md) for configuration, stable identities and the WS-Discovery responder.
 
 Captured responses from real cameras are replayed in the test suite through a mock server (`testing/captures`), so a fix for one camera is checked against the others. See the [camera testing guide](docs/testing/CAMERA_TESTING_FLOW.md) to add yours.
 
@@ -188,7 +193,8 @@ Contributions are welcome. For anything larger than a fix, please open an issue 
 
 ## Acknowledgements
 
-onvif-go stands on other people's work:
+<details>
+<summary>onvif-go stands on other people's work</summary>
 
 - [gortsplib](https://github.com/bluenviron/gortsplib) and [mediacommon](https://github.com/bluenviron/mediacommon) by the bluenviron project: the RTSP client and media-format library behind the stream inspection in `onvif-cli`, through [rtspeek](https://github.com/0x524A/rtspeek).
 - [Pion](https://github.com/pion): the RTP, RTCP, SDP and SRTP libraries that gortsplib builds on.
@@ -197,11 +203,15 @@ onvif-go stands on other people's work:
 
 The licenses of everything compiled into the library and the tools are reproduced in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), which also ships in every release archive.
 
+</details>
+
 ## Star history
 
 If you find this project useful, please consider giving it a star! ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=0x524a/onvif-go&type=Date)](https://star-history.com/#0x524a/onvif-go&Date)
+<a href="https://star-history.com/#0x524a/onvif-go&Date">
+  <img src="https://api.star-history.com/svg?repos=0x524a/onvif-go&type=Date" alt="Star History Chart" width="560">
+</a>
 
 ## License
 
