@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/0x524a/onvif-go/discovery"
+
 	"github.com/0x524a/onvif-go/server/soap"
 )
 
@@ -260,8 +262,13 @@ type GetEndpointReferenceResponse struct {
 }
 
 // normalizeEndpointUUID validates uuidStr (bare or "urn:uuid:" prefixed) and
-// returns it in URN form. An empty string yields a freshly generated UUID.
-func normalizeEndpointUUID(uuidStr string) (string, error) {
+// returns it in URN form. With no uuidStr, a non-empty seed derives a stable
+// UUID; otherwise a fresh one is generated.
+func normalizeEndpointUUID(uuidStr, seed string) (string, error) {
+	if uuidStr == "" && seed != "" {
+		return discovery.StableEndpointRef(seed), nil
+	}
+
 	if uuidStr == "" {
 		return "urn:uuid:" + uuid.NewString(), nil
 	}

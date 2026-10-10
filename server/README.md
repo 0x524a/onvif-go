@@ -238,6 +238,25 @@ func main() {
 }
 ```
 
+## WS-Discovery for Virtual Cameras
+
+`server` answers HTTP/SOAP; making a virtual camera *findable* by multicast discovery is the job of `discovery.Responder`. One responder owns one socket and advertises any number of devices, so a fleet of cameras on one host shares a single multicast membership.
+
+```go
+srv, _ := server.New(&server.Config{ /* ... */ EndpointUUID: "00075fd3-5db7-b75d-d35f-0700075fd35f" })
+// ... start srv and wait for Config.Ready, so the bound port is known ...
+
+responder := discovery.NewResponder(&discovery.ResponderConfig{NetworkInterface: "eth0"})
+_ = responder.Register(srv.DiscoveryDevice()) // repeat for every camera
+go responder.Start(ctx)                       // Hello on start, Bye when ctx ends
+```
+
+- **Stable identity across restarts**: pin the ID with `Config.EndpointUUID`, or set `Config.EndpointSeed: "farm1/cam-07"` and the UUID is derived from that name (`discovery.StableEndpointRef`), so a restarted service gets the same IDs back with nothing persisted. Without either, a random UUID is generated per run. Devices registered directly with the responder can use `discovery.StableEndpointRef(seed)` or any fixed `EndpointRef`.
+- **Opt-in**: nothing changes unless you create a `Responder`.
+- **Unicast mode for tests and CI**: set `ResponderConfig.ListenAddr: "127.0.0.1:0"` and probe with `discovery.DiscoverOptions{ProbeAddress: responder.Addr().String()}`. No multicast routing is needed, which is what containers and CI runners lack.
+- **Multicast limits**: a multicast responder and the `discovery` client on the *same host* both bind port 3702, so replies can reach the wrong socket. Probe from another host, or use unicast mode.
+- **Supported**: Probe/ProbeMatches with Types and Scopes filtering (MatchBy `rfc3986` default, `strcmp0`, `none`), Hello, Bye, per-reply `MaxResponseDelay`. **Not supported**: Resolve, MatchBy `ldap`/`uuid` (matches nothing), WS-Discovery 1.1 namespace, discovery proxies.
+
 ## Testing with ONVIF Client
 
 You can test the server with the included ONVIF client library:

@@ -83,6 +83,13 @@ type DiscoverOptions struct {
 	// Examples: "eth0", "wlan0", "192.168.1.100"
 	NetworkInterface string
 
+	// ProbeAddress, when set, sends the probe by unicast to this UDP address
+	// ("host:port") from an ephemeral local port instead of using the
+	// WS-Discovery multicast group. It needs no multicast routing, so it works
+	// in containers and CI, and it pairs with ResponderConfig.ListenAddr.
+	// NetworkInterface is ignored when it is set.
+	ProbeAddress string
+
 	// Context and timeout are handled by the caller
 }
 
@@ -93,31 +100,14 @@ func Discover(ctx context.Context, timeout time.Duration) ([]*Device, error) {
 }
 
 // DiscoverWithOptions discovers ONVIF devices with custom options.
-//
-//nolint:gocyclo // Discovery function has high complexity due to multiple network operations
 func DiscoverWithOptions(ctx context.Context, timeout time.Duration, opts *DiscoverOptions) ([]*Device, error) {
 	if opts == nil {
 		opts = &DiscoverOptions{}
 	}
 
-	// Create UDP connection for multicast
-	addr, err := net.ResolveUDPAddr("udp", multicastAddr)
+	conn, addr, err := openProbeConn(opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve multicast address: %w", err)
-	}
-
-	// Get the network interface to use
-	var iface *net.Interface
-	if opts.NetworkInterface != "" {
-		iface, err = resolveNetworkInterface(opts.NetworkInterface)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve network interface: %w", err)
-		}
-	}
-
-	conn, err := net.ListenMulticastUDP("udp", iface, addr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to listen on multicast address: %w", err)
+		return nil, err
 	}
 	defer func() {
 		_ = conn.Close()
@@ -172,6 +162,44 @@ func DiscoverWithOptions(ctx context.Context, timeout time.Duration, opts *Disco
 			}
 		}
 	}
+}
+
+// openProbeConn opens the socket the probe is sent from and returns the
+// address to send it to: the multicast group, or opts.ProbeAddress by unicast.
+func openProbeConn(opts *DiscoverOptions) (*net.UDPConn, *net.UDPAddr, error) {
+	if opts.ProbeAddress != "" {
+		target, err := net.ResolveUDPAddr("udp", opts.ProbeAddress)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to resolve probe address: %w", err)
+		}
+
+		conn, err := net.ListenUDP("udp", &net.UDPAddr{})
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to open probe socket: %w", err)
+		}
+
+		return conn, target, nil
+	}
+
+	addr, err := net.ResolveUDPAddr("udp", multicastAddr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to resolve multicast address: %w", err)
+	}
+
+	var iface *net.Interface
+	if opts.NetworkInterface != "" {
+		iface, err = resolveNetworkInterface(opts.NetworkInterface)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to resolve network interface: %w", err)
+		}
+	}
+
+	conn, err := net.ListenMulticastUDP("udp", iface, addr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to listen on multicast address: %w", err)
+	}
+
+	return conn, addr, nil
 }
 
 // parseProbeResponse parses a WS-Discovery probe response.

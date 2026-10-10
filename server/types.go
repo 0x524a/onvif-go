@@ -66,6 +66,12 @@ type Config struct {
 	// empty, New generates one that stays fixed for the server's lifetime.
 	EndpointUUID string
 
+	// EndpointSeed derives the endpoint UUID from a stable name (see
+	// discovery.StableEndpointRef) when EndpointUUID is empty, so a restarted
+	// service gets the same identity back without persisting anything.
+	// EndpointUUID wins if both are set.
+	EndpointSeed string
+
 	// Authentication
 	Username string
 	Password string
