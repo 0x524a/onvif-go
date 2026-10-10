@@ -10,7 +10,7 @@ import (
 )
 
 // PTZ service namespace.
-const ptzNamespace = "http://www.onvif.org/ver20/ptz/wsdl"
+const ptzNamespace = "http://www.onvif.org/ver20/ptz/wsdl" // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 
 // getPTZEndpoint returns the discovered PTZ service endpoint.
 //

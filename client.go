@@ -149,7 +149,7 @@ func normalizeEndpoint(endpoint string) (string, error) {
 
 	// No scheme - treat as IP, IP:port, hostname, or hostname:port
 	// Add http:// scheme and validate
-	fullURL := "http://" + endpoint + "/onvif/device_service"
+	fullURL := "http://" + endpoint + "/onvif/device_service" // NOSONAR // plain HTTP is the ONVIF default when no scheme is given; callers may pass https://
 	parsedURL, err := url.Parse(fullURL)
 	if err != nil {
 		return "", fmt.Errorf("invalid IP address or hostname: %w", err)

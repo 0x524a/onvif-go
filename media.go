@@ -9,7 +9,7 @@ import (
 )
 
 // Media service namespace.
-const mediaNamespace = "http://www.onvif.org/ver10/media/wsdl"
+const mediaNamespace = "http://www.onvif.org/ver10/media/wsdl" // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 
 // onvifSchemaNamespace is already defined in deviceio.go and available here
 

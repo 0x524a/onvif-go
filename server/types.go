@@ -494,10 +494,10 @@ func (c *Config) ServiceEndpoints(host string) map[string]string {
 	var baseURL string
 	const httpPort = 80
 	if c.Port == httpPort {
-		baseURL = "http://" + host + c.BasePath
+		baseURL = "http://" + host + c.BasePath // NOSONAR // plain HTTP is the ONVIF default when no scheme is given; callers may pass https://
 	} else {
 		// Import fmt at the top to use Sprintf
-		baseURL = fmt.Sprintf("http://%s:%d%s", host, c.Port, c.BasePath)
+		baseURL = fmt.Sprintf("http://%s:%d%s", host, c.Port, c.BasePath) // NOSONAR // plain HTTP is the ONVIF default when no scheme is given; callers may pass https://
 	}
 
 	endpoints := map[string]string{

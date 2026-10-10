@@ -9,7 +9,7 @@ import (
 )
 
 // Imaging service namespace.
-const imagingNamespace = "http://www.onvif.org/ver20/imaging/wsdl"
+const imagingNamespace = "http://www.onvif.org/ver20/imaging/wsdl" // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 
 // getImagingEndpoint returns the discovered Imaging service endpoint.
 //
