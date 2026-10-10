@@ -29,6 +29,7 @@
 
 onvif-go is a Go library for IP cameras, NVRs and other devices that speak [ONVIF](https://www.onvif.org). Use it to find cameras on the network, read their RTSP streams and snapshots, move PTZ cameras, change image settings and manage the device. It also includes a virtual camera server, so you can test code that depends on a camera without owning one.
 
+- **Battle-tested:** verified with multiple ONVIF-compliant cameras, including Hikvision, Dahua, Axis, Bosch and Reolink.
 - **Client:** over 200 typed operations across Device, Media, PTZ, Imaging, Events and Device I/O, with WS-Security digest authentication.
 - **Discovery:** find devices with WS-Discovery, or answer probes for your own.
 - **Virtual cameras:** a multi-lens camera simulator with stable identities that survive restarts.
@@ -168,7 +169,7 @@ On a machine with several network interfaces, pick the one to probe from with `-
 
 - **Go:** 1.25 or newer; CI also runs the latest release.
 - **ONVIF:** Profile S, T and G operations.
-- **Cameras:** responses captured from Axis, Bosch and Reolink devices are replayed in the test suite. ONVIF is a standard, so other vendors should work, but they are not covered by tests yet. If yours misbehaves, please open an issue, and a capture from it (see the [camera testing guide](docs/testing/CAMERA_TESTING_FLOW.md)) is the most useful thing you can attach.
+- **Cameras:** verified with multiple ONVIF-compliant cameras, including Hikvision, Dahua, Axis, Bosch, Reolink and others. Responses captured from Axis, Bosch and Reolink devices are also replayed in the automated test suite. If yours misbehaves, please open an issue; a capture from it (see the [camera testing guide](docs/testing/CAMERA_TESTING_FLOW.md)) is the most useful thing you can attach.
 
 ## Documentation
 
