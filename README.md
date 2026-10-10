@@ -216,3 +216,7 @@ If you find this project useful, please consider giving it a star! ⭐
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+---
+
+<p align="center">Made with ❤️ for the Go and IoT community</p>
