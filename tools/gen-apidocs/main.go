@@ -303,7 +303,7 @@ var tmpl = template.Must(template.New("api").Parse(`<!doctype html>
     <a class="brand" href="./"><img src="icon.svg" alt="" width="36" height="36">onvif-go</a>
     <nav aria-label="Primary">
       <a href="./">Home</a>
-      <a href="https://pkg.go.dev/github.com/0x524a/onvif-go">Go docs</a>
+      <a href="https://pkg.go.dev/github.com/0x524a/onvif-go">pkg.go.dev</a>
       <a class="gh" href="https://github.com/0x524a/onvif-go">GitHub</a>
     </nav>
   </div>
