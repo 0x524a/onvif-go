@@ -10,11 +10,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/0x524a/onvif-go/internal/buildinfo"
 	"github.com/0x524a/onvif-go/server"
 )
 
-// Version is set at build time with -ldflags "-X main.Version=...".
-var Version = "dev"
+// Version and Commit are set at build time with
+// -ldflags "-X main.Version=... -X main.Commit=...".
+var (
+	Version = "dev"
+	Commit  = ""
+)
 
 const (
 	defaultPort    = 8080
@@ -65,7 +70,7 @@ func main() {
 
 	// Handle version flag
 	if *showVersion {
-		fmt.Printf("onvif-server version %s\n", Version)
+		fmt.Println(buildinfo.String("onvif-server", Version, Commit))
 		os.Exit(0)
 	}
 

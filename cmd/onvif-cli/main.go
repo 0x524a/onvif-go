@@ -16,6 +16,7 @@ import (
 
 	"github.com/0x524a/onvif-go"
 	"github.com/0x524a/onvif-go/discovery"
+	"github.com/0x524a/onvif-go/internal/buildinfo"
 )
 
 const (
@@ -40,8 +41,16 @@ type CLI struct {
 	reader *bufio.Reader
 }
 
+// Version and Commit are set at build time with
+// -ldflags "-X main.Version=... -X main.Commit=...".
+var (
+	Version = "dev"
+	Commit  = ""
+)
+
 func main() {
 	var (
+		showVersion    bool
 		endpoint       string
 		username       string
 		password       string
@@ -66,7 +75,14 @@ func main() {
 	flag.IntVar(&timeoutSeconds, "t", defaultNonInteractiveTimeoutSeconds, "Request timeout in seconds (shorthand)")
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Force non-interactive mode")
 	flag.BoolVar(&nonInteractive, "ni", false, "Force non-interactive mode (shorthand)")
+	flag.BoolVar(&showVersion, "version", false, "Show version and exit")
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println(buildinfo.String("onvif-cli", Version, Commit))
+
+		return
+	}
 
 	// A supplied -op (or an explicit -non-interactive) means this run must not
 	// touch stdin. Falling through to the interactive menu below on
