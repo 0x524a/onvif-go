@@ -414,7 +414,7 @@ The Device Service provides comprehensive device management capabilities with **
 
 ## 🔧 Device Management Features
 
-The onvif-go library provides **98 fully-implemented Device Management APIs** for complete device configuration and control. See [DEVICE_API_STATUS.md](DEVICE_API_STATUS.md) for the complete API reference.
+The onvif-go library provides **98 fully-implemented Device Management APIs** for complete device configuration and control. See [DEVICE_API_STATUS.md](docs/api/DEVICE_API_STATUS.md) for the complete API reference.
 
 ### Common Device Management Use Cases
 
@@ -550,7 +550,7 @@ response, err := client.SendAuxiliaryCommand(ctx, "tt:IRLamp|On")
 ### Full API Reference
 
 For complete documentation of all 98 Device Management APIs with detailed descriptions, parameters, and return types, see:
-- **[DEVICE_API_STATUS.md](DEVICE_API_STATUS.md)** - Complete API listing with categories and examples
+- **[DEVICE_API_STATUS.md](docs/api/DEVICE_API_STATUS.md)** - Complete API listing with categories and examples
 
 ### Media Service
 
@@ -807,7 +807,7 @@ go build -o onvif-diagnostics ./cmd/onvif-diagnostics/
 - `camera-logs/Manufacturer_Model_Firmware_timestamp.json` - Diagnostic report
 - `camera-logs/Manufacturer_Model_Firmware_xmlcapture_timestamp.tar.gz` - Raw XML (with `-capture-xml`)
 
-**See**: `XML_DEBUGGING_SOLUTION.md` for complete debugging workflow
+**See**: [`docs/XML_DEBUGGING_SOLUTION.md`](docs/XML_DEBUGGING_SOLUTION.md) for complete debugging workflow
 
 ### 🧪 Camera Test Framework
 
@@ -820,10 +820,10 @@ Automated regression testing using captured camera responses:
 
 # 2. Generate test
 go build -o generate-tests ./cmd/generate-tests/
-./generate-tests -capture camera-logs/*_xmlcapture_*.tar.gz -output testdata/captures/
+./generate-tests -capture camera-logs/*_xmlcapture_*.tar.gz -output testing/captures/
 
 # 3. Run tests
-go test -v ./testdata/captures/
+go test -v ./testing/captures/
 ```
 
 **Benefits**:
@@ -832,7 +832,7 @@ go test -v ./testdata/captures/
 - Fast CI/CD integration
 - Real camera response validation
 
-**See**: `testdata/captures/README.md` for complete testing guide
+**See**: `testing/captures/README.md` for complete testing guide
 
 ## 🖥️ CLI Tools
 
@@ -927,7 +927,6 @@ devices, err := discovery.DiscoverWithOptions(ctx, 5*time.Second, opts)
 **See**: 
 - `docs/CLI_NETWORK_INTERFACE_USAGE.md` - Detailed CLI guide
 - `discovery/NETWORK_INTERFACE_GUIDE.md` - API usage examples
-- `DESIGN_REFACTOR.md` - How smart interface detection works
 
 ## 🌟 Star History
 

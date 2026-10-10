@@ -3,6 +3,9 @@
 # Go ONVIF Library Demo Script
 # This script demonstrates the capabilities of the Go ONVIF library
 
+# Run from the repository root whatever the caller's working directory.
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 echo "🎥 Go ONVIF Library - Complete Implementation Demo"
 echo "=================================================="
 echo

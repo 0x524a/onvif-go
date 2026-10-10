@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -94,6 +95,9 @@ func LoadCaptureFromArchive(archivePath string) (*CameraCapture, error) {
 type MockSOAPServer struct {
 	Server  *httptest.Server
 	Capture *CameraCapture
+
+	// camera matches URLs that point at the camera the capture was taken from.
+	camera *regexp.Regexp
 }
 
 // NewMockSOAPServer creates a new mock server from a capture archive.
@@ -103,8 +107,14 @@ func NewMockSOAPServer(archivePath string) (*MockSOAPServer, error) {
 		return nil, err
 	}
 
+	endpoints := make([]string, 0, len(capture.Exchanges))
+	for i := range capture.Exchanges {
+		endpoints = append(endpoints, capture.Exchanges[i].Endpoint)
+	}
+
 	mock := &MockSOAPServer{
 		Capture: capture,
+		camera:  capturedCameraPattern(endpoints),
 	}
 
 	// Create HTTP test server
@@ -162,7 +172,7 @@ func (m *MockSOAPServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/soap+xml; charset=utf-8")
 	w.WriteHeader(exchange.StatusCode)
 	//nolint:errcheck // Write error is not critical after WriteHeader
-	_, _ = w.Write([]byte(exchange.ResponseBody))
+	_, _ = w.Write([]byte(redirectToMock(exchange.ResponseBody, m.camera, m.Server.URL)))
 }
 
 // Close shuts down the mock server.
@@ -231,6 +241,9 @@ type MockSOAPServerV2 struct {
 	Capture     *CameraCaptureV2
 	exchangeMap map[string][]*CapturedExchangeV2 // operationName -> exchanges
 	metadata    *CaptureMetadata
+
+	// camera matches URLs that point at the camera the capture was taken from.
+	camera *regexp.Regexp
 }
 
 // NewMockSOAPServerV2 creates an enhanced mock server from a capture archive.
@@ -259,9 +272,55 @@ func NewMockSOAPServerV2(archivePath string) (*MockSOAPServerV2, error) {
 		mock.exchangeMap[opName] = append(mock.exchangeMap[opName], ex)
 	}
 
+	endpoints := make([]string, 0, len(capture.Exchanges))
+	for i := range capture.Exchanges {
+		endpoints = append(endpoints, capture.Exchanges[i].Endpoint)
+	}
+
+	mock.camera = capturedCameraPattern(endpoints)
 	mock.Server = httptest.NewServer(http.HandlerFunc(mock.handleRequest))
 
 	return mock, nil
+}
+
+// capturedCameraPattern returns a pattern matching any http(s) URL, with or
+// without a port, that points at a host the capture was taken from, or nil when
+// no host can be determined.
+//
+// Captured GetCapabilities and GetServices responses list the camera's own
+// service addresses. A client follows them, so unless they are rewritten it
+// leaves the mock server after Initialize and tries to reach a camera that is
+// not there (or, worse, a different device now using that address).
+func capturedCameraPattern(endpoints []string) *regexp.Regexp {
+	seen := map[string]bool{}
+
+	var hosts []string
+
+	for _, e := range endpoints {
+		u, err := url.Parse(e)
+		if err != nil || u.Hostname() == "" || seen[u.Hostname()] {
+			continue
+		}
+
+		seen[u.Hostname()] = true
+		hosts = append(hosts, regexp.QuoteMeta(u.Hostname()))
+	}
+
+	if len(hosts) == 0 {
+		return nil
+	}
+
+	return regexp.MustCompile(`https?://(?:` + strings.Join(hosts, "|") + `)(?::[0-9]+)?`)
+}
+
+// redirectToMock points every captured camera address in body at the mock
+// server.
+func redirectToMock(body string, camera *regexp.Regexp, mockURL string) string {
+	if camera == nil {
+		return body
+	}
+
+	return camera.ReplaceAllLiteralString(body, mockURL)
 }
 
 // processArchiveEntry processes a single tar archive entry (JSON file) and adds it to the capture.
@@ -429,7 +488,7 @@ func (m *MockSOAPServerV2) handleRequest(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/soap+xml; charset=utf-8")
 	w.WriteHeader(bestMatch.StatusCode)
 	//nolint:errcheck // Write error is not critical after WriteHeader
-	_, _ = w.Write([]byte(bestMatch.ResponseBody))
+	_, _ = w.Write([]byte(redirectToMock(bestMatch.ResponseBody, m.camera, m.Server.URL)))
 }
 
 // Close shuts down the V2 mock server.

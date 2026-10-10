@@ -43,10 +43,10 @@ This:
 
 ```bash
 # Build with automatic version detection
-./build-release.sh
+./scripts/build-release.sh
 
 # Build with specific version
-./build-release.sh v1.0.1
+./scripts/build-release.sh v1.0.1
 ```
 
 ### Using Go Directly

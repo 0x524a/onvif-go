@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-10-10T12:44:26.935986801-04:00",
+  "cameras": [
+    {
+      "id": "axis_p3818_pve_11_9_60",
+      "manufacturer": "AXIS",
+      "model": "P3818-PVE",
+      "firmware": "11.9.60",
+      "capture_file": "AXIS_P3818-PVE_11.9.60_xmlcapture_20260113-134032.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging"
+      ],
+      "operations_captured": 12,
+      "test_file": "axis_p3818-pve_11.9.60_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "axis_q3819_pve_11_11_181",
+      "manufacturer": "AXIS",
+      "model": "Q3819-PVE",
+      "firmware": "11.11.181",
+      "capture_file": "AXIS_Q3819-PVE_11.11.181_xmlcapture_20260113-134111.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging"
+      ],
+      "operations_captured": 12,
+      "test_file": "axis_q3819-pve_11.11.181_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "bosch_autodome_ip_starlight_5000i_7_80_0128",
+      "manufacturer": "Bosch",
+      "model": "AUTODOME IP starlight 5000i",
+      "firmware": "7.80.0128",
+      "capture_file": "Bosch_AUTODOME_IP_starlight_5000i_7.80.0128_xmlcapture_20260113-134024.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging",
+        "PTZ"
+      ],
+      "operations_captured": 21,
+      "test_file": "bosch_autodome_ip_starlight_5000i_7.80.0128_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "bosch_flexidome_ip_starlight_8000i_7_70_0126",
+      "manufacturer": "Bosch",
+      "model": "FLEXIDOME IP starlight 8000i",
+      "firmware": "7.70.0126",
+      "capture_file": "Bosch_FLEXIDOME_IP_starlight_8000i_7.70.0126_xmlcapture_20260113-134051.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging"
+      ],
+      "operations_captured": 15,
+      "test_file": "bosch_flexidome_ip_starlight_8000i_7.70.0126_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "bosch_flexidome_panoramic_5100i_9_00_0210",
+      "manufacturer": "Bosch",
+      "model": "FLEXIDOME panoramic 5100i",
+      "firmware": "9.00.0210",
+      "capture_file": "Bosch_FLEXIDOME_panoramic_5100i_9.00.0210_xmlcapture_20260113-134100.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging"
+      ],
+      "operations_captured": 47,
+      "test_file": "bosch_flexidome_panoramic_5100i_9.00.0210_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "reolink_e1_zoom_v3_1_0_2649_23083101",
+      "manufacturer": "REOLINK",
+      "model": "E1 Zoom",
+      "firmware": "v3.1.0.2649_23083101",
+      "capture_file": "REOLINK_E1_Zoom_v3.1.0.2649_23083101_xmlcapture_20260113-134015.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Media",
+        "Imaging",
+        "PTZ",
+        "Device"
+      ],
+      "operations_captured": 16,
+      "test_file": "reolink_e1_zoom_v3.1.0.2649_23083101_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "reolink_reolink_trackmix_wifi_v3_0_0_5428_2509171974",
+      "manufacturer": "REOLINK",
+      "model": "Reolink TrackMix WiFi",
+      "firmware": "v3.0.0.5428_2509171974",
+      "capture_file": "REOLINK_Reolink_TrackMix_WiFi_v3.0.0.5428_2509171974_xmlcapture_20260113-134042.tar.gz",
+      "capture_version": "2.0",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging",
+        "PTZ"
+      ],
+      "operations_captured": 21,
+      "test_file": "reolink_reolink_trackmix_wifi_v3.0.0.5428_2509171974_test.go",
+      "added_date": "2026-10-10"
+    },
+    {
+      "id": "__",
+      "manufacturer": "",
+      "model": "",
+      "firmware": "",
+      "capture_file": "Bosch_FLEXIDOME_indoor_5100i_IR_8.71.0066_xmlcapture_20251110-123259.tar.gz",
+      "capabilities": [
+        "Device",
+        "Media",
+        "Imaging"
+      ],
+      "operations_captured": 18,
+      "test_file": "bosch_flexidome_indoor_5100i_ir_8.71.0066_test.go",
+      "added_date": "2026-10-10"
+    }
+  ],
+  "coverage": {
+    "Device": {
+      "total": 40,
+      "captured": 1
+    },
+    "Imaging": {
+      "total": 4,
+      "captured": 1
+    },
+    "Media": {
+      "total": 45,
+      "captured": 1
+    }
+  }
+}
