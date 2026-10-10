@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-10
+
+### Added
+- Virtual server: `GetEndpointReference` handler and `Config.EndpointUUID` (bare or `urn:uuid:`, validated in `New`), reported in the `urn:uuid:` form real cameras return. Left empty, a UUID is generated once per server. `Server.EndpointReference()` exposes it (#116, #118).
+- Stable device identity across restarts: `Config.EndpointSeed` derives the endpoint UUID from a stable name, and `discovery.StableEndpointRef(seed)` does the same for any device, so a restarted service keeps its IDs without persisting them (#119).
+- WS-Discovery responder: `discovery.Responder` answers `Probe` with `ProbeMatches` for any number of registered devices behind one socket, and sends `Hello` on start and `Bye` on stop. Types and Scopes filtering supports MatchBy `rfc3986` (default), `strcmp0` and `none`; Resolve, MatchBy `ldap`/`uuid`, the WS-Discovery 1.1 namespace and discovery proxies are not supported. Opt-in, with no change for existing users (#117, #119).
+- Unicast discovery for tests and CI: `ResponderConfig.ListenAddr` and `DiscoverOptions.ProbeAddress` need no multicast routing, so the module's own client can find a server-backed device on loopback (#119).
+- `Server.DiscoveryDevice()` builds the responder entry for a running server: endpoint reference, device-service XAddr and standard ONVIF scopes (#119).
+
+### Changed
+- README: Release and CI badges (#115). Doc comments on capabilities extension types (#114).
+- Sonar `go:S5332` findings on ONVIF namespace identifiers and the scheme-less default URL are marked `NOSONAR` with the reason; no behaviour change (#120, #121).
+
 ## [1.1.8] - 2026-10-04
 
 ### Fixed
@@ -160,7 +173,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 - README with usage guide
 
-[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.1.8...HEAD
+[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/0x524a/onvif-go/compare/v1.1.8...v1.2.0
 [1.1.8]: https://github.com/0x524a/onvif-go/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/0x524a/onvif-go/compare/v1.1.5...v1.1.7
 [1.1.3]: https://github.com/0x524a/onvif-go/compare/v1.1.2...v1.1.3
