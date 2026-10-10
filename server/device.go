@@ -298,12 +298,12 @@ func (s *Server) HandleGetServices(body interface{}) (interface{}, error) {
 
 	services := []Service{
 		{
-			Namespace: "http://www.onvif.org/ver10/device/wsdl",
+			Namespace: "http://www.onvif.org/ver10/device/wsdl", // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 			XAddr:     baseURL + "/device_service",
 			Version:   Version{Major: 2, Minor: 5}, //nolint:mnd // ONVIF version
 		},
 		{
-			Namespace: "http://www.onvif.org/ver10/media/wsdl",
+			Namespace: "http://www.onvif.org/ver10/media/wsdl", // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 			XAddr:     baseURL + "/media_service",
 			Version:   Version{Major: 2, Minor: 5}, //nolint:mnd // ONVIF version
 		},
@@ -311,7 +311,7 @@ func (s *Server) HandleGetServices(body interface{}) (interface{}, error) {
 
 	if s.config.SupportPTZ {
 		services = append(services, Service{
-			Namespace: "http://www.onvif.org/ver20/ptz/wsdl",
+			Namespace: "http://www.onvif.org/ver20/ptz/wsdl", // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 			XAddr:     baseURL + "/ptz_service",
 			Version:   Version{Major: 2, Minor: 5}, //nolint:mnd // ONVIF version
 		})
@@ -319,7 +319,7 @@ func (s *Server) HandleGetServices(body interface{}) (interface{}, error) {
 
 	if s.config.SupportImaging {
 		services = append(services, Service{
-			Namespace: "http://www.onvif.org/ver20/imaging/wsdl",
+			Namespace: "http://www.onvif.org/ver20/imaging/wsdl", // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 			XAddr:     baseURL + "/imaging_service",
 			Version:   Version{Major: 2, Minor: 5}, //nolint:mnd // ONVIF version
 		})

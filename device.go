@@ -9,7 +9,7 @@ import (
 )
 
 // Device service namespace.
-const deviceNamespace = "http://www.onvif.org/ver10/device/wsdl"
+const deviceNamespace = "http://www.onvif.org/ver10/device/wsdl" // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 
 // GetDeviceInformation retrieves device information.
 func (c *Client) GetDeviceInformation(ctx context.Context) (*DeviceInformation, error) {

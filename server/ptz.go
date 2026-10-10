@@ -382,11 +382,11 @@ func (s *Server) HandleGetStatus(body interface{}) (interface{}, error) {
 			PanTilt: &Vector2D{
 				X:     state.Position.Pan,
 				Y:     state.Position.Tilt,
-				Space: "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace",
+				Space: "http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace", // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 			},
 			Zoom: &Vector1D{
 				X:     state.Position.Zoom,
-				Space: "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace",
+				Space: "http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace", // NOSONAR // XML namespace identifier fixed by the ONVIF spec; never dialed
 			},
 		},
 		MoveStatus: PTZMoveStatus{
