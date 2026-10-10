@@ -20,8 +20,14 @@ func New(config *Config) (*Server, error) {
 		config = DefaultConfig()
 	}
 
+	endpointURN, err := normalizeEndpointUUID(config.EndpointUUID)
+	if err != nil {
+		return nil, err
+	}
+
 	server := &Server{
 		config:       config,
+		endpointURN:  endpointURN,
 		streams:      make(map[string]*StreamConfig),
 		ptzState:     make(map[string]*PTZState),
 		imagingState: make(map[string]*ImagingState),
@@ -306,6 +312,7 @@ func (s *Server) registerDeviceService(mux *http.ServeMux) {
 	handler.RegisterHandler("GetCapabilities", s.HandleGetCapabilities)
 	handler.RegisterHandler("GetSystemDateAndTime", s.HandleGetSystemDateAndTime)
 	handler.RegisterHandler("GetServices", s.HandleGetServices)
+	handler.RegisterHandler("GetEndpointReference", s.HandleGetEndpointReference)
 	handler.RegisterHandler("SystemReboot", s.HandleSystemReboot)
 
 	mux.Handle(s.config.BasePath+"/device_service", handler)

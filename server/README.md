@@ -26,7 +26,7 @@ A complete ONVIF-compliant server implementation that simulates multi-lens IP ca
 - **IR Cut Filter**: Day/Night mode control
 
 ### 🌐 ONVIF Services
-- ✅ **Device Service**: Device information, capabilities, system time
+- ✅ **Device Service**: Device information, capabilities, system time, endpoint reference (`Config.EndpointUUID`)
 - ✅ **Media Service**: Profiles, stream URIs (RTSP), snapshots
 - ✅ **PTZ Service**: Full PTZ control and preset management
 - ✅ **Imaging Service**: Complete imaging settings control

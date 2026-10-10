@@ -59,6 +59,13 @@ type Config struct {
 	// Device information
 	DeviceInfo DeviceInfo
 
+	// EndpointUUID is the device's stable endpoint identity, returned by
+	// GetEndpointReference (and the address WS-Discovery advertises). It may
+	// be given bare ("12345678-...") or as a "urn:uuid:" URI; the server
+	// always reports the URI form, which is what real cameras return. When
+	// empty, New generates one that stays fixed for the server's lifetime.
+	EndpointUUID string
+
 	// Authentication
 	Username string
 	Password string
@@ -219,6 +226,7 @@ type Server struct {
 	ptzState     map[string]*PTZState     // Profile token -> PTZ state
 	imagingState map[string]*ImagingState // Video source token -> imaging state
 	systemTime   time.Time
+	endpointURN  string // "urn:uuid:" form of Config.EndpointUUID, fixed at New
 
 	// streamsMu guards the mutable fields of the *StreamConfig values in
 	// streams (the map itself is populated once in New and never re-keyed).
