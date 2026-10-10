@@ -193,8 +193,7 @@ Contributions are welcome. For anything larger than a fix, please open an issue 
 
 ## Acknowledgements
 
-<details>
-<summary>onvif-go stands on other people's work</summary>
+onvif-go stands on other people's work:
 
 - [gortsplib](https://github.com/bluenviron/gortsplib) and [mediacommon](https://github.com/bluenviron/mediacommon) by the bluenviron project: the RTSP client and media-format library behind the stream inspection in `onvif-cli`, through [rtspeek](https://github.com/0x524A/rtspeek).
 - [Pion](https://github.com/pion): the RTP, RTCP, SDP and SRTP libraries that gortsplib builds on.
@@ -202,8 +201,6 @@ Contributions are welcome. For anything larger than a fix, please open an issue 
 - [use-go/onvif](https://github.com/use-go/onvif), the earlier Go ONVIF library that inspired this one, and the specifications published by [ONVIF.org](https://www.onvif.org).
 
 The licenses of everything compiled into the library and the tools are reproduced in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), which also ships in every release archive.
-
-</details>
 
 ## Star history
 
@@ -216,3 +213,7 @@ If you find this project useful, please consider giving it a star! ⭐
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+---
+
+<p align="center">Made with ❤️ for the Go and IoT community</p>
