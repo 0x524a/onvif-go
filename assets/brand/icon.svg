@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none" role="img" aria-label="onvif-go">
+  <title>onvif-go</title>
+  <rect width="256" height="256" rx="56" fill="#0E1B26"/>
+  <g stroke="#19C3E0" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52 92V70a18 18 0 0 1 18-18h22"/>
+    <path d="M164 52h22a18 18 0 0 1 18 18v22"/>
+    <path d="M204 164v22a18 18 0 0 1-18 18h-22"/>
+    <path d="M92 204H70a18 18 0 0 1-18-18v-22"/>
+  </g>
+  <circle cx="128" cy="128" r="46" stroke="#EEF1F4" stroke-width="9"/>
+  <circle cx="128" cy="128" r="25" stroke="#19C3E0" stroke-width="8"/>
+  <circle cx="128" cy="128" r="9" fill="#F0502D"/>
+  <path d="M100 109a34 34 0 0 1 17-12" stroke="#EEF1F4" stroke-width="5.5" stroke-linecap="round" opacity=".5"/>
+</svg>
