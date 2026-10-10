@@ -24,13 +24,13 @@ The test framework consists of:
 ### Run All Camera Tests
 
 ```bash
-go test -v ./testdata/captures/
+go test -v ./testing/captures/
 ```
 
 ### Run Specific Camera
 
 ```bash
-go test -v ./testdata/captures/ -run TestBosch
+go test -v ./testing/captures/ -run TestBosch
 ```
 
 ### Run from Project Root
@@ -60,29 +60,29 @@ This creates an archive like:
 camera-logs/Manufacturer_Model_Firmware_xmlcapture_timestamp.tar.gz
 ```
 
-### 2. Copy to testdata/captures
+### 2. Copy to testing/captures
 
 ```bash
-cp camera-logs/Manufacturer_Model_*_xmlcapture_*.tar.gz testdata/captures/
+cp camera-logs/Manufacturer_Model_*_xmlcapture_*.tar.gz testing/captures/
 ```
 
 ### 3. Generate Test
 
 ```bash
 ./generate-tests \
-  -capture testdata/captures/Manufacturer_Model_*_xmlcapture_*.tar.gz \
-  -output testdata/captures/
+  -capture testing/captures/Manufacturer_Model_*_xmlcapture_*.tar.gz \
+  -output testing/captures/
 ```
 
 This generates:
 ```
-testdata/captures/manufacturer_model_firmware_test.go
+testing/captures/manufacturer_model_firmware_test.go
 ```
 
 ### 4. Run the Test
 
 ```bash
-go test -v ./testdata/captures/ -run TestManufacturerModel
+go test -v ./testing/captures/ -run TestManufacturerModel
 ```
 
 ## Example Workflow
@@ -100,23 +100,23 @@ Complete example adding an AXIS camera:
 # Output: camera-logs/AXIS_Q3626-VE_12.6.104_xmlcapture_20251110-130000.tar.gz
 
 # 2. Copy to testdata
-cp camera-logs/AXIS_Q3626-VE_12.6.104_xmlcapture_20251110-130000.tar.gz testdata/captures/
+cp camera-logs/AXIS_Q3626-VE_12.6.104_xmlcapture_20251110-130000.tar.gz testing/captures/
 
 # 3. Generate test
 ./generate-tests \
-  -capture testdata/captures/AXIS_Q3626-VE_12.6.104_xmlcapture_20251110-130000.tar.gz \
-  -output testdata/captures/
+  -capture testing/captures/AXIS_Q3626-VE_12.6.104_xmlcapture_20251110-130000.tar.gz \
+  -output testing/captures/
 
-# Output: testdata/captures/axis_q3626-ve_12.6.104_test.go
+# Output: testing/captures/axis_q3626-ve_12.6.104_test.go
 
 # 4. Run test
-go test -v ./testdata/captures/ -run TestAXIS
+go test -v ./testing/captures/ -run TestAXIS
 ```
 
 ## Directory Structure
 
 ```
-testdata/captures/
+testing/captures/
 ├── README.md                                                      # This file
 ├── Bosch_FLEXIDOME_indoor_5100i_IR_8.71.0066_xmlcapture_*.tar.gz # Capture archive
 ├── bosch_flexidome_indoor_5100i_ir_8.71.0066_test.go             # Generated test
@@ -223,7 +223,7 @@ The client is receiving the wrong SOAP response.
 Failed to create mock server: failed to open archive: no such file or directory
 ```
 
-**Solution**: Ensure the capture archive is in `testdata/captures/` directory.
+**Solution**: Ensure the capture archive is in `testing/captures/` directory.
 
 ## Maintenance
 
@@ -241,8 +241,8 @@ When camera firmware changes:
 Remove old captures and tests:
 
 ```bash
-rm testdata/captures/old_camera_*.tar.gz
-rm testdata/captures/old_camera_test.go
+rm testing/captures/old_camera_*.tar.gz
+rm testing/captures/old_camera_test.go
 ```
 
 ## CI/CD Integration
@@ -263,7 +263,7 @@ jobs:
           go-version: '1.21'
       
       - name: Run Camera Tests
-        run: go test -v ./testdata/captures/
+        run: go test -v ./testing/captures/
 ```
 
 ### Benefits in CI

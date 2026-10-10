@@ -32,7 +32,7 @@ Each JSON report contains:
 To generate new test reports, run:
 
 ```bash
-go run examples/test-real-camera-all/main.go
+go run ./tools/test-real-camera-all
 ```
 
 Reports are automatically saved with timestamps in the filename.

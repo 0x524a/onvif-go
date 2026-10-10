@@ -85,11 +85,11 @@ capture_002_response.xml
 ... (one set per ONVIF operation)
 ```
 
-### Step 4: Copy to testdata/captures
+### Step 4: Copy to testing/captures
 
 ```bash
 # Copy archive to test data directory
-cp camera-logs/Manufacturer_Model_*_xmlcapture_*.tar.gz testdata/captures/
+cp camera-logs/Manufacturer_Model_*_xmlcapture_*.tar.gz testing/captures/
 ```
 
 ### Step 5: Generate Test File
@@ -98,13 +98,13 @@ The `generate-tests` tool creates a Go test file from the capture:
 
 ```bash
 ./generate-tests \
-  -capture testdata/captures/Manufacturer_Model_*_xmlcapture_*.tar.gz \
-  -output testdata/captures/
+  -capture testing/captures/Manufacturer_Model_*_xmlcapture_*.tar.gz \
+  -output testing/captures/
 ```
 
 **Output:**
 ```
-testdata/captures/manufacturer_model_firmware_test.go
+testing/captures/manufacturer_model_firmware_test.go
 ```
 
 ### Step 6: Run the Generated Test
@@ -113,10 +113,10 @@ Verify the test works with your camera data:
 
 ```bash
 # Run your camera's test
-go test -v ./testdata/captures/ -run TestManufacturer
+go test -v ./testing/captures/ -run TestManufacturer
 
 # Or run all camera tests
-go test -v ./testdata/captures/
+go test -v ./testing/captures/
 ```
 
 **Expected output:**
@@ -129,7 +129,7 @@ go test -v ./testdata/captures/
     ✓ Stream URIs captured
     --- PASS: TestManufacturer (0.25s)
 PASS
-ok      github.com/0x524a/onvif-go/testdata/captures  0.25s
+ok      github.com/0x524a/onvif-go/testing/captures  0.25s
 ```
 
 ### Step 7: Customize Test (Optional)
@@ -137,7 +137,7 @@ ok      github.com/0x524a/onvif-go/testdata/captures  0.25s
 Edit the generated test file to add camera-specific validations:
 
 ```go
-// In testdata/captures/manufacturer_model_firmware_test.go
+// In testing/captures/manufacturer_model_firmware_test.go
 
 t.Run("CustomValidations", func(t *testing.T) {
     info, err := client.GetDeviceInformation(ctx)
@@ -165,7 +165,7 @@ Contribute your camera test to the project:
 git checkout -b add/camera-tests-manufacturer-model
 
 # Stage the test files
-git add testdata/captures/
+git add testing/captures/
 git add camera-logs/  # Optional: include diagnostic report too
 
 # Commit with descriptive message
@@ -196,8 +196,8 @@ Then create a Pull Request on GitHub with:
   - Imaging settings (if applicable)
   
   ## Files
-  - Capture: `testdata/captures/Manufacturer_Model_Firmware_xmlcapture_*.tar.gz`
-  - Test: `testdata/captures/manufacturer_model_firmware_test.go`
+  - Capture: `testing/captures/Manufacturer_Model_Firmware_xmlcapture_*.tar.gz`
+  - Test: `testing/captures/manufacturer_model_firmware_test.go`
   
   Resolves #[issue-number] (if applicable)
   ```
@@ -253,24 +253,24 @@ go build -o generate-tests ./cmd/generate-tests
 # Output: camera-logs/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_20251117-143022.tar.gz
 
 # 3. Copy to testdata
-cp camera-logs/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_*.tar.gz testdata/captures/
+cp camera-logs/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_*.tar.gz testing/captures/
 
 # 4. Generate test
 ./generate-tests \
-  -capture testdata/captures/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_*.tar.gz \
-  -output testdata/captures/
+  -capture testing/captures/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_*.tar.gz \
+  -output testing/captures/
 
-# Output: testdata/captures/hikvision_ds-2cd2143g2-i_v5.5.61_test.go
+# Output: testing/captures/hikvision_ds-2cd2143g2-i_v5.5.61_test.go
 
 # 5. Run test
-go test -v ./testdata/captures/ -run TestHikvision
+go test -v ./testing/captures/ -run TestHikvision
 
 # Output: PASS ✓
 
 # 6. Submit PR
 git checkout -b add/hikvision-ds-2cd2143g2-i-tests
-git add testdata/captures/hikvision_ds-2cd2143g2-i_v5.5.61_test.go
-git add testdata/captures/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_*.tar.gz
+git add testing/captures/hikvision_ds-2cd2143g2-i_v5.5.61_test.go
+git add testing/captures/Hikvision_DS-2CD2143G2-I_V5.5.61_xmlcapture_*.tar.gz
 git commit -m "test: add Hikvision DS-2CD2143G2-I camera tests (v5.5.61)"
 git push origin add/hikvision-ds-2cd2143g2-i-tests
 ```
@@ -327,7 +327,7 @@ Error: failed to open archive
 **Solutions:**
 - Verify archive file exists and is valid
 - Check filename matches pattern: `*_xmlcapture_*.tar.gz`
-- Ensure archive is in `testdata/captures/` directory
+- Ensure archive is in `testing/captures/` directory
 - Try extracting manually: `tar -tzf file.tar.gz`
 
 ### Generated Test Won't Compile
@@ -336,7 +336,7 @@ Error: failed to open archive
 error: undefined: t
 ```
 
-**Solution:** Ensure generated file is in `testdata/captures/` and has `_test.go` suffix.
+**Solution:** Ensure generated file is in `testing/captures/` and has `_test.go` suffix.
 
 ## 📈 Benefits of Contributing
 
@@ -367,14 +367,14 @@ error: undefined: t
 ## 📚 Related Documentation
 
 - **[onvif-diagnostics README](cmd/onvif-diagnostics/README.md)** - Detailed tool usage
-- **[Camera Test Framework](testdata/captures/README.md)** - How tests work
+- **[Camera Test Framework](testing/captures/README.md)** - How tests work
 - **[Contributing Guide](CONTRIBUTING.md)** - General contribution guidelines
 - **[QUICKSTART](QUICKSTART.md)** - Library basics
 
 ## 💬 Getting Help
 
 - **Questions?** Open an issue on GitHub
-- **Need guidance?** Check existing camera tests: `testdata/captures/*_test.go`
+- **Need guidance?** Check existing camera tests: `testing/captures/*_test.go`
 - **Found a bug?** Report it with your camera model and firmware version
 
 ---

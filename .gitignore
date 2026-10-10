@@ -69,3 +69,9 @@ capture_*.json
 # Debug files
 debug
 __debug_bin
+
+# Compiled examples: ignore everything in an example directory except source.
+# (The anchored /onvif-server rule above only matches the repository root.)
+/examples/*/*
+!/examples/*/*.go
+!/examples/*/*.md

@@ -90,10 +90,10 @@ clean:
 examples:
 	@echo "📚 Building examples..."
 	@mkdir -p $(BINARY_DIR)/examples
-	go build -o $(BINARY_DIR)/examples/discovery ./examples/discovery
-	go build -o $(BINARY_DIR)/examples/device_info ./examples/device_info
-	go build -o $(BINARY_DIR)/examples/media ./examples/media
-	go build -o $(BINARY_DIR)/examples/ptz ./examples/ptz
+	@for d in examples/*/; do \
+		name=$$(basename $$d); \
+		go build -o $(BINARY_DIR)/examples/$$name ./$$d || exit 1; \
+	done
 
 # Build for multiple platforms
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")

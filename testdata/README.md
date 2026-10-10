@@ -154,5 +154,4 @@ To refresh the discovered camera data:
 ## See Also
 
 - [Main Testing Documentation](../docs/testing/)
-- [Camera Test Reports](../CAMERA_TEST_REPORT.md)
 - [Quick Start Guide](../docs/QUICKSTART.md)
