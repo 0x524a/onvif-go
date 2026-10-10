@@ -437,7 +437,7 @@ done
 ## Related Documentation
 
 - [NETWORK_INTERFACE_GUIDE.md](../discovery/NETWORK_INTERFACE_GUIDE.md) - Detailed discovery API guide
-- [QUICKSTART.md](../QUICKSTART.md) - Quick start guide
+- [QUICKSTART.md](QUICKSTART.md) - Quick start guide
 - [examples/discovery/](../examples/discovery/) - Discovery code examples
 - [ONVIF Specification](https://www.onvif.org/) - Official ONVIF specs
 

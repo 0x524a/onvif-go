@@ -345,7 +345,7 @@ func main() {
 
 ## Examples
 
-See the [examples/onvif-server](../../examples/onvif-server) directory for a complete multi-lens camera configuration example.
+See the [examples/onvif-server](../examples/onvif-server) directory for a complete multi-lens camera configuration example.
 
 ```bash
 # Run the example
@@ -445,7 +445,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ## Acknowledgments
 

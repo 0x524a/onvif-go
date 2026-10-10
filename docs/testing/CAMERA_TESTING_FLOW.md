@@ -366,10 +366,10 @@ error: undefined: t
 
 ## 📚 Related Documentation
 
-- **[onvif-diagnostics README](cmd/onvif-diagnostics/README.md)** - Detailed tool usage
-- **[Camera Test Framework](testing/captures/README.md)** - How tests work
+- **[onvif-diagnostics README](../../cmd/onvif-diagnostics/README.md)** - Detailed tool usage
+- **[Camera Test Framework](../../testing/captures/README.md)** - How tests work
 - **[Contributing Guide](../../.github/CONTRIBUTING.md)** - General contribution guidelines
-- **[QUICKSTART](QUICKSTART.md)** - Library basics
+- **[QUICKSTART](../QUICKSTART.md)** - Library basics
 
 ## 💬 Getting Help
 

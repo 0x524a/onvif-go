@@ -66,7 +66,7 @@ for _, iface := range interfaces {
 }
 ```
 
-For more details, see [NETWORK_INTERFACE_GUIDE.md](discovery/NETWORK_INTERFACE_GUIDE.md).
+For more details, see [NETWORK_INTERFACE_GUIDE.md](../discovery/NETWORK_INTERFACE_GUIDE.md).
 
 ## Step 2: Connect to Camera
 

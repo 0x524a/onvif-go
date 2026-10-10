@@ -466,6 +466,6 @@ go test -v ./discovery/ -run TestDiscoverWithOptions
 
 ## Related Documentation
 
-- [QUICKSTART](../QUICKSTART.md) - Getting started with onvif-go
+- [QUICKSTART](../docs/QUICKSTART.md) - Getting started with onvif-go
 - [discovery/discovery.go](./discovery.go) - Source code
 - [discovery/discovery_test.go](./discovery_test.go) - Test examples

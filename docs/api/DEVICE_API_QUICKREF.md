@@ -450,5 +450,5 @@ if policy.PolicyFile != nil {
 ## See Also
 
 - [DEVICE_API_STATUS.md](DEVICE_API_STATUS.md) - Complete API implementation status
-- [README.md](README.md) - Main project documentation
+- [README.md](../../README.md) - Main project documentation
 - [ONVIF Specification](https://www.onvif.org/specs/DocMap-2.6.html)
