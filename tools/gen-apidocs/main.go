@@ -1,8 +1,8 @@
 // Command gen-apidocs writes the API reference page for the project site.
 //
-// It reads the exported methods of onvif.Client straight from the package
-// source, so the page lists exactly what the code offers and cannot drift from
-// it. Run from the repository root:
+// It reads the exported API of the client (onvif.Client) and of the discovery
+// and server packages straight from the source, so the page lists exactly what
+// the code offers and cannot drift from it. Run from the repository root:
 //
 //	go run ./tools/gen-apidocs > site/api.html
 package main
@@ -18,8 +18,10 @@ import (
 	"go/token"
 	"html/template"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -51,7 +53,25 @@ var groups = []struct {
 	{"deviceio.go", "Device I/O", "Relays, digital inputs and video outputs."},
 }
 
+// subPackage is a package whose whole exported API is listed in one section.
+type subPackage struct {
+	Dir   string
+	Name  string
+	Title string
+	Blurb string
+	Files []string // source files that hold the public API; empty means all
+	Also  []string // declarations from other files that are public API too
+}
+
+var subPackages = []subPackage{
+	{"discovery", "discovery", "Discovery package", "Find cameras with WS-Discovery, or answer probes for your own devices.", nil, nil},
+	{"server", "server", "Server package", "A virtual ONVIF camera: Device, Media, PTZ and Imaging services, with stable identities.",
+		[]string{"types.go", "server.go", "errors.go", "snapshot.go", "discovery.go"},
+		[]string{"Server.EndpointReference"}},
+}
+
 type entry struct {
+	ID        string
 	Name      string
 	Signature string
 	Doc       string
@@ -77,6 +97,8 @@ func main() {
 	}
 }
 
+var errUnsupportedNode = errors.New("unsupported declaration")
+
 var errNoPackage = errors.New("package onvif not found; run from the repository root")
 
 // run writes the API reference for the package in dir to standard output.
@@ -87,7 +109,7 @@ func run(dir string) error {
 func render(dir string, w io.Writer) error {
 	fset := token.NewFileSet()
 
-	files, err := parseSources(fset, dir)
+	files, err := parseSources(fset, dir, "onvif")
 	if err != nil {
 		return err
 	}
@@ -102,16 +124,30 @@ func render(dir string, w io.Writer) error {
 		return err
 	}
 
-	if err := tmpl.Execute(w, buildPage(byFile)); err != nil {
+	pg := buildPage(byFile)
+
+	for i := range subPackages {
+		sub := &subPackages[i]
+		sec, err := packageSection(fset, dir, sub)
+		if err != nil {
+			return err
+		}
+
+		if len(sec.Entries) > 0 {
+			pg.Sections = append(pg.Sections, sec)
+			pg.Total += len(sec.Entries)
+		}
+	}
+
+	if err := tmpl.Execute(w, pg); err != nil {
 		return fmt.Errorf("render page: %w", err)
 	}
 
 	return nil
 }
 
-// parseSources parses the non-test Go files of package onvif in the current
-// directory.
-func parseSources(fset *token.FileSet, dir string) ([]*ast.File, error) {
+// parseSources parses the non-test Go files of the package called name in dir.
+func parseSources(fset *token.FileSet, dir, name string) ([]*ast.File, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("read directory: %w", err)
@@ -119,16 +155,16 @@ func parseSources(fset *token.FileSet, dir string) ([]*ast.File, error) {
 
 	var files []*ast.File
 	for _, e := range entries {
-		name := e.Name()
-		if e.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+		file := e.Name()
+		if e.IsDir() || !strings.HasSuffix(file, ".go") || strings.HasSuffix(file, "_test.go") {
 			continue
 		}
 
-		f, err := parser.ParseFile(fset, filepath.Join(dir, name), nil, parser.ParseComments)
+		f, err := parser.ParseFile(fset, filepath.Join(dir, file), nil, parser.ParseComments)
 		if err != nil {
-			return nil, fmt.Errorf("parse %s: %w", name, err)
+			return nil, fmt.Errorf("parse %s: %w", file, err)
 		}
-		if f.Name.Name == "onvif" {
+		if f.Name.Name == name {
 			files = append(files, f)
 		}
 	}
@@ -162,6 +198,7 @@ func collect(fset *token.FileSet, docPkg *doc.Package) (map[string][]entry, erro
 
 		file := filepath.Base(fset.Position(f.Decl.Pos()).Filename)
 		byFile[file] = append(byFile[file], entry{
+			ID:        f.Name,
 			Name:      f.Name,
 			Signature: sig,
 			Doc:       strings.TrimSpace(f.Doc),
@@ -189,6 +226,130 @@ func collect(fset *token.FileSet, docPkg *doc.Package) (map[string][]entry, erro
 	}
 
 	return byFile, nil
+}
+
+// packageSection lists the exported constants, variables, functions, types and
+// methods of a subpackage, in source order within each kind. A directory that
+// is missing or holds no such package yields an empty section.
+func packageSection(fset *token.FileSet, root string, sub *subPackage) (section, error) {
+	sec := section{Anchor: anchorFor(sub.Title), Title: sub.Title, Blurb: sub.Blurb}
+
+	files, err := parseSources(fset, filepath.Join(root, sub.Dir), sub.Name)
+	if errors.Is(err, errNoPackage) || errors.Is(err, fs.ErrNotExist) {
+		return sec, nil
+	}
+	if err != nil {
+		return sec, err
+	}
+
+	docPkg, err := doc.NewFromFiles(fset, files, importPath+"/"+sub.Dir)
+	if err != nil {
+		return sec, fmt.Errorf("build %s docs: %w", sub.Name, err)
+	}
+
+	b := &sectionBuilder{fset: fset, pkg: sub.Name, files: sub.Files, also: sub.Also}
+
+	b.values(docPkg.Consts)
+	b.values(docPkg.Vars)
+	b.funcs(docPkg.Funcs, "")
+
+	for _, t := range docPkg.Types {
+		b.node(t.Name, t.Name, t.Decl, t.Doc)
+		b.values(t.Consts)
+		b.values(t.Vars)
+		b.funcs(t.Funcs, "")
+		b.funcs(t.Methods, t.Name+".")
+	}
+
+	if b.err != nil {
+		return sec, b.err
+	}
+
+	sec.Entries = b.entries
+
+	return sec, nil
+}
+
+// sectionBuilder accumulates the entries of one package, remembering the first
+// error so callers check it once.
+type sectionBuilder struct {
+	fset    *token.FileSet
+	pkg     string
+	files   []string
+	also    []string
+	entries []entry
+	err     error
+}
+
+func (b *sectionBuilder) node(name, anchor string, n ast.Node, docText string) {
+	if b.err != nil || b.internal(name, n) {
+		return
+	}
+
+	text, err := nodeText(b.fset, n)
+	if err != nil {
+		b.err = err
+
+		return
+	}
+
+	b.entries = append(b.entries, entry{
+		ID:        b.pkg + "." + name,
+		Name:      name,
+		Signature: text,
+		Doc:       strings.TrimSpace(docText),
+		URL:       pkgDocsURL + "/" + b.pkg + "#" + anchor,
+	})
+}
+
+// internal reports whether a declaration lies outside the files that hold the
+// package's public API. The server keeps its SOAP wire types and the handlers
+// that serve them in per-service files, which are plumbing rather than API.
+func (b *sectionBuilder) internal(name string, n ast.Node) bool {
+	if len(b.files) == 0 || slices.Contains(b.also, name) {
+		return false
+	}
+
+	file := filepath.Base(b.fset.Position(n.Pos()).Filename)
+
+	return !slices.Contains(b.files, file)
+}
+
+func (b *sectionBuilder) values(vs []*doc.Value) {
+	for _, v := range vs {
+		if len(v.Names) > 0 {
+			b.node(v.Names[0], v.Names[0], v.Decl, v.Doc)
+		}
+	}
+}
+
+// funcs adds functions, or methods when prefix is the receiver name and a dot.
+func (b *sectionBuilder) funcs(list []*doc.Func, prefix string) {
+	for _, f := range list {
+		if ast.IsExported(f.Name) {
+			b.node(prefix+f.Name, prefix+f.Name, f.Decl, f.Doc)
+		}
+	}
+}
+
+// nodeText prints a declaration without its body or doc comment.
+func nodeText(fset *token.FileSet, n ast.Node) (string, error) {
+	switch d := n.(type) {
+	case *ast.FuncDecl:
+		return signature(fset, d)
+	case *ast.GenDecl:
+		c := *d
+		c.Doc = nil
+
+		var buf bytes.Buffer
+		if err := printer.Fprint(&buf, fset, &c); err != nil {
+			return "", fmt.Errorf("print declaration: %w", err)
+		}
+
+		return buf.String(), nil
+	}
+
+	return "", errUnsupportedNode
 }
 
 // buildPage orders the entries into the sections listed in groups.
@@ -269,7 +430,7 @@ var tmpl = template.Must(template.New("api").Parse(`<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>API reference | onvif-go</title>
-<meta name="description" content="Every exported method of the onvif-go client, generated from the source.">
+<meta name="description" content="Every exported method of the onvif-go client, plus the discovery and server packages, generated from the source.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -325,16 +486,16 @@ var tmpl = template.Must(template.New("api").Parse(`<!doctype html>
     </nav>
     <div>
       <h1>API reference</h1>
-      <p class="sub">{{.Total}} functions and methods on the client, generated from the source on every deploy. Every method takes a <code>context.Context</code> first.</p>
+      <p class="sub">{{.Total}} entries across the client, the discovery package and the server package, generated from the source on every deploy. Client methods take a <code>context.Context</code> first.</p>
       <label for="find" class="sub" style="margin:0">Filter by name or description</label><br>
-      <input id="find" class="find" type="search" placeholder="GetProfiles, preset, certificate" autocomplete="off">
+      <input id="find" class="find" type="search" placeholder="GetProfiles, preset, Responder, Config" autocomplete="off">
       <p id="none" class="none" hidden>No method matches that. Try a shorter word.</p>
       {{range .Sections}}
       <section class="grp" id="{{.Anchor}}">
         <h2>{{.Title}}</h2>
         <p>{{.Blurb}}</p>
         {{range .Entries}}
-        <article class="m" id="{{.Name}}" data-q="{{.Name}} {{.Doc}}">
+        <article class="m" id="{{.ID}}" data-q="{{.Name}} {{.Doc}}">
           <h3><a href="{{.URL}}">{{.Name}}</a></h3>
           <pre><code>{{.Signature}}</code></pre>
           {{if .Doc}}<p>{{.Doc}}</p>{{end}}
