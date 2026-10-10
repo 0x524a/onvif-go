@@ -5,6 +5,9 @@ on:
     branches: [master, main]
     paths:
       - 'site/**'
+      - 'tools/gen-apidocs/**'
+      - '**/*.go'
+      - 'go.mod'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -31,6 +34,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      # The API reference is built from the package source on every deploy, so
+      # it always matches the released code. It is not committed.
+      - name: Generate API reference
+        run: go run ./tools/gen-apidocs > site/api.html
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
