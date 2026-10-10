@@ -10,11 +10,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/0x524a/onvif-go/internal/buildinfo"
 	"github.com/0x524a/onvif-go/server"
 )
 
+// Version and Commit are set at build time with
+// -ldflags "-X main.Version=... -X main.Commit=...".
 var (
-	version = "1.0.0"
+	Version = "dev"
+	Commit  = ""
 )
 
 const (
@@ -66,7 +70,7 @@ func main() {
 
 	// Handle version flag
 	if *showVersion {
-		fmt.Printf("onvif-server version %s\n", version)
+		fmt.Println(buildinfo.String("onvif-server", Version, Commit))
 		os.Exit(0)
 	}
 
@@ -237,7 +241,7 @@ func printBanner() {
 ║     🎥  ONVIF Virtual Camera Server  🎥                  ║
 ║                                                           ║
 ║     Simulate multi-lens IP cameras with ONVIF support    ║
-║     Version: ` + version + `                                        ║
+║     Version: ` + Version + `                                        ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 `

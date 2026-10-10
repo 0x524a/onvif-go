@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/0x524a/onvif-go"
 	"github.com/0x524a/onvif-go/discovery"
+	"github.com/0x524a/onvif-go/internal/buildinfo"
 )
 
 const (
@@ -22,7 +24,23 @@ const (
 	maxBodyPreview    = 200
 )
 
+// Version and Commit are set at build time with
+// -ldflags "-X main.Version=... -X main.Commit=...".
+var (
+	Version = "dev"
+	Commit  = ""
+)
+
 func main() {
+	showVersion := flag.Bool("version", false, "Show version and exit")
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(buildinfo.String("onvif-quick", Version, Commit))
+
+		return
+	}
+
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("🎥 Quick ONVIF Camera Tool")

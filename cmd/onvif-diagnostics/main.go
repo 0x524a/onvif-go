@@ -20,11 +20,18 @@ import (
 	"time"
 
 	"github.com/0x524a/onvif-go"
+	"github.com/0x524a/onvif-go/internal/buildinfo"
 	onviftesting "github.com/0x524a/onvif-go/testing"
 )
 
+// Version and Commit are set at build time with
+// -ldflags "-X main.Version=... -X main.Commit=...".
+var (
+	Version = "dev"
+	Commit  = ""
+)
+
 const (
-	version           = "1.0.0"
 	defaultTimeoutSec = 30
 	maxRetryAttempts  = 10
 	retryDelaySec     = 5
@@ -147,21 +154,28 @@ type ErrorLog struct {
 }
 
 var (
-	endpoint   = flag.String("endpoint", "", "ONVIF device endpoint (e.g., http://192.168.1.201/onvif/device_service)")
-	username   = flag.String("username", "", "ONVIF username")
-	password   = flag.String("password", "", "ONVIF password")
-	outputDir  = flag.String("output", "./camera-logs", "Output directory for logs")
-	timeout    = flag.Int("timeout", 30, "Request timeout in seconds") //nolint:mnd // Default timeout value
-	verbose    = flag.Bool("verbose", false, "Verbose output")
-	captureXML = flag.Bool("capture-xml", false, "Capture raw SOAP XML traffic and create tar.gz archive")
-	captureAll = flag.Bool("capture-all", false, "Capture all READ operations (comprehensive mode, implies -capture-xml)")
+	endpoint    = flag.String("endpoint", "", "ONVIF device endpoint (e.g., http://192.168.1.201/onvif/device_service)")
+	username    = flag.String("username", "", "ONVIF username")
+	password    = flag.String("password", "", "ONVIF password")
+	outputDir   = flag.String("output", "./camera-logs", "Output directory for logs")
+	timeout     = flag.Int("timeout", 30, "Request timeout in seconds") //nolint:mnd // Default timeout value
+	verbose     = flag.Bool("verbose", false, "Verbose output")
+	showVersion = flag.Bool("version", false, "Show version and exit")
+	captureXML  = flag.Bool("capture-xml", false, "Capture raw SOAP XML traffic and create tar.gz archive")
+	captureAll  = flag.Bool("capture-all", false, "Capture all READ operations (comprehensive mode, implies -capture-xml)")
 )
 
 //nolint:funlen,gocognit,gocyclo // Main function has high complexity due to multiple diagnostic operations
 func main() {
 	flag.Parse()
 
-	fmt.Printf("ONVIF Camera Diagnostic Utility v%s\n", version)
+	if *showVersion {
+		fmt.Println(buildinfo.String("onvif-diagnostics", Version, Commit))
+
+		return
+	}
+
+	fmt.Println(buildinfo.String("ONVIF Camera Diagnostic Utility", Version, Commit))
 	fmt.Println("========================================")
 	fmt.Println()
 
@@ -187,7 +201,7 @@ func main() {
 	// Initialize report
 	report := &CameraReport{
 		Timestamp:      time.Now().Format(time.RFC3339),
-		UtilityVersion: version,
+		UtilityVersion: Version,
 		ConnectionInfo: ConnectionInfo{
 			Endpoint: *endpoint,
 			Username: *username,
@@ -1662,7 +1676,7 @@ func (t *LoggingTransport) GenerateMetadata(report *CameraReport) *onviftesting.
 	metadata := &onviftesting.CaptureMetadata{
 		Version:        onviftesting.CaptureVersion,
 		CreatedAt:      time.Now(),
-		ToolVersion:    version,
+		ToolVersion:    Version,
 		TotalExchanges: len(t.captures),
 		ServiceMap:     t.serviceMap,
 	}

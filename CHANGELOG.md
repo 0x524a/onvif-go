@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `onvif-server` and `onvif-diagnostics` reported version 1.0.0 whatever the release: the version was a lowercase variable (or a constant) that the release build's `-X main.Version=` could not set. It is now an exported `Version` that the build sets, and `dev` for plain `go build`.
+
+### Added
+- `-version` on all four tools (`onvif-cli`, `onvif-quick`, `onvif-server`, `onvif-diagnostics`), printing the version and short commit, e.g. `onvif-cli v1.2.1 (abc1234)`. Release builds set them with `-ldflags`; `go install ...@v1.2.1` and plain builds fall back to the version and revision Go embeds in the binary.
+
 ## [1.2.0] - 2026-10-10
 
 ### Added
