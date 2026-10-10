@@ -17,6 +17,7 @@ import (
 	"go/printer"
 	"go/token"
 	"html/template"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -70,7 +71,7 @@ type page struct {
 }
 
 func main() {
-	if err := run(); err != nil {
+	if err := run("."); err != nil {
 		fmt.Fprintln(os.Stderr, "gen-apidocs:", err)
 		os.Exit(1)
 	}
@@ -78,10 +79,15 @@ func main() {
 
 var errNoPackage = errors.New("package onvif not found; run from the repository root")
 
-func run() error {
+// run writes the API reference for the package in dir to standard output.
+func run(dir string) error {
+	return render(dir, os.Stdout)
+}
+
+func render(dir string, w io.Writer) error {
 	fset := token.NewFileSet()
 
-	files, err := parseSources(fset)
+	files, err := parseSources(fset, dir)
 	if err != nil {
 		return err
 	}
@@ -96,7 +102,7 @@ func run() error {
 		return err
 	}
 
-	if err := tmpl.Execute(os.Stdout, buildPage(byFile)); err != nil {
+	if err := tmpl.Execute(w, buildPage(byFile)); err != nil {
 		return fmt.Errorf("render page: %w", err)
 	}
 
@@ -105,8 +111,8 @@ func run() error {
 
 // parseSources parses the non-test Go files of package onvif in the current
 // directory.
-func parseSources(fset *token.FileSet) ([]*ast.File, error) {
-	entries, err := os.ReadDir(".")
+func parseSources(fset *token.FileSet, dir string) ([]*ast.File, error) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("read directory: %w", err)
 	}
@@ -118,7 +124,7 @@ func parseSources(fset *token.FileSet) ([]*ast.File, error) {
 			continue
 		}
 
-		f, err := parser.ParseFile(fset, name, nil, parser.ParseComments)
+		f, err := parser.ParseFile(fset, filepath.Join(dir, name), nil, parser.ParseComments)
 		if err != nil {
 			return nil, fmt.Errorf("parse %s: %w", name, err)
 		}
