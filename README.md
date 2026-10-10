@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.png">
+    <img src="assets/brand/logo-light.png" alt="onvif-go" width="360">
+  </picture>
+</p>
+
 # onvif-go - ONVIF Client and Server Library for Go
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/0x524a/onvif-go.svg)](https://pkg.go.dev/github.com/0x524a/onvif-go)

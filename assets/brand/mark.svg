@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none" role="img" aria-label="onvif-go">
+  <title>onvif-go</title>
+  <g stroke="#0E1B26" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M36 84V56a20 20 0 0 1 20-20h28"/>
+    <path d="M172 36h28a20 20 0 0 1 20 20v28"/>
+    <path d="M220 172v28a20 20 0 0 1-20 20h-28"/>
+    <path d="M84 220H56a20 20 0 0 1-20-20v-28"/>
+  </g>
+  <circle cx="128" cy="128" r="54" stroke="#0E1B26" stroke-width="10"/>
+  <circle cx="128" cy="128" r="29" stroke="#19C3E0" stroke-width="9"/>
+  <circle cx="128" cy="128" r="10" fill="#F0502D"/>
+  <path d="M96 104a40 40 0 0 1 20-14" stroke="#0E1B26" stroke-width="6" stroke-linecap="round" opacity=".45"/>
+</svg>
