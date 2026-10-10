@@ -351,3 +351,24 @@ func TestStableEndpointRef(t *testing.T) {
 		t.Errorf("unexpected form %q", a)
 	}
 }
+
+func TestParseTypeNameForms(t *testing.T) {
+	tests := map[string]qname{
+		"dn:NetworkVideoTransmitter": {nsONVIFNet, "NetworkVideoTransmitter"},
+		"tds:Device":                 {nsONVIFDevice, "Device"},
+		"{urn:x}Thing":               {"urn:x", "Thing"},
+	}
+
+	for in, want := range tests {
+		got, err := parseTypeName(in)
+		if err != nil || got != want {
+			t.Errorf("parseTypeName(%q) = %v, %v; want %v", in, got, err, want)
+		}
+	}
+
+	for _, bad := range []string{"bogus", "{urn:x}", "{unterminated"} {
+		if _, err := parseTypeName(bad); err == nil {
+			t.Errorf("parseTypeName(%q) succeeded", bad)
+		}
+	}
+}
