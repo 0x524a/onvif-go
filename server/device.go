@@ -2,7 +2,10 @@ package server
 
 import (
 	"encoding/xml"
+	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/0x524a/onvif-go/server/soap"
 )
@@ -248,6 +251,38 @@ func (s *Server) HandleGetSystemDateAndTime(body interface{}) (interface{}, erro
 			LocalDateTime: soap.ToDateTime(now.Local()),
 		},
 	}, nil
+}
+
+// GetEndpointReferenceResponse represents GetEndpointReference response.
+type GetEndpointReferenceResponse struct {
+	XMLName xml.Name `xml:"http://www.onvif.org/ver10/device/wsdl GetEndpointReferenceResponse"`
+	GUID    string   `xml:"GUID"`
+}
+
+// normalizeEndpointUUID validates uuidStr (bare or "urn:uuid:" prefixed) and
+// returns it in URN form. An empty string yields a freshly generated UUID.
+func normalizeEndpointUUID(uuidStr string) (string, error) {
+	if uuidStr == "" {
+		return "urn:uuid:" + uuid.NewString(), nil
+	}
+
+	parsed, err := uuid.Parse(uuidStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid EndpointUUID %q: %w", uuidStr, err)
+	}
+
+	return "urn:uuid:" + parsed.String(), nil
+}
+
+// EndpointReference returns the device's endpoint identity in "urn:uuid:"
+// form, as reported by GetEndpointReference.
+func (s *Server) EndpointReference() string {
+	return s.endpointURN
+}
+
+// HandleGetEndpointReference handles GetEndpointReference request.
+func (s *Server) HandleGetEndpointReference(body interface{}) (interface{}, error) {
+	return &GetEndpointReferenceResponse{GUID: s.endpointURN}, nil
 }
 
 // HandleGetServices handles GetServices request.

@@ -1,8 +1,12 @@
 package server
 
 import (
+	"context"
 	"encoding/xml"
+	"io"
 	"testing"
+
+	"github.com/0x524a/onvif-go"
 )
 
 func TestHandleGetDeviceInformation(t *testing.T) {
@@ -383,5 +387,94 @@ func TestGetCapabilitiesResponse(t *testing.T) {
 	}
 	if resp.Capabilities.Device == nil {
 		t.Error("Device capabilities is nil in response")
+	}
+}
+
+func TestHandleGetEndpointReference(t *testing.T) {
+	const bare = "12345678-1234-1234-1234-123456789abc"
+
+	for name, cfgUUID := range map[string]string{"bare": bare, "urn": "urn:uuid:" + bare} {
+		t.Run(name, func(t *testing.T) {
+			config := DefaultConfig()
+			config.EndpointUUID = cfgUUID
+
+			srv, err := New(config)
+			if err != nil {
+				t.Fatalf("New() error = %v", err)
+			}
+
+			resp, err := srv.HandleGetEndpointReference(nil)
+			if err != nil {
+				t.Fatalf("HandleGetEndpointReference() error = %v", err)
+			}
+
+			got := resp.(*GetEndpointReferenceResponse).GUID
+			if want := "urn:uuid:" + bare; got != want {
+				t.Errorf("GUID = %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestEndpointUUIDGeneratedAndStable(t *testing.T) {
+	a, err := New(DefaultConfig())
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	b, err := New(DefaultConfig())
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	if a.EndpointReference() == b.EndpointReference() {
+		t.Error("two servers share a generated endpoint UUID")
+	}
+
+	before := a.EndpointReference()
+
+	resp, err := a.HandleGetEndpointReference(nil)
+	if err != nil {
+		t.Fatalf("HandleGetEndpointReference() error = %v", err)
+	}
+
+	if got := resp.(*GetEndpointReferenceResponse).GUID; got != before {
+		t.Errorf("handler GUID %q differs from EndpointReference() %q", got, before)
+	}
+}
+
+func TestNewRejectsInvalidEndpointUUID(t *testing.T) {
+	config := DefaultConfig()
+	config.EndpointUUID = "not-a-uuid"
+
+	if _, err := New(config); err == nil {
+		t.Fatal("New() accepted an invalid EndpointUUID")
+	}
+}
+
+// TestClientGetEndpointReferenceAgainstServer is the end-to-end check from
+// #116: the real client against the real server. The urn:uuid: shape matches
+// what a Bosch FLEXIDOME 5100i returns in test-reports/.
+func TestClientGetEndpointReferenceAgainstServer(t *testing.T) {
+	config := DefaultConfig()
+	config.Host = testLoopbackHost
+	config.Output = io.Discard
+	config.Username, config.Password = "", ""
+	config.EndpointUUID = "00075fd3-5db7-b75d-d35f-0700075fd35f"
+
+	_, addr := startTestServer(t, config)
+
+	client, err := onvif.NewClient("http://" + addr + "/onvif/device_service")
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	guid, err := client.GetEndpointReference(context.Background())
+	if err != nil {
+		t.Fatalf("GetEndpointReference() error = %v", err)
+	}
+
+	if want := "urn:uuid:00075fd3-5db7-b75d-d35f-0700075fd35f"; guid != want {
+		t.Errorf("GUID = %q, want %q", guid, want)
 	}
 }
