@@ -1,4 +1,3 @@
-// Package discovery provides ONVIF device discovery functionality using WS-Discovery protocol.
 package discovery
 
 import (

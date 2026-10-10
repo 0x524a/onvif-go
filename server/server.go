@@ -1,4 +1,3 @@
-// Package server provides ONVIF server implementation for testing and simulation.
 package server
 
 import (

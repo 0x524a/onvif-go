@@ -1,4 +1,3 @@
-// Package discovery provides error definitions for the discovery package.
 package discovery
 
 import "errors"
