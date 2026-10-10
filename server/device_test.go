@@ -5,8 +5,10 @@ import (
 	"encoding/xml"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/0x524a/onvif-go"
+	"github.com/0x524a/onvif-go/discovery"
 )
 
 func TestHandleGetDeviceInformation(t *testing.T) {
@@ -476,5 +478,63 @@ func TestClientGetEndpointReferenceAgainstServer(t *testing.T) {
 
 	if want := "urn:uuid:00075fd3-5db7-b75d-d35f-0700075fd35f"; guid != want {
 		t.Errorf("GUID = %q, want %q", guid, want)
+	}
+}
+
+// TestServerBackedDeviceIsDiscovered wires the pieces together as CamFarm
+// would: a server, one shared responder, and the module's own client.
+func TestServerBackedDeviceIsDiscovered(t *testing.T) {
+	config := DefaultConfig()
+	config.Host = testLoopbackHost
+	config.Output = io.Discard
+	config.Username, config.Password = "", ""
+	config.EndpointUUID = "00075fd3-5db7-b75d-d35f-0700075fd35f"
+
+	srv, _ := startTestServer(t, config)
+
+	ready := make(chan struct{})
+	responder := discovery.NewResponder(&discovery.ResponderConfig{
+		ListenAddr: "127.0.0.1:0",
+		Ready:      ready,
+	})
+
+	if err := responder.Register(srv.DiscoveryDevice()); err != nil {
+		t.Fatalf("Register() error = %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() { _ = responder.Start(ctx) }()
+
+	<-ready
+
+	found, err := discovery.DiscoverWithOptions(ctx, 500*time.Millisecond,
+		&discovery.DiscoverOptions{ProbeAddress: responder.Addr().String()})
+	if err != nil {
+		t.Fatalf("DiscoverWithOptions() error = %v", err)
+	}
+
+	if len(found) != 1 {
+		t.Fatalf("found %d devices, want 1", len(found))
+	}
+
+	if want := "urn:uuid:00075fd3-5db7-b75d-d35f-0700075fd35f"; found[0].EndpointRef != want {
+		t.Errorf("EndpointRef = %q, want %q", found[0].EndpointRef, want)
+	}
+
+	// The discovered XAddr must reach the same server.
+	client, err := onvif.NewClient(found[0].GetDeviceEndpoint())
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	guid, err := client.GetEndpointReference(ctx)
+	if err != nil {
+		t.Fatalf("GetEndpointReference() via discovered XAddr error = %v", err)
+	}
+
+	if guid != found[0].EndpointRef {
+		t.Errorf("GUID %q != discovered EndpointRef %q", guid, found[0].EndpointRef)
 	}
 }
