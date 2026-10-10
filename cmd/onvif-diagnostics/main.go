@@ -1800,7 +1800,7 @@ func writeTarEntry(tarWriter *tar.Writer, sourceDir, path string) error {
 	}
 
 	// Write file content
-	file, err := os.Open(path) //nolint:gosec // G304: path is validated from filepath.Walk, not user input
+	file, err := os.Open(path) // #nosec G304 -- G304: path is validated from filepath.Walk, not user input
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
@@ -1818,7 +1818,7 @@ func writeTarEntry(tarWriter *tar.Writer, sourceDir, path string) error {
 // createTarGzV2 creates a V2 tar.gz archive with metadata.json first.
 func createTarGzV2(sourceDir, archivePath string) error {
 	// Create archive file
-	archiveFile, err := os.Create(archivePath) //nolint:gosec // Archive path is validated before use
+	archiveFile, err := os.Create(archivePath) // #nosec G304 -- Archive path is validated before use
 	if err != nil {
 		return fmt.Errorf("failed to create archive file: %w", err)
 	}

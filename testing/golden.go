@@ -41,7 +41,7 @@ type GoldenFileSet struct {
 // LoadGoldenManifest loads a manifest.json from a golden directory.
 func LoadGoldenManifest(goldenDir string) (*GoldenManifest, error) {
 	manifestPath := filepath.Join(goldenDir, "manifest.json")
-	data, err := os.ReadFile(manifestPath) //nolint:gosec // Path is from test data directory, safe
+	data, err := os.ReadFile(manifestPath) // #nosec G304 -- Path is from test data directory, safe
 	if err != nil {
 		return nil, fmt.Errorf("failed to read manifest: %w", err)
 	}
@@ -83,7 +83,7 @@ func LoadGoldenFiles(goldenDir string) (*GoldenFileSet, error) {
 			return nil
 		}
 
-		data, err := os.ReadFile(path) //nolint:gosec // Path is from filepath.Walk, safe
+		data, err := os.ReadFile(path) // #nosec G304,G122 -- Path is from filepath.Walk, safe
 		if err != nil {
 			return fmt.Errorf("failed to read %s: %w", path, err)
 		}

@@ -245,7 +245,7 @@ func generateTests() string {
 	}
 
 	outputFile := filepath.Join(*outputDir, fmt.Sprintf("%s_test.go", strings.ToLower(cameraID)))
-	f, err := os.Create(outputFile) //nolint:gosec // Filename is generated from test data, safe
+	f, err := os.Create(outputFile) // #nosec G304 -- Filename is generated from test data, safe
 	if err != nil {
 		log.Fatalf("Failed to create output file: %v", err)
 	}

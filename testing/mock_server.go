@@ -36,7 +36,7 @@ type CameraCapture struct {
 
 // LoadCaptureFromArchive loads all captured exchanges from a tar.gz archive.
 func LoadCaptureFromArchive(archivePath string) (*CameraCapture, error) {
-	file, err := os.Open(archivePath) //nolint:gosec // File path is from test data, safe
+	file, err := os.Open(archivePath) // #nosec G304 -- File path is from test data, safe
 	if err != nil {
 		return nil, fmt.Errorf("failed to open archive: %w", err)
 	}
@@ -321,7 +321,7 @@ func parseExchange(fileName string, data []byte) (*CapturedExchangeV2, error) {
 
 // LoadCaptureFromArchiveV2 loads captures from archive, supporting both V1 and V2 formats.
 func LoadCaptureFromArchiveV2(archivePath string) (*CameraCaptureV2, *CaptureMetadata, error) {
-	file, err := os.Open(archivePath) //nolint:gosec // File path is from test data, safe
+	file, err := os.Open(archivePath) // #nosec G304 -- File path is from test data, safe
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open archive: %w", err)
 	}

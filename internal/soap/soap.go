@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"crypto/sha1" //nolint:gosec // SHA1 used for ONVIF digest authentication
+	"crypto/sha1" // #nosec G505 -- SHA1 used for ONVIF digest authentication
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -268,7 +268,7 @@ func (c *Client) createSecurityHeader() *Security {
 	created := time.Now().UTC().Format(time.RFC3339)
 
 	// Calculate password digest: Base64(SHA1(nonce + created + password))
-	hash := sha1.New() //nolint:gosec // SHA1 required for ONVIF digest auth
+	hash := sha1.New() // #nosec G401 -- SHA1 required for ONVIF digest auth
 	hash.Write(nonceBytes)
 	hash.Write([]byte(created))
 	hash.Write([]byte(c.password))

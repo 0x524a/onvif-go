@@ -2,7 +2,7 @@ package onvif
 
 import (
 	"context"
-	"crypto/md5" //nolint:gosec // MD5 used for ONVIF digest authentication
+	"crypto/md5" // #nosec G501 -- MD5 used for ONVIF digest authentication
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/hex"
@@ -531,7 +531,7 @@ func extractParam(authHeader, param string) string {
 }
 
 func md5Hash(s string) string {
-	h := md5.New() //nolint:gosec // MD5 required for ONVIF digest auth
+	h := md5.New() // #nosec G401 -- MD5 required for ONVIF digest auth
 	h.Write([]byte(s))
 
 	return hex.EncodeToString(h.Sum(nil))

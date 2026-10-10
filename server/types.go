@@ -386,7 +386,7 @@ func DefaultConfig() *Config {
 					Bitrate:    defaultBitrate,
 					GovLength:  defaultFramerate,
 				},
-				PTZ: &PTZConfig{ //nolint:gosec // G101: false positive, NodeToken is a PTZ node reference, not a credential
+				PTZ: &PTZConfig{ // #nosec G101 -- G101: false positive, NodeToken is a PTZ node reference, not a credential
 					NodeToken: "ptz_node_0",
 					PanRange:  Range{Min: -maxPan, Max: maxPan},
 					TiltRange: Range{Min: -maxTilt, Max: maxTilt},
@@ -453,7 +453,7 @@ func DefaultConfig() *Config {
 					Bitrate:    highBitrate,
 					GovLength:  lowFramerate,
 				},
-				PTZ: &PTZConfig{ //nolint:gosec // G101: false positive, NodeToken is a PTZ node reference, not a credential
+				PTZ: &PTZConfig{ // #nosec G101 -- G101: false positive, NodeToken is a PTZ node reference, not a credential
 					NodeToken: "ptz_node_2",
 					PanRange:  Range{Min: -maxPan, Max: maxPan},
 					TiltRange: Range{Min: -maxTilt, Max: maxTilt},
