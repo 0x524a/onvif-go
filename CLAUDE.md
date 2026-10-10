@@ -317,7 +317,8 @@ This allows testing library changes against real camera behavior without physica
 
 Minimal dependencies (see `go.mod`):
 - `golang.org/x/net`: HTTP/2 and IDNA support
-- `github.com/0x524A/rtspeek`: RTSP stream validation (diagnostics tool)
+- `github.com/google/uuid`: endpoint identities (library: `discovery`, `server`)
+- `github.com/0x524A/rtspeek`: RTSP stream validation (`cmd/onvif-cli` only; pulls in gortsplib and Pion)
 - Standard library for everything else
 
 Go version: 1.25+ (CI builds on 1.26.x)

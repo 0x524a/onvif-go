@@ -39,7 +39,7 @@ onvif-go is a Go library for IP cameras, NVRs and other devices that speak [ONVI
 - **Discovery:** find devices with WS-Discovery, or answer probes for your own.
 - **Virtual cameras:** a multi-lens camera simulator with stable identities that survive restarts.
 - **Command-line tools:** prebuilt binaries for discovery, diagnostics and scripting.
-- **Small footprint:** the standard library plus [rtspeek](https://github.com/0x524A/rtspeek) and [google/uuid](https://github.com/google/uuid).
+- **Small footprint:** the library itself needs only [google/uuid](https://github.com/google/uuid) beyond the standard library. [rtspeek](https://github.com/0x524A/rtspeek) and its RTSP stack are used by `onvif-cli` alone, for stream checks.
 
 ## Install
 
@@ -186,6 +186,23 @@ On a machine with several network interfaces, pick the one to probe from with `-
 
 Contributions are welcome. For anything larger than a fix, please open an issue first. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, and run `make check` before you push.
 
+## Acknowledgements
+
+onvif-go stands on other people's work:
+
+- [gortsplib](https://github.com/bluenviron/gortsplib) and [mediacommon](https://github.com/bluenviron/mediacommon) by the bluenviron project: the RTSP client and media-format library behind the stream inspection in `onvif-cli`, through [rtspeek](https://github.com/0x524A/rtspeek).
+- [Pion](https://github.com/pion): the RTP, RTCP, SDP and SRTP libraries that gortsplib builds on.
+- [google/uuid](https://github.com/google/uuid): the identifiers behind the virtual cameras' stable endpoint references.
+- [use-go/onvif](https://github.com/use-go/onvif), the earlier Go ONVIF library that inspired this one, and the specifications published by [ONVIF.org](https://www.onvif.org).
+
+The licenses of everything compiled into the library and the tools are reproduced in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), which also ships in every release archive.
+
+## Star history
+
+If you find this project useful, please consider giving it a star! ⭐
+
+[![Star History Chart](https://api.star-history.com/svg?repos=0x524a/onvif-go&type=Date)](https://star-history.com/#0x524a/onvif-go&Date)
+
 ## License
 
-MIT, see [LICENSE](LICENSE). Inspired by [use-go/onvif](https://github.com/use-go/onvif); specifications from [ONVIF.org](https://www.onvif.org).
+MIT, see [LICENSE](LICENSE).

@@ -6,6 +6,9 @@ set -e
 # Run from the repository root whatever the caller's working directory.
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+# Binaries embed third-party code whose licenses ask for their notices to ship with them.
+./scripts/gen-third-party-notices.sh
+
 VERSION=${1:-$(git describe --tags --always --dirty 2>/dev/null || echo "dev")}
 echo "Building release binaries for version: $VERSION"
 
@@ -83,10 +86,10 @@ for platform in "${PLATFORMS[@]}"; do
     
     if [ "$OS" = "windows" ]; then
         # ZIP for Windows
-        zip -q "../releases/${ARCHIVE_NAME}.zip" *-${OS}-${ARCH}.exe ../README.md ../LICENSE
+        zip -q "../releases/${ARCHIVE_NAME}.zip" *-${OS}-${ARCH}.exe ../README.md ../LICENSE ../THIRD_PARTY_NOTICES.md
     else
         # tar.gz for Unix-like
-        tar czf "../releases/${ARCHIVE_NAME}.tar.gz" *-${OS}-${ARCH} -C .. README.md LICENSE
+        tar czf "../releases/${ARCHIVE_NAME}.tar.gz" *-${OS}-${ARCH} -C .. README.md LICENSE THIRD_PARTY_NOTICES.md
     fi
 done
 
