@@ -21,7 +21,6 @@ onvif-go/
 ├── examples/            # Usage examples
 ├── docs/               # Documentation
 ├── testing/            # Testing helpers
-└── testdata/           # Test fixtures
 ```
 
 **Design Rationale:**

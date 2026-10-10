@@ -31,4 +31,4 @@ what the reference cannot.
 ## Project
 
 - [CI/CD](CI_CD.md): the workflows and what each one checks.
-- [Changelog](../CHANGELOG.md) and [contributing](../CONTRIBUTING.md).
+- [Changelog](../CHANGELOG.md) and [contributing](../.github/CONTRIBUTING.md).

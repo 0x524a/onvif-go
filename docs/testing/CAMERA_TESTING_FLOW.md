@@ -368,7 +368,7 @@ error: undefined: t
 
 - **[onvif-diagnostics README](cmd/onvif-diagnostics/README.md)** - Detailed tool usage
 - **[Camera Test Framework](testing/captures/README.md)** - How tests work
-- **[Contributing Guide](CONTRIBUTING.md)** - General contribution guidelines
+- **[Contributing Guide](../../.github/CONTRIBUTING.md)** - General contribution guidelines
 - **[QUICKSTART](QUICKSTART.md)** - Library basics
 
 ## 💬 Getting Help

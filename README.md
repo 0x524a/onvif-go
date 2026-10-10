@@ -189,7 +189,7 @@ On a machine with several network interfaces, pick the one to probe from with `-
 
 ## Contributing
 
-Contributions are welcome. For anything larger than a fix, please open an issue first. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, and run `make check` before you push.
+Contributions are welcome. For anything larger than a fix, please open an issue first. See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for the workflow, and run `make check` before you push.
 
 ## Acknowledgements
 

@@ -148,7 +148,7 @@ Dependency vulnerability review.
 Security Hotspot analysis excludes:
 - Test files (`**/*_test.go`)
 - CI configuration (`**/.github/**`)
-- Test utilities (`**/testing/**`, `**/testdata/**`)
+- Test utilities (`**/testing/**`)
 - Example code (`**/examples/**`)
 - CLI tools (`**/cmd/**`)
 

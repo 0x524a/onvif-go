@@ -1,6 +1,6 @@
 # Test Reports
 
-This directory contains test reports generated from real camera testing.
+This directory holds reports from real-camera runs (`camera_test_report_*.json`) and the January 2026 LAN discovery results (`discovered_cameras_20260113.json`, `discovery_raw_20260113.log`).
 
 ## Files
 

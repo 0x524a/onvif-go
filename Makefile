@@ -181,7 +181,7 @@ release: build-all
 # Create Docker image
 docker:
 	@echo "🐳 Building Docker image..."
-	docker build -t onvif-go:latest .
+	docker build -f build/Dockerfile -t onvif-go:latest .
 
 # Development setup
 dev-setup:
