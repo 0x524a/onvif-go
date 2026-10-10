@@ -6,16 +6,19 @@
 </p>
 
 <p align="center">
-  <b>Talk to any ONVIF camera from Go, and test against virtual ones when you have no hardware.</b>
-</p>
-
-<p align="center">
   <a href="https://pkg.go.dev/github.com/0x524a/onvif-go"><img src="https://pkg.go.dev/badge/github.com/0x524a/onvif-go.svg" alt="Go Reference"></a>
   <a href="https://github.com/0x524a/onvif-go/releases/latest"><img src="https://img.shields.io/github/v/release/0x524a/onvif-go" alt="Release"></a>
   <a href="https://github.com/0x524a/onvif-go/actions/workflows/ci.yml"><img src="https://github.com/0x524a/onvif-go/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI"></a>
-  <a href="https://codecov.io/gh/0x524a/onvif-go"><img src="https://codecov.io/gh/0x524a/onvif-go/branch/master/graph/badge.svg" alt="Coverage"></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=0x524a_onvif-go"><img src="https://sonarcloud.io/api/project_badges/measure?project=0x524a_onvif-go&metric=alert_status" alt="Quality gate"></a>
+  <a href="https://codecov.io/gh/0x524a/onvif-go"><img src="https://codecov.io/gh/0x524a/onvif-go/branch/master/graph/badge.svg" alt="codecov"></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=0x524a_onvif-go"><img src="https://sonarcloud.io/api/project_badges/measure?project=0x524a_onvif-go&metric=alert_status" alt="Quality Gate Status"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/0x524a/onvif-go" alt="License"></a>
+  <a href="https://github.com/0x524a/onvif-go/stargazers"><img src="https://img.shields.io/github/stars/0x524a/onvif-go" alt="GitHub stars"></a>
+  <a href="https://github.com/0x524a/onvif-go/issues"><img src="https://img.shields.io/github/issues/0x524a/onvif-go" alt="GitHub issues"></a>
+  <br>
+  <img src="https://img.shields.io/github/repo-size/0x524a/onvif-go" alt="GitHub repo size">
+  <img src="https://img.shields.io/github/languages/code-size/0x524a/onvif-go" alt="GitHub code size">
+  <img src="https://img.shields.io/github/go-mod/go-version/0x524a/onvif-go" alt="GitHub go.mod Go version">
+  <img src="https://img.shields.io/github/last-commit/0x524a/onvif-go" alt="GitHub last commit">
 </p>
 
 <p align="center">
@@ -24,6 +27,8 @@
   <a href="https://0x524a.github.io/onvif-go/api.html">API reference</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
+
+> **Modern, high-performance Go library for ONVIF IP camera integration** - Control surveillance cameras, NVRs, and video devices with comprehensive ONVIF Profile S/T/G support. Includes both client and server implementations for complete ONVIF camera simulation and testing.
 
 ---
 
