@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
+const nvtType = "dn:NetworkVideoTransmitter"
+
 const testEndpoint = "urn:uuid:12345678-1234-1234-1234-123456789abc"
 
 func startResponder(t *testing.T, devices ...*Device) *Responder {
@@ -87,7 +89,7 @@ func TestClientDiscoversResponderOverUnicast(t *testing.T) {
 		t.Errorf("XAddrs = %v", d.XAddrs)
 	}
 
-	if len(d.Types) != 1 || d.Types[0] != "dn:NetworkVideoTransmitter" {
+	if len(d.Types) != 1 || d.Types[0] != nvtType {
 		t.Errorf("Types = %v", d.Types)
 	}
 
@@ -354,9 +356,9 @@ func TestStableEndpointRef(t *testing.T) {
 
 func TestParseTypeNameForms(t *testing.T) {
 	tests := map[string]qname{
-		"dn:NetworkVideoTransmitter": {nsONVIFNet, "NetworkVideoTransmitter"},
-		"tds:Device":                 {nsONVIFDevice, "Device"},
-		"{urn:x}Thing":               {"urn:x", "Thing"},
+		nvtType:        {nsONVIFNet, "NetworkVideoTransmitter"},
+		"tds:Device":   {nsONVIFDevice, "Device"},
+		"{urn:x}Thing": {"urn:x", "Thing"},
 	}
 
 	for in, want := range tests {
