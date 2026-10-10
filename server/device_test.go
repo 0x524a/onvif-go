@@ -456,7 +456,7 @@ func TestNewRejectsInvalidEndpointUUID(t *testing.T) {
 
 // TestClientGetEndpointReferenceAgainstServer is the end-to-end check from
 // #116: the real client against the real server. The urn:uuid: shape matches
-// what a Bosch FLEXIDOME 5100i returns in test-reports/.
+// what a Bosch FLEXIDOME 5100i returns in testing/reports/.
 func TestClientGetEndpointReferenceAgainstServer(t *testing.T) {
 	config := DefaultConfig()
 	config.Host = testLoopbackHost

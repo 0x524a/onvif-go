@@ -91,7 +91,7 @@ linters:
           - gocognit
           - dupl
       
-      - path: (media|device|ptz|imaging|device_security|device_additional)\.go
+      - path: (media|media_video|media_audio|media_metadata|media_osd|device|ptz|imaging|device_security|device_additional)\.go
         linters:
           - dupl
       

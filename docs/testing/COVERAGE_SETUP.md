@@ -41,7 +41,7 @@ CodeCov provides code coverage reports and metrics to help ensure your tests cov
 
 The following files configure CodeCov:
 
-**`.codecov.yml`** - CodeCov configuration
+**`.github/codecov.yml`** - CodeCov configuration
 ```yaml
 codecov:
   require_ci_to_pass: yes
@@ -295,7 +295,7 @@ Coverage: 0.00%
 **Solution**:
 - Ensure tests are actually running: `go test -v ./...`
 - Check coverage mode is set: `-covermode=atomic`
-- Verify exclusions in `.codecov.yml` aren't too broad
+- Verify exclusions in `.github/codecov.yml` aren't too broad
 
 ### SonarCloud Issues
 

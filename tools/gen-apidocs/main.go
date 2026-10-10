@@ -29,26 +29,26 @@ const (
 	pkgDocsURL = "https://pkg.go.dev/" + importPath
 )
 
-// group maps a source file to the section its methods appear under. Files not
+// group maps source files to the section their methods appear under. Files not
 // listed here fall into the "Client" section.
 var groups = []struct {
-	File  string
+	Files []string
 	Title string
 	Blurb string
 }{
-	{"client.go", "Client", "Create a client and discover the service endpoints."},
-	{"device.go", "Device", "Information, capabilities, hostname, DNS, NTP, network and users."},
-	{"device_additional.go", "Device: additional", "Geolocation, access policy and discovery addresses."},
-	{"device_extended.go", "Device: extended", "Further device configuration."},
-	{"device_security.go", "Device: security", "IP filters, password policy and authentication settings."},
-	{"device_certificates.go", "Certificates", "Install, create and manage device certificates."},
-	{"device_wifi.go", "Wi-Fi and 802.1X", "Wireless status, scans and 802.1X configuration."},
-	{"device_storage.go", "Storage", "Storage configurations."},
-	{"media.go", "Media", "Profiles, stream and snapshot URIs, and encoder, source and metadata configuration."},
-	{"ptz.go", "PTZ", "Pan, tilt and zoom movement, presets and status."},
-	{"imaging.go", "Imaging", "Image settings and focus control."},
-	{"event.go", "Events", "Subscriptions and pull points."},
-	{"deviceio.go", "Device I/O", "Relays, digital inputs and video outputs."},
+	{[]string{"client.go"}, "Client", "Create a client and discover the service endpoints."},
+	{[]string{"device.go"}, "Device", "Information, capabilities, hostname, DNS, NTP, network and users."},
+	{[]string{"device_additional.go"}, "Device: additional", "Geolocation, access policy and discovery addresses."},
+	{[]string{"device_extended.go"}, "Device: extended", "Further device configuration."},
+	{[]string{"device_security.go"}, "Device: security", "IP filters, password policy and authentication settings."},
+	{[]string{"device_certificates.go"}, "Certificates", "Install, create and manage device certificates."},
+	{[]string{"device_wifi.go"}, "Wi-Fi and 802.1X", "Wireless status, scans and 802.1X configuration."},
+	{[]string{"device_storage.go"}, "Storage", "Storage configurations."},
+	{[]string{"media.go", "media_video.go", "media_audio.go", "media_metadata.go", "media_osd.go"}, "Media", "Profiles, stream and snapshot URIs, and encoder, source and metadata configuration."},
+	{[]string{"ptz.go"}, "PTZ", "Pan, tilt and zoom movement, presets and status."},
+	{[]string{"imaging.go"}, "Imaging", "Image settings and focus control."},
+	{[]string{"event.go"}, "Events", "Subscriptions and pull points."},
+	{[]string{"deviceio.go"}, "Device I/O", "Relays, digital inputs and video outputs."},
 }
 
 type entry struct {
@@ -197,10 +197,13 @@ func buildPage(byFile map[string][]entry) page {
 	p := page{}
 
 	for _, g := range groups {
-		known[g.File] = true
+		var es []entry
+		for _, f := range g.Files {
+			known[f] = true
+			es = append(es, byFile[f]...)
+		}
 
-		es := byFile[g.File]
-		if g.File == "client.go" {
+		if g.Files[0] == "client.go" {
 			es = append(es, otherFiles(byFile, known)...)
 		}
 		if len(es) == 0 {
@@ -224,7 +227,9 @@ func buildPage(byFile map[string][]entry) page {
 // known must already list every file that has one.
 func otherFiles(byFile map[string][]entry, known map[string]bool) []entry {
 	for _, g := range groups {
-		known[g.File] = true
+		for _, f := range g.Files {
+			known[f] = true
+		}
 	}
 
 	var files []string

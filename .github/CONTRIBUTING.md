@@ -223,14 +223,13 @@ onvif-go/
 ├── client.go           # Main ONVIF client
 ├── types.go            # ONVIF type definitions
 ├── device.go           # Device service
-├── media.go            # Media service
+├── media*.go           # Media service (video, audio, metadata, OSD in media_*.go)
 ├── ptz.go              # PTZ service
 ├── imaging.go          # Imaging service
 ├── soap/               # SOAP client
 ├── discovery/          # WS-Discovery
 ├── server/             # ONVIF server implementation
-├── testing/            # Test utilities
-├── testdata/           # Test fixtures
+├── testing/            # Test utilities, camera captures and reports
 ├── cmd/                # Command-line tools
 └── examples/           # Usage examples
 ```
@@ -239,7 +238,7 @@ onvif-go/
 
 ### Client Features
 
-1. Add method to appropriate service file (device.go, media.go, etc.)
+1. Add method to appropriate service file (device.go, media.go, media_video.go, etc.)
 2. Define request/response types in types.go
 3. Add tests
 4. Update documentation

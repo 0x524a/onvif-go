@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Repository layout: debug and test programs moved from `examples/` to `tools/`, shell scripts to `scripts/`, 19 redundant status documents removed from `docs/`, and a committed 8.7 MB example binary removed.
+- Repository root tidied: `media.go` (3,900 lines) split into `media.go`, `media_video.go`, `media_audio.go`, `media_metadata.go` and `media_osd.go` with no API change; coverage and configuration tests merged into `imaging_test.go`, `media_test.go` and `ptz_test.go`; `BUILDING.md` moved to `docs/`, the `Dockerfile` to `build/`, `.codecov.yml` to `.github/codecov.yml`; the duplicate root `CONTRIBUTING.md` removed in favour of `.github/CONTRIBUTING.md`; `test-reports/` and the January discovery data from `testdata/` moved to `testing/reports/`; the unused `testdata` Go package removed.
 
 ## [1.2.0] - 2026-10-10
 

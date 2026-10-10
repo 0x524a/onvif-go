@@ -132,7 +132,7 @@ onvif-go/
 
 **Service Implementations**:
 - `device.go` + `device_*.go`: 98 Device Management APIs (configuration, users, network, certificates, WiFi, storage)
-- `media.go`: Media profiles, stream URIs (RTSP/HTTP), snapshots, encoder configuration
+- `media.go` + `media_video.go`, `media_audio.go`, `media_metadata.go`, `media_osd.go`: Media profiles, stream URIs (RTSP/HTTP), snapshots, encoder and source configuration, OSD
 - `ptz.go`: PTZ control (continuous, absolute, relative movement, presets)
 - `imaging.go`: Image settings (brightness, contrast, exposure, focus, white balance)
 - `event.go`: Event service (subscriptions, pull-point)
@@ -246,7 +246,7 @@ Discovery supports binding to specific interfaces:
 - **`*_test.go`**: Unit tests (run with `go test`)
 - **`*_real_camera_test.go`**: Integration tests requiring real cameras
 - **`docs/`**: Comprehensive documentation organized by category
-- **`test-reports/`**: JSON reports from real camera testing
+- **`testing/reports/`**: JSON reports from real camera testing and discovery runs
 - **`examples/`**: Standalone example programs
 
 ## Build System

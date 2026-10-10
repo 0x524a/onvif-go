@@ -132,10 +132,10 @@ func main() {
 		log.Fatalf("Failed to marshal report: %v", err)
 	}
 
-	// Create test-reports directory if it doesn't exist
-	reportDir := "../../test-reports"
+	// Create testing/reports directory if it doesn't exist
+	reportDir := "../../testing/reports"
 	if err := os.MkdirAll(reportDir, 0755); err != nil {
-		log.Fatalf("Failed to create test-reports directory: %v", err)
+		log.Fatalf("Failed to create testing/reports directory: %v", err)
 	}
 
 	filename := fmt.Sprintf("camera_test_report_%s_%s_%s.json",
