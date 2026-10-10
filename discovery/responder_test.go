@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
+const nvtType = "dn:NetworkVideoTransmitter"
+
 const testEndpoint = "urn:uuid:12345678-1234-1234-1234-123456789abc"
 
 func startResponder(t *testing.T, devices ...*Device) *Responder {
@@ -87,7 +89,7 @@ func TestClientDiscoversResponderOverUnicast(t *testing.T) {
 		t.Errorf("XAddrs = %v", d.XAddrs)
 	}
 
-	if len(d.Types) != 1 || d.Types[0] != "dn:NetworkVideoTransmitter" {
+	if len(d.Types) != 1 || d.Types[0] != nvtType {
 		t.Errorf("Types = %v", d.Types)
 	}
 
@@ -349,5 +351,26 @@ func TestStableEndpointRef(t *testing.T) {
 	// Pinned: changing seedNamespace would renumber every seeded device.
 	if want := "urn:uuid:" + uuid.NewSHA1(seedNamespace, []byte("farm1/cam-07")).String(); a != want || !strings.HasPrefix(a, "urn:uuid:") {
 		t.Errorf("unexpected form %q", a)
+	}
+}
+
+func TestParseTypeNameForms(t *testing.T) {
+	tests := map[string]qname{
+		nvtType:        {nsONVIFNet, "NetworkVideoTransmitter"},
+		"tds:Device":   {nsONVIFDevice, "Device"},
+		"{urn:x}Thing": {"urn:x", "Thing"},
+	}
+
+	for in, want := range tests {
+		got, err := parseTypeName(in)
+		if err != nil || got != want {
+			t.Errorf("parseTypeName(%q) = %v, %v; want %v", in, got, err, want)
+		}
+	}
+
+	for _, bad := range []string{"bogus", "{urn:x}", "{unterminated"} {
+		if _, err := parseTypeName(bad); err == nil {
+			t.Errorf("parseTypeName(%q) succeeded", bad)
+		}
 	}
 }

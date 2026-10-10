@@ -20,7 +20,10 @@ import (
 const (
 	nsDiscovery  = "http://schemas.xmlsoap.org/ws/2005/04/discovery"
 	nsAddressing = "http://schemas.xmlsoap.org/ws/2004/08/addressing"
-	nsONVIFNet   = "http://www.onvif.org/ver10/network/wsdl"
+	// ONVIF namespace identifiers, fixed by the specification. They are XML
+	// names compared as strings and never dialed, so S5332 does not apply.
+	nsONVIFNet    = "http://www.onvif.org/ver10/network/wsdl" // NOSONAR
+	nsONVIFDevice = "http://www.onvif.org/ver10/device/wsdl"  // NOSONAR
 
 	actionProbeMatches = nsDiscovery + "/ProbeMatches"
 	actionHello        = nsDiscovery + "/Hello"
@@ -563,7 +566,7 @@ func parseTypeName(s string) (qname, error) {
 	case strings.HasPrefix(s, "dn:"):
 		return qname{space: nsONVIFNet, local: strings.TrimPrefix(s, "dn:")}, nil
 	case strings.HasPrefix(s, "tds:"):
-		return qname{space: "http://www.onvif.org/ver10/device/wsdl", local: strings.TrimPrefix(s, "tds:")}, nil
+		return qname{space: nsONVIFDevice, local: strings.TrimPrefix(s, "tds:")}, nil
 	}
 
 	return qname{}, fmt.Errorf("%w: use {namespace}Local, dn:Local or tds:Local", errBadTypeName)
