@@ -18,6 +18,8 @@
 
 > **Modern, high-performance Go library for ONVIF IP camera integration** - Control surveillance cameras, NVRs, and video devices with comprehensive ONVIF Profile S/T/G support. Includes both client and server implementations for complete ONVIF camera simulation and testing.
 
+**Documentation:** [Official Go package docs on pkg.go.dev](https://pkg.go.dev/github.com/0x524a/onvif-go) · [Project site](https://0x524a.github.io/onvif-go/) · [Changelog](CHANGELOG.md)
+
 A production-ready, feature-rich Go (Golang) library for communicating with ONVIF-compliant IP cameras, network video recorders (NVR), and surveillance devices. Perfect for building video management systems (VMS), security camera applications, IoT projects, and camera testing frameworks.
 
 ## 🎯 Key Features at a Glance
@@ -952,7 +954,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📖 [Documentation](https://pkg.go.dev/github.com/0x524a/onvif-go)
+- 📖 [Documentation](https://pkg.go.dev/github.com/0x524a/onvif-go) - the official Go package docs
+- 🌐 [Project site](https://0x524a.github.io/onvif-go/)
 - 🐛 [Issue Tracker](https://github.com/0x524a/onvif-go/issues)
 - 💬 [Discussions](https://github.com/0x524a/onvif-go/discussions)
 - 🔒 [Security Policy](.github/SECURITY.md)
