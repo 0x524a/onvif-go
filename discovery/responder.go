@@ -114,7 +114,7 @@ type Responder struct {
 	conn       *net.UDPConn
 	announce   *net.UDPAddr
 	readyOnce  sync.Once
-	instanceID uint64
+	instanceID int64
 	msgNumber  uint64
 }
 
@@ -133,7 +133,7 @@ type qname struct {
 func NewResponder(cfg *ResponderConfig) *Responder {
 	r := &Responder{
 		devices:    make(map[string]*registered),
-		instanceID: uint64(time.Now().Unix()), //nolint:gosec // Unix time is positive
+		instanceID: time.Now().Unix(),
 	}
 	if cfg != nil {
 		r.cfg = *cfg
