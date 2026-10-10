@@ -49,7 +49,7 @@ const DefaultRegistryPath = "testdata/captures/registry.json"
 
 // LoadRegistry loads the capture registry from a file.
 func LoadRegistry(path string) (*Registry, error) {
-	data, err := os.ReadFile(path) //nolint:gosec // Registry path is from constant or test data, safe
+	data, err := os.ReadFile(path) // #nosec G304 -- Registry path is from constant or test data, safe
 	if err != nil {
 		if os.IsNotExist(err) {
 			// Return empty registry if file doesn't exist
