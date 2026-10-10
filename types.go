@@ -113,10 +113,30 @@ type StreamingCapabilities struct {
 
 // CapabilitiesExtension represents extension types for capabilities.
 type CapabilitiesExtension struct{}
+
+// NetworkCapabilitiesExtension is the Extension field of NetworkCapabilities.
+// It is a placeholder for vendor or future ONVIF extension elements and
+// currently carries no fields.
 type NetworkCapabilitiesExtension struct{}
+
+// SystemCapabilitiesExtension is the Extension field of SystemCapabilities.
+// It is a placeholder for vendor or future ONVIF extension elements and
+// currently carries no fields.
 type SystemCapabilitiesExtension struct{}
+
+// IOCapabilitiesExtension is the Extension field of IOCapabilities.
+// It is a placeholder for vendor or future ONVIF extension elements and
+// currently carries no fields.
 type IOCapabilitiesExtension struct{}
+
+// SecurityCapabilitiesExtension is the Extension field of SecurityCapabilities.
+// It is a placeholder for vendor or future ONVIF extension elements and
+// currently carries no fields.
 type SecurityCapabilitiesExtension struct{}
+
+// StreamingCapabilitiesExtension is the Extension field of StreamingCapabilities.
+// It is a placeholder for vendor or future ONVIF extension elements and
+// currently carries no fields.
 type StreamingCapabilitiesExtension struct{}
 
 // Profile represents a media profile.
