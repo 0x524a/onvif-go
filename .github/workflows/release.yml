@@ -119,6 +119,10 @@ jobs:
           
           # Copy documentation
           cp README.md LICENSE staging/ 2>/dev/null || true
+
+          # MIT/BSD licenses ask for their notices to accompany binaries.
+          # Generated here so it matches the modules built into this release.
+          scripts/gen-third-party-notices.sh staging/THIRD_PARTY_NOTICES.md
           
           # Create archive from staging directory
           if [ "${{ matrix.goos }}" = "windows" ]; then
