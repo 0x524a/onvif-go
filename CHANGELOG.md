@@ -7,15 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- Capture replay (`testing`): the mock SOAP servers now rewrite the captured camera's own address in replayed responses to the mock's address. Before, a client followed the `GetCapabilities`/`GetServices` URLs out of the mock and tried to reach the original camera, so replay tests timed out.
-- `generate-tests`: the generated test referenced its archive as `captures/<file>` instead of the bare file name, could emit an invalid test name such as `Testunknown_device`, and wrote unformatted code. Output is now gofmt-clean and marked as generated.
-- The camera replay tests under `testdata/captures/` were never run, because Go ignores `testdata/`. They now live in `testing/captures/` and run with `go test ./...`; tests for the January captures were added (the broken `real_camera` test moved to the repository root and compiles).
-
-### Changed
-- Repository layout: debug and test programs moved from `examples/` to `tools/`, shell scripts to `scripts/`, 19 redundant status documents removed from `docs/`, and a committed 8.7 MB example binary removed.
-- Repository root tidied: `media.go` (3,900 lines) split into `media.go`, `media_video.go`, `media_audio.go`, `media_metadata.go` and `media_osd.go` with no API change; coverage and configuration tests merged into `imaging_test.go`, `media_test.go` and `ptz_test.go`; `BUILDING.md` moved to `docs/`, the `Dockerfile` to `build/`, `.codecov.yml` to `.github/codecov.yml`; the duplicate root `CONTRIBUTING.md` removed in favour of `.github/CONTRIBUTING.md`; `test-reports/` and the January discovery data from `testdata/` moved to `testing/reports/`; the unused `testdata` Go package removed.
-
 ## [1.2.0] - 2026-10-10
 
 ### Added
@@ -24,10 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WS-Discovery responder: `discovery.Responder` answers `Probe` with `ProbeMatches` for any number of registered devices behind one socket, and sends `Hello` on start and `Bye` on stop. Types and Scopes filtering supports MatchBy `rfc3986` (default), `strcmp0` and `none`; Resolve, MatchBy `ldap`/`uuid`, the WS-Discovery 1.1 namespace and discovery proxies are not supported. Opt-in, with no change for existing users (#117, #119).
 - Unicast discovery for tests and CI: `ResponderConfig.ListenAddr` and `DiscoverOptions.ProbeAddress` need no multicast routing, so the module's own client can find a server-backed device on loopback (#119).
 - `Server.DiscoveryDevice()` builds the responder entry for a running server: endpoint reference, device-service XAddr and standard ONVIF scopes (#119).
+- Virtual server: `GET /snapshot` serves a generated colour-bar JPEG with a moving second marker instead of a placeholder, so snapshot URIs from the virtual camera can be fetched (`server.SnapshotConfig`).
+- Documentation: a project site on GitHub Pages with a generated API reference (the client, `discovery` and `server` packages), runnable and compile-checked examples and package overviews for pkg.go.dev, and a rewritten README.
+- `THIRD_PARTY_NOTICES.md` lists the licenses of everything compiled into the library and tools, and ships in every release archive. `scripts/gen-third-party-notices.sh` regenerates it.
+- Brand assets (logo, icon, social preview) under `assets/brand/`.
 
 ### Changed
 - README: Release and CI badges (#115). Doc comments on capabilities extension types (#114).
 - Sonar `go:S5332` findings on ONVIF namespace identifiers and the scheme-less default URL are marked `NOSONAR` with the reason; no behaviour change (#120, #121).
+- Repository layout: debug and test programs moved from `examples/` to `tools/`, shell scripts to `scripts/`, 19 redundant status documents removed from `docs/`, and a committed 8.7 MB example binary removed.
+- Repository root tidied: `media.go` (3,900 lines) split into `media.go`, `media_video.go`, `media_audio.go`, `media_metadata.go` and `media_osd.go` with no API change; coverage and configuration tests merged into `imaging_test.go`, `media_test.go` and `ptz_test.go`; `BUILDING.md` moved to `docs/`, the `Dockerfile` to `build/`, `.codecov.yml` to `.github/codecov.yml`; the duplicate root `CONTRIBUTING.md` removed in favour of `.github/CONTRIBUTING.md`; `test-reports/` and the January discovery data from `testdata/` moved to `testing/reports/`; the unused `testdata` Go package removed.
+
+### Fixed
+- Capture replay (`testing`): the mock SOAP servers now rewrite the captured camera's own address in replayed responses to the mock's address. Before, a client followed the `GetCapabilities`/`GetServices` URLs out of the mock and tried to reach the original camera, so replay tests timed out.
+- `generate-tests`: the generated test referenced its archive as `captures/<file>` instead of the bare file name, could emit an invalid test name such as `Testunknown_device`, and wrote unformatted code. Output is now gofmt-clean and marked as generated.
+- The camera replay tests under `testdata/captures/` were never run, because Go ignores `testdata/`. They now live in `testing/captures/` and run with `go test ./...`; tests for the January captures were added (the broken `real_camera` test moved to the repository root and compiles).
+- `onvif-cli`: system date and time are printed in a readable form instead of raw struct output.
 
 ## [1.1.8] - 2026-10-04
 
