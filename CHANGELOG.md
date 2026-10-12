@@ -16,7 +16,15 @@ Consumed same-day by the mibee-eye products (v0.5.0 train).
 
 ## [Unreleased]
 
-Nothing yet.
+- **Events: standard motion-topic parsing.** New `events.ParseMotionAlarm`
+  and `events.IsMotionTopic` recognize `tns1:VideoSource/MotionAlarm`
+  (Data `State`) and `tns1:RuleEngine/CellMotionDetector/Motion` (Data
+  `IsMotion`) on a `NotificationMessage`: case-insensitive topic match
+  that ignores namespace prefixes, state read from the Data slot only,
+  optional vendor `Score`. Many cameras (TP-Link) emit only the
+  CellMotionDetector topic, so consumers that recognized only
+  MotionAlarm never fired for them. Field vectors from a Hikvision
+  DS-IPC-T12HV3-IA and a TP-Link TL-IPC44AW-COLOR (#126).
 
 
 - **Server: media encoder family + sync-point seam.** The ver10 media
