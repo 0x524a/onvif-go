@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,6 +41,7 @@ const listenerBufferSize = 256 * 1024
 type Listener struct {
 	ifaceName string
 	handler   func(*Device)
+	cfg       listenerConfig
 
 	readTick time.Duration
 
@@ -53,20 +55,128 @@ type Listener struct {
 	done     chan struct{}
 }
 
+// listenerConfig is the compiled set of listener constraints.
+type listenerConfig struct {
+	// onvifFilter drops announcements carrying no ONVIF signal (see
+	// IsONVIFResponder) — generic WS-Discovery responders (Windows hosts,
+	// NAS boxes, printers) otherwise surface as devices that can never
+	// connect.
+	onvifFilter  bool
+	requireTypes []string
+	scopePrefix  string
+}
+
+// ListenerOption configures NewListener.
+type ListenerOption func(*listenerConfig)
+
+// newListenerConfig is the default configuration: the ONVIF signal gate on.
+func newListenerConfig() listenerConfig {
+	return listenerConfig{onvifFilter: true}
+}
+
+// WithoutONVIFFilter disables the built-in ONVIF signal gate. By default the
+// listener drops Hello/ProbeMatch announcements that carry no ONVIF signal
+// (no NetworkVideoTransmitter type and no onvif://www.onvif.org/ scope) —
+// without that gate, the Windows/WSD hosts on a LAN announce generic Hellos
+// that surface as forever-pending ghost devices in inventories. Turn it off
+// only when the handler does its own filtering.
+func WithoutONVIFFilter() ListenerOption {
+	return func(c *listenerConfig) { c.onvifFilter = false }
+}
+
+// WithListenerTypes adds an exact-match Types constraint: an announcement
+// must advertise at least one of the given types to reach the handler.
+// Comparison is by local name, so namespace prefix dialects (dp0:, tdn:,
+// tns:) do not matter.
+func WithListenerTypes(types ...string) ListenerOption {
+	return func(c *listenerConfig) {
+		c.requireTypes = append(c.requireTypes, types...)
+	}
+}
+
+// WithListenerScopePrefix adds a Scopes constraint: at least one advertised
+// scope must carry the given prefix (e.g. "onvif://www.onvif.org/location/Building1"
+// to hear only one site's cameras).
+func WithListenerScopePrefix(prefix string) ListenerOption {
+	return func(c *listenerConfig) { c.scopePrefix = prefix }
+}
+
+// accepts applies the compiled constraints to a parsed announcement.
+func (c listenerConfig) accepts(d *Device) bool {
+	if c.onvifFilter && !IsONVIFResponder(d) {
+		return false
+	}
+
+	if len(c.requireTypes) > 0 && !deviceHasAnyType(d.Types, c.requireTypes) {
+		return false
+	}
+
+	if c.scopePrefix != "" && !deviceHasScopePrefix(d.Scopes, c.scopePrefix) {
+		return false
+	}
+
+	return true
+}
+
+// deviceHasAnyType reports whether advertised and required type lists share
+// a local name.
+func deviceHasAnyType(advertised, required []string) bool {
+	for _, have := range advertised {
+		for _, want := range required {
+			if localPart(have) == localPart(want) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// deviceHasScopePrefix reports whether any advertised scope carries prefix.
+func deviceHasScopePrefix(scopes []string, prefix string) bool {
+	for _, scope := range scopes {
+		if strings.HasPrefix(scope, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// localPart strips a qname's namespace prefix ("dp0:NetworkVideoTransmitter"
+// → "NetworkVideoTransmitter"; bare names pass through).
+func localPart(qname string) string {
+	if idx := strings.LastIndex(qname, ":"); idx >= 0 {
+		return qname[idx+1:]
+	}
+
+	return qname
+}
+
 // NewListener creates a passive discovery listener. ifaceName selects the
 // multicast interface ("" = kernel default, recommended on single-NIC hosts;
 // see DiscoverOptions.NetworkInterface for accepted forms). The handler runs
 // on the listener goroutine: return quickly and run slow work on your own
 // goroutine — a panicking handler is contained and does not stop the
 // listener.
-func NewListener(ifaceName string, handler func(*Device)) (*Listener, error) {
+//
+// By default announcements that carry no ONVIF signal are dropped before
+// the handler sees them (see WithoutONVIFFilter); WithListenerTypes and
+// WithListenerScopePrefix narrow further.
+func NewListener(ifaceName string, handler func(*Device), opts ...ListenerOption) (*Listener, error) {
 	if handler == nil {
 		return nil, fmt.Errorf("discovery listener: handler is nil")
+	}
+
+	cfg := newListenerConfig()
+	for _, opt := range opts {
+		opt(&cfg)
 	}
 
 	return &Listener{
 		ifaceName: ifaceName,
 		handler:   handler,
+		cfg:       cfg,
 		readTick:  listenerReadTick,
 		stopped:   make(chan struct{}),
 		done:      make(chan struct{}),
@@ -160,7 +270,7 @@ func (l *Listener) readLoop(ctx context.Context, conn *net.UDPConn) error {
 			}
 		}
 
-		if device := parseDiscoveryDatagram(buffer[:n]); device != nil {
+		if device := parseDiscoveryDatagram(buffer[:n]); device != nil && l.cfg.accepts(device) {
 			l.dispatch(device)
 		}
 

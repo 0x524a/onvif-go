@@ -60,12 +60,20 @@ type loopbackListener struct {
 func startLoopbackListener(t *testing.T, handler func(*Device)) *loopbackListener {
 	t.Helper()
 
+	return startLoopbackListenerOpts(t, handler)
+}
+
+// startLoopbackListenerOpts is startLoopbackListener with listener options
+// (the filter constraints under test).
+func startLoopbackListenerOpts(t *testing.T, handler func(*Device), opts ...ListenerOption) *loopbackListener {
+	t.Helper()
+
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
 	if err != nil {
 		t.Fatalf("failed to bind loopback UDP: %v", err)
 	}
 
-	listener, err := NewListener("", handler)
+	listener, err := NewListener("", handler, opts...)
 	if err != nil {
 		t.Fatalf("NewListener() error = %v", err)
 	}

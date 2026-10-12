@@ -16,6 +16,13 @@ Consumed same-day by the mibee-eye products (v0.5.0 train).
 
 ## [Unreleased]
 
+- **Discovery: listener filtering (#128).** The passive Listener now drops
+  announcements that carry no ONVIF signal before the handler sees them —
+  the built-in gate is ON by default (WithoutONVIFFilter turns it off) and
+  reuses IsONVIFResponder: a Windows/WSD host announcing a generic Hello
+  no longer surfaces as a forever-pending ghost device in inventories.
+  WithListenerTypes (exact local-name match, any-of) and
+  WithListenerScopePrefix narrow further (e.g. one site's cameras only).
 - **Device: typed time-sync primitives (#129).** `GetDeviceTime` reads the
   camera clock into usable Go types (`time.Time` UTC + local wall clock,
   POSIX TZ, Manual/NTP mode, DST flag) over the unauthenticated
