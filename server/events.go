@@ -196,13 +196,16 @@ type queuedNotification struct {
 	message eventMessage
 }
 
-// pullPoint is one live pull-point subscription.
+// pullPoint is one live subscription: a pull point, or — with consumer
+// set — a basic-notification subscription drained by a push sender.
 type pullPoint struct {
-	id          string
-	termination time.Time
-	queue       []queuedNotification
-	notify      chan struct{} // cap-1 wakeup for long-polling PullMessages
-	filter      *topicFilter  // nil → every topic is delivered
+	id           string
+	termination  time.Time
+	queue        []queuedNotification
+	notify       chan struct{} // cap-1 wakeup for long-polling PullMessages and the push sender
+	filter       *topicFilter  // nil → every topic is delivered
+	consumer     *pushTarget   // nil → pull point; non-nil → push subscription
+	pushFailures int           // consecutive Notify delivery failures (push subscriptions)
 }
 
 // Event is one property-event notification handed to the server by the
@@ -273,6 +276,8 @@ func (s *Server) registerEventsService(mux *http.ServeMux) {
 	service.RegisterContextHandler("GetServiceCapabilities", s.HandleGetEventServiceCapabilities)
 	service.RegisterContextHandler("GetEventProperties", s.HandleGetEventProperties)
 	service.RegisterContextHandler("CreatePullPointSubscription", s.HandleCreatePullPointSubscription)
+	// Basic notification interface (wsnt:Subscribe + push Notify).
+	service.RegisterContextHandler("Subscribe", s.HandleSubscribe)
 
 	subscription := s.newSOAPHandler()
 	subscription.RegisterContextHandler("PullMessages", s.HandlePullMessages)
@@ -387,6 +392,15 @@ func (s *Server) HandlePullMessages(rc *soap.RequestContext, body []byte) (inter
 		}
 	}
 
+	// A basic-notification subscription is drained by its push sender;
+	// PullMessages is not its transport.
+	if pp := s.pullPointForRequest(rc); pp != nil && pp.consumer != nil {
+		return nil, &soap.SenderFaultError{
+			Reason: "Not a pull point",
+			Detail: "this subscription delivers via Notify push; PullMessages applies to pull points",
+		}
+	}
+
 	// PT0S is legal: an immediate, non-blocking poll. Only unparsable
 	// timeouts fault.
 	wait, err := parseISO8601Duration(req.Timeout)
@@ -474,8 +488,24 @@ func (s *Server) HandleUnsubscribe(rc *soap.RequestContext, _ []byte) (interface
 	}
 
 	delete(s.pullPoints, pp.id)
+	// Wake a push sender so it observes the removal promptly.
+	select {
+	case pp.notify <- struct{}{}:
+	default:
+	}
 
 	return &UnsubscribeResponse{}, nil
+}
+
+// pullPointForRequest resolves the subscription addressed by the request
+// URL without pruning; nil when unknown or expired.
+func (s *Server) pullPointForRequest(rc *soap.RequestContext) *pullPoint {
+	id, err := subscriptionIDFromRequest(s.config.BasePath, rc)
+	if err != nil {
+		return nil
+	}
+
+	return s.pullPoints[id]
 }
 
 // livePullPointLocked resolves the subscription addressed by the request

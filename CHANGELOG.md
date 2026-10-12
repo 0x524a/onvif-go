@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+- **Server: basic-notification interface (wsnt:Subscribe + push Notify).**
+  With SupportEvents the events service now also accepts wsnt:Subscribe:
+  a consumer (ConsumerReference, `http://` URLs only — the server carries
+  no TLS client) gets every matching published event POSTed to it as a
+  wsnt:Notify SOAP document by a resident sender goroutine. The
+  subscription lives in the same registry a pull point uses — same topic
+  filter, same termination semantics, Renew/Unsubscribe operate on the
+  returned SubscriptionReference address, and the 10-subscription cap is
+  shared — while PullMessages refuses it (not a pull point). Delivery is
+  fire-and-forget (publish only queues); after three consecutive
+  delivery failures the subscription is auto-unsubscribed
+  (spec-permissible housekeeping). Port of the Rust twin's server-side
+  push half, so both servers now answer the client half's push probe.
 
 ## [v2.4.0] — 2026-10-12
 
