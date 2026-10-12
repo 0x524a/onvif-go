@@ -293,33 +293,13 @@ type SimpleItemXML struct {
 	Value string `xml:"Value,attr"`
 }
 
-// notifyDocument decodes a wsnt:Notify SOAP POST: NotificationMessage
-// elements sit under Body>Notify; a device that POSTs the Notify element
-// as the document root is tolerated by the direct-children field (path
-// segments match descendants below the root, so the root itself is not a
-// candidate for the Notify segment).
-type notifyDocument struct {
-	NotificationMessages []notificationMessageXML `xml:"Body>Notify>NotificationMessage"`
-	RootMessages         []notificationMessageXML `xml:"NotificationMessage"`
-}
-
 // ParseNotifyEvents parses a wsnt:Notify SOAP body — what the device POSTs
-// to the consumer endpoint — into NotificationMessages, using the same
-// decode and two-layer merge as the PullMessages path (one parser, both
-// transports).
+// to the consumer endpoint — into NotificationMessages, via the tolerant
+// local-name tree decoder (see notify_parse.go): prefix dialects, wrapped
+// envelopes, literal Name/Value item pairs and heartbeats (zero messages)
+// are all handled. A SOAP Fault inside the body surfaces as an error.
 func ParseNotifyEvents(body []byte) ([]NotificationMessage, error) {
-	var doc notifyDocument
-	if err := xml.Unmarshal(body, &doc); err != nil {
-		return nil, fmt.Errorf("parse Notify: %w", err)
-	}
-
-	msgs := doc.NotificationMessages
-	msgs = append(msgs, doc.RootMessages...)
-	if len(msgs) == 0 {
-		return nil, fmt.Errorf("parse Notify: no NotificationMessage elements")
-	}
-
-	return toNotificationMessages(msgs), nil
+	return parseNotifyTree(body)
 }
 
 // maxNotifyBodyBytes caps a Notify POST: real notifications carry a handful
