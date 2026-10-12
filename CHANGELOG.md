@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [v2.4.0] — 2026-10-12
+
+The events & operations capability package (issues #126–#130 + external
+contribution #131): WS-BaseNotification push receiving, standard
+motion-topic parsing, typed device time sync with the credentials gate,
+and listener ONVIF filtering — the MiBeeNvr production capabilities sunk
+into the library, field-proven envelopes throughout. Consumers can adopt
+the library API and retire their in-tree implementations (the NVR
+motion/push/time-sync migration).
+
 - **Events: WS-BaseNotification push receiving (#127).** The device-POSTs
   half of the events service: `Subscribe` (wsnt:Subscribe envelope with a
   ConsumerReference, envelope shapes field-proven on Hikvision / Uniview /

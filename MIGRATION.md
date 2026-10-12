@@ -42,7 +42,7 @@ client.PTZ().ContinuousMove(ctx, token, speed, timeout)
 | Device-service ops (`GetCapabilities`, …) | `device` package | ✅ yes |
 | `GetUsers`/access policy | `security` package | ✅ yes |
 | Relay/digital IO ops | `deviceio` package | ✅ yes |
-| Events (pull-point, managed subs) | `events` package | ✅ yes |
+| Events (pull-point + push, managed subs) | `events` package | ✅ yes |
 | Imaging / PTZ ops | `imaging` / `ptz` | ✅ yes |
 | `IPAddress`, `IntRectangle`, … | `types` leaf | ✅ yes |
 | Error sentinels (`ErrUnauthorized`, …) | `onvif` pkg + domain packages | ✅ yes |
@@ -53,7 +53,15 @@ New client capabilities worth adopting (non-breaking):
 `WithAuthFallback` (sticky auth ladder), `WithAutoClockSkew`,
 `media.SelectMain/SelectSub` profile helpers, managed
 `Events().SubscribeEvents`, `discovery.Listener` (passive),
-`discovery.ProbeEndpoint` (directed HTTP probing).
+`discovery.ProbeEndpoint` (directed HTTP probing); since v2.4.0 also
+push events (`Events().Subscribe` probe → `ErrPushNotSupported` → fall
+back to pull-point; `NotifyHandler` for the consumer endpoint; managed
+`SubscribePushEvents`), the motion helpers (`events.ParseMotionAlarm`),
+typed time sync (`Device().GetDeviceTime` / `SetDeviceTime` /
+`SetNTPServer`, writes fail fast with `ErrNoCredentials`), and listener
+acceptance constraints (`WithoutONVIFFilter` / `WithListenerTypes` /
+`WithListenerScopePrefix` — the listener now drops non-ONVIF responders
+by default).
 
 Wire-behavior fix you may notice: the WS-Security `Created` element is
 now emitted in the correct `…wss-utility-1.0.xsd` namespace (v1 had a
