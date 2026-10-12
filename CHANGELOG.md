@@ -16,6 +16,23 @@ Consumed same-day by the mibee-eye products (v0.5.0 train).
 
 ## [Unreleased]
 
+- **Events: WS-BaseNotification push receiving (#127).** The device-POSTs
+  half of the events service: `Subscribe` (wsnt:Subscribe envelope with a
+  ConsumerReference, envelope shapes field-proven on Hikvision / Uniview /
+  TP-Link / in-house firmware), `RenewPush` / `UnsubscribePush` posted to
+  the subscription's OWN manager endpoint — the address devices require,
+  not the events service, with a same-address fallback for devices that
+  expose one address for both roles. A sender-side SOAP fault maps to the
+  new `ErrPushNotSupported` so callers can probe push and fall back to
+  Pull-Point (`SubscribeEvents`). `ParseNotifyEvents` decodes wsnt:Notify
+  bodies through the SAME two-layer Message parser as PullMessages (one
+  parser, both transports), tolerating the single-layer dialect.
+  `NotifyHandler` is the consumer HTTP endpoint (POST-only, 1 MiB body
+  cap, 200/400/413/405) — mount it under your own path with your own
+  origin/token validation; the push profile carries no credentials.
+  `SubscribePushEvents` manages the lifecycle: half-TTL renewal with a 2s
+  floor (short-TTL devices cannot turn the loop into a busy cycle), Done
+  channel, and best-effort unsubscribe on cancellation.
 - **Discovery: listener filtering (#128).** The passive Listener now drops
   announcements that carry no ONVIF signal before the handler sees them —
   the built-in gate is ON by default (WithoutONVIFFilter turns it off) and

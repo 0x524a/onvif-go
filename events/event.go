@@ -272,55 +272,11 @@ func (s *Service) PullMessages(
 		MessageLimit int      `xml:"tev:MessageLimit"`
 	}
 
-	type SimpleItemXML struct {
-		Name  string `xml:"Name,attr"`
-		Value string `xml:"Value,attr"`
-	}
-
 	type PullMessagesResponse struct {
-		XMLName              xml.Name `xml:"PullMessagesResponse"`
-		CurrentTime          string   `xml:"CurrentTime"`
-		TerminationTime      string   `xml:"TerminationTime"`
-		NotificationMessages []struct {
-			Topic struct {
-				Value string `xml:",chardata"`
-			} `xml:"Topic"`
-			ProducerReference struct {
-				Address string `xml:"Address"`
-			} `xml:"ProducerReference"`
-			// Message carries BOTH wire shapes (issue #82): the spec's
-			// double-layer form wraps the ONVIF tt:Message inside the
-			// outer wsnt:Message — Inner reaches through the wrapper —
-			// while lax firmwares put the attributes and SimpleItems
-			// directly on the outer element (the legacy fields). The
-			// merge below prefers the inner layer when present.
-			Message struct {
-				Inner struct {
-					PropertyOperation string `xml:"PropertyOperation,attr"`
-					UtcTime           string `xml:"UtcTime,attr"`
-					Source            struct {
-						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-					} `xml:"Source"`
-					Key struct {
-						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-					} `xml:"Key"`
-					Data struct {
-						SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-					} `xml:"Data"`
-				} `xml:"Message"`
-				PropertyOperation string `xml:"PropertyOperation,attr"`
-				UtcTime           string `xml:"UtcTime,attr"`
-				Source            struct {
-					SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-				} `xml:"Source"`
-				Key struct {
-					SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-				} `xml:"Key"`
-				Data struct {
-					SimpleItems []SimpleItemXML `xml:"SimpleItem"`
-				} `xml:"Data"`
-			} `xml:"Message"`
-		} `xml:"NotificationMessage"`
+		XMLName              xml.Name                 `xml:"PullMessagesResponse"`
+		CurrentTime          string                   `xml:"CurrentTime"`
+		TerminationTime      string                   `xml:"TerminationTime"`
+		NotificationMessages []notificationMessageXML `xml:"NotificationMessage"`
 	}
 
 	req := PullMessages{
@@ -335,19 +291,26 @@ func (s *Service) PullMessages(
 		return nil, fmt.Errorf("PullMessages failed: %w", err)
 	}
 
-	messages := make([]NotificationMessage, len(resp.NotificationMessages))
-	for i := range resp.NotificationMessages {
-		nm := &resp.NotificationMessages[i]
+	return toNotificationMessages(resp.NotificationMessages), nil
+}
+
+// toNotificationMessages maps the shared wire shape onto the public
+// NotificationMessage. The spec's double-layer form keeps everything on
+// the inner tt:Message; lax single-layer devices put it on the outer
+// element. The inner layer wins when present (issue #82: MotionAlarm
+// State/Score were dropped when only the outer layer was read). Shared by
+// the PullMessages response and the push Notify document — one parser,
+// both transports.
+func toNotificationMessages(nms []notificationMessageXML) []NotificationMessage {
+	messages := make([]NotificationMessage, len(nms))
+
+	for i := range nms {
+		nm := &nms[i]
 		msg := NotificationMessage{
 			Topic:           nm.Topic.Value,
 			ProducerAddress: nm.ProducerReference.Address,
 		}
 
-		// The spec's double-layer form keeps everything on the inner
-		// tt:Message; lax single-layer devices put it on the outer
-		// element. Prefer the inner layer, fall back to the outer
-		// (issue #82: MotionAlarm State/Score were dropped when only
-		// the outer layer was read).
 		operation := nm.Message.PropertyOperation
 		utcTime := nm.Message.UtcTime
 		source := nm.Message.Source.SimpleItems
@@ -373,19 +336,16 @@ func (s *Service) PullMessages(
 			}
 		}
 
-		// Convert source items.
 		msg.Message.Source = make([]types.SimpleItem, len(source))
 		for j, item := range source {
 			msg.Message.Source[j] = types.SimpleItem(item)
 		}
 
-		// Convert key items.
 		msg.Message.Key = make([]types.SimpleItem, len(key))
 		for j, item := range key {
 			msg.Message.Key[j] = types.SimpleItem(item)
 		}
 
-		// Convert data items.
 		msg.Message.Data = make([]types.SimpleItem, len(data))
 		for j, item := range data {
 			msg.Message.Data[j] = types.SimpleItem(item)
@@ -394,7 +354,7 @@ func (s *Service) PullMessages(
 		messages[i] = msg
 	}
 
-	return messages, nil
+	return messages
 }
 
 // Seek seeks to a specific position in the event stream.
