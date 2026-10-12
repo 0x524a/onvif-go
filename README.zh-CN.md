@@ -39,14 +39,22 @@
 **客户端** —— 每个 ONVIF 操作挂在其所属的服务对象上，与 ONVIF 服务模型一一对应：
 
 - `client.Device()` —— 设备信息、能力（带缓存、single-flight、弱设备可降级到
-  最小能力集）、网络/系统/DNS/NTP 配置、存储、WiFi、证书、用户管理
+  最小能力集）、网络/系统/DNS/NTP 配置、存储、WiFi、证书、用户管理；
+  类型化时间同步（`GetDeviceTime` / `SetDeviceTime` / `SetNTPServer`，
+  写入路径带 `ErrNoCredentials` 凭据门——免鉴权的时钟读取恰好在时钟漂移
+  打破 digest 鉴权时也可用）
 - `client.Media()` —— profile 与主/子码流选择助手、流 URI
   （`GetStreamURIWithOptions`：RTSP/HTTP/UDP × 单播/组播，命名空间宽容解析）、
   快照、编码/音频/OSD 配置
 - `client.PTZ()` —— 转动、状态、预置位、配置与选项、Home 位、辅助命令（雨刷/加热器）、节点、服务能力
 - `client.Imaging()` —— 曝光、聚焦、成像设置、移动选项、规范名 `Stop`、服务能力、成像预置位（18.12）
 - `client.Events()` —— 托管 PullPoint 订阅（后台轮询、自动续订、
-  `ErrEventsNotSupported` 哨兵）+ 原始原语
+  `ErrEventsNotSupported` 哨兵）+ 原始原语；WS-BaseNotification 推送
+  （`Subscribe` 探测、`ErrPushNotSupported` 即回落 PullPoint；
+  Renew/Unsubscribe 走订阅自身的 Manager 端点；`ParseNotifyEvents` +
+  现成的 `NotifyHandler` 消费端点；托管 `SubscribePushEvents` 半 TTL
+  续订循环）；标准运动话题助手（`ParseMotionAlarm` / `IsMotionTopic` ——
+  MotionAlarm `State` 与 CellMotionDetector `IsMotion`）
 - `client.DeviceIO()`、`client.Security()` —— 继电器、I/O、用户管理、音频输出配置族（音频**解码器**配置按 WSDL 归属 Media 服务，已在 media 包覆盖）
 
 **为真实固件打造的鉴权** —— `WithAuthMode` 选择 digest / 明文 token /
@@ -57,7 +65,8 @@ HTTP Basic / 不鉴权；`WithAuthFallback` 提供自动回退梯队，并记住
 `DiagnoseAuth` 能区分时钟偏差、密码错误和拒绝 ONVIF 鉴权的设备。
 
 **三种发现方式** —— `discovery.Discover`（组播探测）、`discovery.Listener`
-（被动：听相机上电 Hello 和别人探测的应答，与主动发现共存）、
+（被动：听相机上电 Hello 和别人探测的应答，与主动发现共存；默认在回调前
+丢弃非 ONVIF 应答者，Types/Scopes 约束可选）、
 `discovery.ProbeEndpoint` / `ProbeSerial`（纯 HTTP 定向探测，跨子网触达组播
 够不着的设备）。后处理：`FilterONVIFDevices`（滤掉 Synology/Windows/打印机
 幽灵应答者）、`ParseScopes`、并行 `EnrichDevices`（限并发身份补全）。
@@ -162,6 +171,23 @@ if errors.Is(err, onvif.ErrEventsNotSupported) {
     // 设备没有事件服务；缓存阴性结果
 }
 defer sub.Unsubscribe(context.Background())
+```
+
+事件，设备支持时走推送——先探测、失败回落、再起消费端点：
+
+```go
+push, err := client.Events().SubscribePushEvents(ctx, "http://nvr:8080/onvif/notify", nil)
+if errors.Is(err, onvif.ErrPushNotSupported) {
+    // 回落到上面的托管 PullPoint 订阅
+}
+defer push.Unsubscribe(context.Background())
+
+// 设备 POST wsnt:Notify 的端点（自行包一层来源/token 校验——推送协议不携带凭据）：
+http.Handle("/onvif/notify", onvif.NotifyHandler(func(msgs []onvif.NotificationMessage) {
+    for _, m := range msgs {
+        fmt.Println(m.Topic, m.Message.Data)
+    }
+}))
 ```
 
 鉴权怎么都不通时，做个分诊：

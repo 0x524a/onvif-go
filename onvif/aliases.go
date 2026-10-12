@@ -28,6 +28,7 @@ type (
 
 type (
 	DeviceInformation          = device.DeviceInformation
+	DeviceTime                 = device.DeviceTime
 	Capabilities               = device.Capabilities
 	AnalyticsCapabilities      = device.AnalyticsCapabilities
 	DeviceCapabilities         = device.DeviceCapabilities
@@ -227,9 +228,25 @@ type (
 	PullPointSubscription    = events.PullPointSubscription
 	SubscribeEventsOptions   = events.SubscribeEventsOptions
 	EventStream              = events.EventStream
+	PushSubscription         = events.PushSubscription
+	SubscribePushOptions     = events.SubscribePushOptions
+	PushStream               = events.PushStream
+	MotionAlarm              = events.MotionAlarm
 )
 
 var ErrEventsNotSupported = events.ErrEventsNotSupported
+
+// ErrNoCredentials is the device-service write gate: admin operations fail
+// fast when the client was constructed without credentials.
+var ErrNoCredentials = device.ErrNoCredentials
+
+// Push receiving (WS-BaseNotification): the probe-fallback sentinel, the
+// Notify parser, and the consumer HTTP endpoint.
+var (
+	ErrPushNotSupported = events.ErrPushNotSupported
+	ParseNotifyEvents   = events.ParseNotifyEvents
+	NotifyHandler       = events.NotifyHandler
+)
 
 type (
 	IPAddress    = types.IPAddress

@@ -46,7 +46,10 @@ mirroring the ONVIF service model:
 
 - `client.Device()` — info, capabilities (cached, single-flighted,
   degradable to a minimal set for weak devices), network/system/DNS/NTP
-  configuration, storage, WiFi, certificates, users
+  configuration, storage, WiFi, certificates, users; typed time sync
+  (`GetDeviceTime` / `SetDeviceTime` / `SetNTPServer` with the
+  `ErrNoCredentials` gate — the unauthenticated clock read works exactly
+  when drifted clocks have broken digest auth)
 - `client.Media()` — profiles with main/sub-stream selection helpers, stream
   URIs (`GetStreamURIWithOptions`: RTSP/HTTP/UDP × unicast/multicast,
   namespace-tolerant response parsing), snapshots, encoder/audio/OSD
@@ -57,7 +60,13 @@ mirroring the ONVIF service model:
 - `client.Imaging()` — exposure, focus, imaging settings, move options,
   spec-named `Stop`, service capabilities, imaging presets (18.12)
 - `client.Events()` — managed pull-point subscriptions (background polling,
-  auto-renewal, `ErrEventsNotSupported` sentinel) plus the raw primitives
+  auto-renewal, `ErrEventsNotSupported` sentinel) plus the raw primitives;
+  WS-BaseNotification push (probe with `Subscribe`, fall back to pull-point
+  on `ErrPushNotSupported`; Renew/Unsubscribe on the subscription's own
+  manager endpoint; `ParseNotifyEvents` + a ready-made `NotifyHandler` for
+  the consumer endpoint; the managed `SubscribePushEvents` loop renews at
+  half TTL); standard motion-topic helpers (`ParseMotionAlarm` /
+  `IsMotionTopic` — MotionAlarm `State` and CellMotionDetector `IsMotion`)
 - `client.DeviceIO()`, `client.Security()` — relays, I/O, user management,
   audio output configuration family (audio *decoder* configurations live in
   the Media service per the WSDLs and are covered there)
@@ -73,7 +82,9 @@ auth-less devices apart.
 
 **Discovery, three ways** — `discovery.Discover` (multicast probe),
 `discovery.Listener` (passive: hears camera power-on Hello messages and other
-probes' answers, coexisting with active discovery), and
+probes' answers, coexisting with active discovery; non-ONVIF responders are
+dropped before the handler by default, with optional Types/Scopes
+constraints), and
 `discovery.ProbeEndpoint` / `ProbeSerial` (pure-HTTP directed probing across
 subnets for devices multicast can't reach). Post-processing:
 `FilterONVIFDevices` (drops Synology/Windows/printer ghost responders),
@@ -183,6 +194,25 @@ if errors.Is(err, onvif.ErrEventsNotSupported) {
     // device has no events service; cache the negative result
 }
 defer sub.Unsubscribe(context.Background())
+```
+
+Events, push when the device supports it — probe, fall back, serve the
+consumer endpoint:
+
+```go
+push, err := client.Events().SubscribePushEvents(ctx, "http://nvr:8080/onvif/notify", nil)
+if errors.Is(err, onvif.ErrPushNotSupported) {
+    // fall back to the managed pull-point subscription above
+}
+defer push.Unsubscribe(context.Background())
+
+// The endpoint the device POSTs wsnt:Notify bodies to (wrap with your own
+// origin/token validation — the push profile carries no credentials):
+http.Handle("/onvif/notify", onvif.NotifyHandler(func(msgs []onvif.NotificationMessage) {
+    for _, m := range msgs {
+        fmt.Println(m.Topic, m.Message.Data)
+    }
+}))
 ```
 
 Auth triage when nothing works:

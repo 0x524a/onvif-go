@@ -5,15 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v2.3.0] — 2026-09-29
-
-The client/server completion capability package (issues #110–#115 +
-#120/#122/#123/#124): PTZ/Media2/analytics/imaging/DeviceIO client
-families, the server's virtual-camera expansion (DeviceIO/OSD/Media2
-faces + the RelayController host seam), the Media2 endpoint discovery
-fix, and the media encoder family with the keyframe-hook seam.
-Consumed same-day by the mibee-eye products (v0.5.0 train).
-
 ## [Unreleased]
 
 - **Events: WS-BaseNotification push receiving (#127).** The device-POSTs
@@ -63,6 +54,15 @@ Consumed same-day by the mibee-eye products (v0.5.0 train).
   MotionAlarm never fired for them. Field vectors from a Hikvision
   DS-IPC-T12HV3-IA and a TP-Link TL-IPC44AW-COLOR (#126).
 
+
+## [v2.3.0] — 2026-09-29
+
+The client/server completion capability package (issues #110–#115 +
+#120/#122/#123/#124): PTZ/Media2/analytics/imaging/DeviceIO client
+families, the server's virtual-camera expansion (DeviceIO/OSD/Media2
+faces + the RelayController host seam), the Media2 endpoint discovery
+fix, and the media encoder family with the keyframe-hook seam.
+Consumed same-day by the mibee-eye products (v0.5.0 train).
 
 - **Server: media encoder family + sync-point seam.** The ver10 media
   face grows `GetVideoEncoderConfigurations` /
