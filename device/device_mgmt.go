@@ -55,7 +55,13 @@ func (s *Service) SetDNS(ctx context.Context, fromDHCP bool, searchDomain []stri
 }
 
 // SetNTP sets the NTP settings on a device.
+// SetNTP configures the NTP servers. Admin-level write: a client
+// constructed without credentials fails fast with ErrNoCredentials.
 func (s *Service) SetNTP(ctx context.Context, fromDHCP bool, ntpManual []NetworkHost) error {
+	if err := s.requireCredentials(); err != nil {
+		return fmt.Errorf("SetNTP: %w", err)
+	}
+
 	type SetNTP struct {
 		XMLName   xml.Name `xml:"tds:SetNTP"`
 		Xmlns     string   `xml:"xmlns:tds,attr"`
@@ -208,8 +214,14 @@ func (s *Service) FixedGetSystemDateAndTime(ctx context.Context) (*SystemDateTim
 	}, nil
 }
 
-// SetSystemDateAndTime sets the device system date and time.
+// SetSystemDateAndTime sets the device system date and time. Admin-level
+// write: a client constructed without credentials fails fast with
+// ErrNoCredentials instead of a generic device rejection.
 func (s *Service) SetSystemDateAndTime(ctx context.Context, dateTime *SystemDateTime) error {
+	if err := s.requireCredentials(); err != nil {
+		return fmt.Errorf("SetSystemDateAndTime: %w", err)
+	}
+
 	type SetSystemDateAndTime struct {
 		XMLName         xml.Name `xml:"tds:SetSystemDateAndTime"`
 		Xmlns           string   `xml:"xmlns:tds,attr"`

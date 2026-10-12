@@ -436,7 +436,7 @@ func testGetSystemDateTime(ctx context.Context, client *onvif.Client, report *Ca
 	start := time.Now()
 	result := &SystemDateTimeResult{}
 
-	dateTime, err := client.Device().GetSystemDateAndTime(ctx)
+	dateTime, err := client.Device().FixedGetSystemDateAndTime(ctx)
 	result.ResponseTime = time.Since(start).String()
 
 	if err != nil {

@@ -332,7 +332,7 @@ func generateDeviceTests(ops []operationInfo) []GeneratedTest {
 		}
 		t.Logf("Device: %s %s (Firmware: %s)", info.Manufacturer, info.Model, info.FirmwareVersion)`,
 
-		"GetSystemDateAndTime": `_, err := client.Device().GetSystemDateAndTime(ctx)
+		"GetSystemDateAndTime": `_, err := client.Device().FixedGetSystemDateAndTime(ctx)
 		if err != nil {
 			t.Errorf("GetSystemDateAndTime failed: %v", err)
 		}`,

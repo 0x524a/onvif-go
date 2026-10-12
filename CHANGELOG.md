@@ -16,6 +16,19 @@ Consumed same-day by the mibee-eye products (v0.5.0 train).
 
 ## [Unreleased]
 
+- **Device: typed time-sync primitives (#129).** `GetDeviceTime` reads the
+  camera clock into usable Go types (`time.Time` UTC + local wall clock,
+  POSIX TZ, Manual/NTP mode, DST flag) over the unauthenticated
+  GetSystemDateAndTime — camera time stays observable exactly when a
+  drifted clock has broken digest auth. `SetDeviceTime` writes a Manual
+  clock; `SetNTPServer` configures manual NTP hosts AND flips DateTimeType
+  to NTP in one call (two-step on firmwares that accept SetNTP without
+  switching modes; a flip failure says the server list is configured).
+  Both write paths — plus the existing SetSystemDateAndTime/SetNTP — now
+  fail fast with the new `ErrNoCredentials` sentinel when the client has
+  no username (custom api.Caller implementations without GetCredentials
+  keep the previous behavior). The legacy interface{} GetSystemDateAndTime
+  is deprecated and delegates to the typed reader.
 - **Events: standard motion-topic parsing.** New `events.ParseMotionAlarm`
   and `events.IsMotionTopic` recognize `tns1:VideoSource/MotionAlarm`
   (Data `State`) and `tns1:RuleEngine/CellMotionDetector/Motion` (Data

@@ -256,23 +256,19 @@ func (s *Service) SystemReboot(ctx context.Context) (string, error) {
 }
 
 // GetSystemDateAndTime retrieves the device's system date and time.
+//
+// Deprecated: the interface{} return never decoded into a usable shape —
+// it produced an opaque map. Use FixedGetSystemDateAndTime (the typed
+// *SystemDateTime) or GetDeviceTime (assembled time.Time values); this
+// method now delegates to FixedGetSystemDateAndTime so existing callers
+// receive the typed struct as the interface{} value.
 func (s *Service) GetSystemDateAndTime(ctx context.Context) (interface{}, error) {
-	type GetSystemDateAndTime struct {
-		XMLName xml.Name `xml:"tds:GetSystemDateAndTime"`
-		Xmlns   string   `xml:"xmlns:tds,attr"`
+	st, err := s.FixedGetSystemDateAndTime(ctx)
+	if err != nil {
+		return nil, err // already wrapped by FixedGetSystemDateAndTime
 	}
 
-	req := GetSystemDateAndTime{
-		Xmlns: Namespace,
-	}
-
-	var resp interface{}
-
-	if err := s.c.Call(ctx, s.c.EndpointFor(api.ServiceDevice), "", req, &resp); err != nil {
-		return nil, fmt.Errorf("GetSystemDateAndTime failed: %w", err)
-	}
-
-	return resp, nil
+	return st, nil
 }
 
 // GetHostname retrieves the device's hostname.
