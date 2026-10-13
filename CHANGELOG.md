@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.5.0] — 2026-10-14
+
+The server basic-notification interface — wsnt:Subscribe plus pushed
+Notify delivery (the Rust twin's events_subscribe surface, ported):
+a real HTTP consumer endpoint can hold a subscription instead of
+polling PullMessages.
+
 - **Server: basic-notification interface (wsnt:Subscribe + push Notify).**
   With SupportEvents the events service now also accepts wsnt:Subscribe:
   a consumer (ConsumerReference, `http://` URLs only — the server carries
