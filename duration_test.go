@@ -113,6 +113,7 @@ func TestParseXSDurationOrZero(t *testing.T) {
 // GetAudioEncoderConfiguration.
 func TestParseXSDurationRoundTripsFormatDuration(t *testing.T) {
 	for _, want := range []time.Duration{
+		0,
 		1 * time.Second,
 		30 * time.Second,
 		59 * time.Second,
@@ -120,6 +121,8 @@ func TestParseXSDurationRoundTripsFormatDuration(t *testing.T) {
 		90 * time.Second,
 		10 * time.Minute,
 		time.Hour,
+		time.Hour + 30*time.Minute,
+		2*time.Hour + 30*time.Minute + 45*time.Second,
 	} {
 		formatted := formatDuration(want)
 		got, err := parseXSDuration(formatted)

@@ -737,21 +737,32 @@ func (c *Client) GetEventBrokers(ctx context.Context) ([]*EventBrokerConfig, err
 	return brokers, nil
 }
 
+const (
+	secondsPerMinute = 60
+	secondsPerHour   = 60 * secondsPerMinute
+)
+
 // formatDuration formats a duration as an ISO 8601 duration string.
 func formatDuration(d time.Duration) string {
-	seconds := int(d.Seconds())
-	if seconds < 60 { //nolint:mnd // 60 seconds in a minute
-		return fmt.Sprintf("PT%dS", seconds)
+	totalSeconds := int(d.Seconds())
+	hours := totalSeconds / secondsPerHour
+	remaining := totalSeconds % secondsPerHour
+	minutes := remaining / secondsPerMinute
+	seconds := remaining % secondsPerMinute
+
+	var b strings.Builder
+	b.WriteString("PT")
+	if hours > 0 {
+		fmt.Fprintf(&b, "%dH", hours)
+	}
+	if minutes > 0 {
+		fmt.Fprintf(&b, "%dM", minutes)
+	}
+	if seconds > 0 || hours == 0 && minutes == 0 {
+		fmt.Fprintf(&b, "%dS", seconds)
 	}
 
-	minutes := seconds / 60 //nolint:mnd // 60 seconds in a minute
-	seconds %= 60
-
-	if seconds == 0 {
-		return fmt.Sprintf("PT%dM", minutes)
-	}
-
-	return fmt.Sprintf("PT%dM%dS", minutes, seconds)
+	return b.String()
 }
 
 // splitSpaceSeparated splits a space-separated string into a slice.

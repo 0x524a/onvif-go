@@ -677,21 +677,29 @@ func TestGetEventBrokers(t *testing.T) {
 
 func TestFormatDuration(t *testing.T) {
 	tests := []struct {
+		name     string
 		duration time.Duration
 		expected string
 	}{
-		{30 * time.Second, "PT30S"},
-		{60 * time.Second, "PT1M"},
-		{90 * time.Second, "PT1M30S"},
-		{5 * time.Minute, "PT5M"},
-		{65 * time.Second, "PT1M5S"},
+		{"zero", 0, "PT0S"},
+		{"seconds", 30 * time.Second, "PT30S"},
+		{"minutes", 60 * time.Second, "PT1M"},
+		{"minutes and seconds", 90 * time.Second, "PT1M30S"},
+		{"multiple minutes", 5 * time.Minute, "PT5M"},
+		{"minute and seconds", 65 * time.Second, "PT1M5S"},
+		{"one hour", time.Hour, "PT1H"},
+		{"hours and minutes", 90 * time.Minute, "PT1H30M"},
+		{"hours minutes seconds", time.Hour + 90*time.Second, "PT1H1M30S"},
+		{"multiple hours", 2 * time.Hour, "PT2H"},
 	}
 
 	for _, tt := range tests {
-		result := formatDuration(tt.duration)
-		if result != tt.expected {
-			t.Errorf("formatDuration(%v) = %s, expected %s", tt.duration, result, tt.expected)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatDuration(tt.duration)
+			if result != tt.expected {
+				t.Errorf("formatDuration(%v) = %s, expected %s", tt.duration, result, tt.expected)
+			}
+		})
 	}
 }
 
