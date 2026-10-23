@@ -555,6 +555,10 @@ func (c *Client) SetClockSkew(skew time.Duration) {
 // auth-class errors, and remembers the first working mode. All service
 // operations go through this single audited path (issue #12).
 //
+// Empty 200 response bodies also advance the ladder (issue #140): old
+// firmwares answer a rejected digest with an empty body instead of a
+// 401/fault, so the next auth mode must still get its chance.
+//
 // Auth-class failures are wrapped so errors.Is(err, ErrUnauthorized) holds
 // regardless of how many modes were tried; other failures propagate unchanged.
 func (c *Client) Call(ctx context.Context, endpoint, action string, request, response interface{}) error {
@@ -572,10 +576,17 @@ func (c *Client) Call(ctx context.Context, endpoint, action string, request, res
 			return nil
 		}
 
-		if !soap.IsAuthFailure(lastErr) {
-			// Non-auth failures are never retried with another mode.
+		if !soap.IsAuthLadderRetryable(lastErr) {
+			// Failures that are neither auth-class nor empty-bodied are never
+			// retried with another mode.
 			return lastErr
 		}
+	}
+
+	if !soap.IsAuthFailure(lastErr) {
+		// Ladder exhausted on a non-auth failure (e.g. empty response body):
+		// the original cause must stay diagnosable, so no unauthorized wrap.
+		return lastErr
 	}
 
 	return fmt.Errorf("%w: %w", ErrUnauthorized, lastErr)

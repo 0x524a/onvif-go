@@ -22,11 +22,13 @@ import (
 type authFlavor string
 
 const (
-	flavorDigestOnly authFlavor = "digest-only"
-	flavorTextOnly   authFlavor = "text-only"
-	flavorBasicOnly  authFlavor = "basic-only"
-	flavorNoneOnly   authFlavor = "none-only"
-	flavorRejectAll  authFlavor = "reject-all"
+	flavorDigestOnly  authFlavor = "digest-only"
+	flavorTextOnly    authFlavor = "text-only"
+	flavorBasicOnly   authFlavor = "basic-only"
+	flavorNoneOnly    authFlavor = "none-only"
+	flavorRejectAll   authFlavor = "reject-all"
+	flavorEmptyDigest authFlavor = "empty-on-digest"
+	flavorEmptyAll    authFlavor = "empty-always"
 )
 
 // classifiedAuth records what one incoming request looked like.
@@ -107,6 +109,19 @@ func newAuthTestServer(t *testing.T, flavor authFlavor) (*httptest.Server, *auth
 			accepted = c.hasNone
 		case flavorRejectAll:
 			accepted = false
+		case flavorEmptyDigest:
+			// 2016-era firmware (issue #140): a rejected digest gets HTTP 200
+			// with an empty body — no fault, no status hint.
+			if c.hasDigest {
+				w.WriteHeader(http.StatusOK)
+
+				return
+			}
+			accepted = true
+		case flavorEmptyAll:
+			w.WriteHeader(http.StatusOK)
+
+			return
 		}
 
 		if !accepted {
@@ -255,6 +270,72 @@ func TestAuthFallbackExhaustedIsErrUnauthorized(t *testing.T) {
 
 	if !errors.Is(err, ErrUnauthorized) {
 		t.Errorf("errors.Is(err, ErrUnauthorized) = false, err = %v", err)
+	}
+}
+
+func TestAuthFallbackAdvancesPastEmptyResponseBody(t *testing.T) {
+	// Old firmware answers a digest request with 200 + empty body instead of
+	// a 401/fault (issue #140); the ladder must still reach PasswordText.
+	server, attempts := newAuthTestServer(t, flavorEmptyDigest)
+	client := newAuthTestClient(t, server, WithAuthFallback(AuthPasswordText))
+
+	if _, err := client.Device().GetDeviceInformation(context.Background()); err != nil {
+		t.Fatalf("GetDeviceInformation() error = %v", err)
+	}
+
+	if got := client.AuthLadderMode(); got != AuthPasswordText {
+		t.Errorf("AuthLadderMode() = %q, want sticky %q", got, AuthPasswordText)
+	}
+
+	logs := attempts.snapshot()
+	if len(logs) != 2 { //nolint:mnd // empty-bodied digest + password-text
+		t.Fatalf("call made %d attempts, want 2: %+v", len(logs), logs)
+	}
+	if !logs[0].hasDigest || !logs[1].hasText {
+		t.Errorf("ladder order wrong: %+v", logs)
+	}
+}
+
+func TestAuthLadderEmptyBodyExhaustedKeepsOriginalError(t *testing.T) {
+	// Every rung gets 200 + empty body: the exhausted ladder must surface the
+	// empty-body cause, not a misleading ErrUnauthorized (issue #140).
+	server, attempts := newAuthTestServer(t, flavorEmptyAll)
+	client := newAuthTestClient(t, server,
+		WithAuthFallback(AuthPasswordText, AuthHTTPBasic))
+
+	_, err := client.Device().GetDeviceInformation(context.Background())
+	if err == nil {
+		t.Fatal("GetDeviceInformation() succeeded, want empty-body failure")
+	}
+
+	if !errors.Is(err, ErrEmptyResponseBody) {
+		t.Errorf("errors.Is(err, ErrEmptyResponseBody) = false, err = %v", err)
+	}
+	if errors.Is(err, ErrUnauthorized) {
+		t.Errorf("errors.Is(err, ErrUnauthorized) = true, err = %v", err)
+	}
+
+	if got := len(attempts.snapshot()); got != 3 { //nolint:mnd // one per ladder rung
+		t.Errorf("ladder made %d attempts, want 3", got)
+	}
+}
+
+func TestEmptyBodyWithoutFallbackPropagatesUnchanged(t *testing.T) {
+	// No fallback rungs: the empty-body error propagates as-is, still not
+	// classified as unauthorized (issue #140).
+	server, _ := newAuthTestServer(t, flavorEmptyDigest)
+	client := newAuthTestClient(t, server)
+
+	_, err := client.Device().GetDeviceInformation(context.Background())
+	if err == nil {
+		t.Fatal("GetDeviceInformation() succeeded, want empty-body failure")
+	}
+
+	if !errors.Is(err, ErrEmptyResponseBody) {
+		t.Errorf("errors.Is(err, ErrEmptyResponseBody) = false, err = %v", err)
+	}
+	if errors.Is(err, ErrUnauthorized) {
+		t.Errorf("errors.Is(err, ErrUnauthorized) = true, err = %v", err)
 	}
 }
 

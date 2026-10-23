@@ -112,6 +112,16 @@ func IsAuthFailure(err error) bool {
 	return false
 }
 
+// IsAuthLadderRetryable reports whether err should advance an auth fallback
+// ladder: an auth-class failure, or an empty response body. Old firmwares
+// answer a rejected WS-Security digest with HTTP 200 and an empty body — no
+// 401, no fault (issue #140) — and the next auth mode often succeeds where
+// the digest died. Empty bodies stay non-auth for classification (see
+// IsAuthFailure): only the ladder decision treats them as retryable.
+func IsAuthLadderRetryable(err error) bool {
+	return IsAuthFailure(err) || errors.Is(err, ErrEmptyResponseBody)
+}
+
 // containsFold reports whether s contains substr, case-insensitively.
 func containsFold(s, substr string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))

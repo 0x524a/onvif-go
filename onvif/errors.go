@@ -44,10 +44,10 @@ var (
 	ErrNetworkInterfaceNotFound = errors.New("network interface not found")
 
 	// ErrHTTPRequestFailed is returned when an HTTP request fails.
-	ErrHTTPRequestFailed = errors.New("HTTP request failed")
+	ErrHTTPRequestFailed = soap.ErrHTTPRequestFailed
 
 	// ErrEmptyResponseBody is returned when a response body is empty.
-	ErrEmptyResponseBody = errors.New("received empty response body")
+	ErrEmptyResponseBody = soap.ErrEmptyResponseBody
 
 	// ErrVideoSourceNotFound is returned when a video source is not found.
 	ErrVideoSourceNotFound = errors.New("video source not found")
