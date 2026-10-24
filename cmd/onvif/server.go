@@ -7,13 +7,22 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
 	"github.com/mickeyzzc/onvif-go/v2/server"
 )
 
-var version = "2.2.0"
+// version falls back to the constant when build info is unavailable
+// (plain `go run` during development); release binaries report their
+// module version from the embedded build info, so it never goes stale.
+var version = func() string {
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "(devel)" {
+		return bi.Main.Version
+	}
+	return "dev"
+}()
 
 const (
 	defaultPort    = 8080
