@@ -239,15 +239,14 @@ macOS（amd64/arm64）、Windows（amd64）——下载、`chmod +x`、对照
 交互式体检单台相机（连接、流地址、带防护的 PTZ 演示）；`diagnostics`
 对十一个主要操作做全量体检并出 JSON 报告——[提 issue](https://github.com/mickeyzzc/onvif-go/issues)
 前先跑它；`server` 起一台虚拟多镜头相机，无硬件测试。各子命令的
-分场景手册见下方文档中心。
+分场景手册见下方[文档](#文档)节（仓内 docs）。
 
 ## 文档
 
-专题手册已迁移至 MiBee 文档中心——库手册唯一真源（双语）：
-
-> **https://www.mlsbs.top/docs/mibeelibs**
-
-手册修改向文档中心提 PR（流程见该仓 GOVERNANCE）。本仓 [`docs/README.md`](docs/README.md) 保留引导页。
+主题手册**就在本仓库内**，双语：
+[`docs/README.md`](docs/README.md) 是索引（`docs/en-US/` 与
+`docs/zh-CN/` 存放各页——快速开始、架构、协议概念、CLI 手册、测试）。
+修订与新页以 PR 落本仓。
 ## 项目结构
 
 | 路径 | 用途 |
@@ -260,7 +259,7 @@ macOS（amd64/arm64）、Windows（amd64）——下载、`chmod +x`、对照
 | `server/` | 虚拟相机模拟器 + 可嵌入服务端：DeviceIO（继电器/数字输入，opt-in）、Media2 最小面（opt-in）、媒体 OSD 闭环 + 音频空集族 |
 | `internal/onviftesting/` | 测试助手：mock server、抓包回放、golden 文件（内部包，不进消费方二进制） |
 | `testdata/captures/` | 真机 SOAP 抓包回归 fixture |
-| `docs/` | 引导至文档中心 |
+| `docs/` | 主题手册（双语 `en-US/` + `zh-CN/`），仓内手册集 |
 | `cmd/` | 统一 `onvif` CLI（子命令 `discover`、`quick`、`diagnostics`、`server`）+ `generate-tests`（抓包→fixture 的开发者工具） |
 | `examples/` | 按功能划分的可运行示例：discovery、device-info、imaging-settings、ptz-control、events（PullPoint 订阅）、media2（H.265 选项）、analytics（Profile M，含规则增删改+选项探测）、metadata（流解析）、simple-server、tls-server、onvif-server、complete-demo |
 

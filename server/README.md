@@ -51,7 +51,7 @@ A complete ONVIF-compliant server implementation that simulates multi-lens IP ca
 - **Canonical XML Casing**: `GetStreamUriResponse` / `GetSnapshotUriResponse` per the ONVIF WSDL (legacy `...URI...` requests still accepted)
 - **Byte-Predictable Output**: golden-locked envelope layout, optional explicit prefixes (`s:`/`tds:`/`trt:`/...), and a `soap.RawXML` passthrough channel for hand-built bodies
 
-See the server guide in the [documentation hub](https://www.mlsbs.top/docs/mibeelibs) for the full transport guide.
+See the [server guide](../docs/en-US/onvif-go-server.md) for the full transport guide.
 
 ## Installation
 

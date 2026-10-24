@@ -113,22 +113,53 @@ func relativeLinkTargets(text string) []string {
 	return out
 }
 
-// TestDocsIsSingleRedirectPage pins the post-migration contract
-// (mibee-docs#6): docs/ holds exactly one redirect page pointing at the
-// documentation hub, so manuals cannot drift back into this repository.
-func TestDocsIsSingleRedirectPage(t *testing.T) {
+// TestDocsAreInRepo pins the self-contained-docs contract (2026-10-24
+// policy): docs/ holds the bilingual manual set plus its index — the
+// old external-hub redirect is gone for good, and the dead docs-site
+// domain must never reappear anywhere under docs/.
+func TestDocsAreInRepo(t *testing.T) {
 	entries, err := os.ReadDir("docs")
 	if err != nil {
 		t.Fatalf("read docs/: %v", err)
 	}
-	if len(entries) != 1 || entries[0].Name() != "README.md" {
-		t.Fatalf("docs/ must contain only the redirect README.md, found %d entries", len(entries))
+	dirs := map[string]bool{}
+	for _, e := range entries {
+		dirs[e.Name()] = e.IsDir()
 	}
-	raw, err := os.ReadFile(filepath.Join("docs", "README.md"))
-	if err != nil {
-		t.Fatalf("read docs/README.md: %v", err)
+	if !dirs["en-US"] || !dirs["zh-CN"] {
+		t.Fatalf("docs/ must hold en-US/ and zh-CN/ manual dirs, found %v", entries)
 	}
-	if !strings.Contains(string(raw), "https://www.mlsbs.top/docs/mibeelibs") {
-		t.Fatal("docs/README.md must link the documentation hub")
+	for _, lang := range []string{"en-US", "zh-CN"} {
+		pages, err := os.ReadDir(filepath.Join("docs", lang))
+		if err != nil || len(pages) == 0 {
+			t.Fatalf("docs/%s must exist and hold manual pages", lang)
+		}
+	}
+	var walk func(dir string) error
+	walk = func(dir string) error {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+		for _, e := range entries {
+			p := filepath.Join(dir, e.Name())
+			if e.IsDir() {
+				if err := walk(p); err != nil {
+					return err
+				}
+				continue
+			}
+			raw, err := os.ReadFile(p)
+			if err != nil {
+				return err
+			}
+			if strings.Contains(string(raw), "mlsbs.top") {
+				t.Fatalf("%s references the dead docs-site domain", p)
+			}
+		}
+		return nil
+	}
+	if err := walk("docs"); err != nil {
+		t.Fatalf("walk docs/: %v", err)
 	}
 }

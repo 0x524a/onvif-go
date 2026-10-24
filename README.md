@@ -232,7 +232,7 @@ diag, _ := client.DiagnoseAuth(ctx)
 | `discovery/` | WS-Discovery: active probe, passive listener, directed HTTP probing, post-processing |
 | `internal/soap/` | SOAP transport + WS-Security (digest/text modes, fault detection) |
 | `server/` | Virtual camera simulator + embeddable server: DeviceIO (relays / digital inputs, opt-in), Media2 minimal face (opt-in), media OSD loop + audio empty sets |
-| `docs/` | Redirect to the documentation hub |
+| `docs/` | Topic guides, bilingual (`en-US/` + `zh-CN/`) — the in-repo manual set |
 | `testdata/captures/` | Real-camera SOAP captures used as regression fixtures |
 | `cmd/` | The unified `onvif` CLI (subcommands `discover`, `quick`, `diagnostics`, `server`) + `generate-tests`, the capture→fixture developer tool |
 | `examples/` | Runnable examples per feature area: discovery, device-info, imaging-settings, ptz-control, events (PullPoint subscription), media2 (H.265 options), analytics (Profile M, incl. rules create/modify/delete + options), metadata (stream parsing), simple-server, tls-server, onvif-server, complete-demo |
@@ -293,18 +293,16 @@ Which subcommand for which job: `discover` scans the LAN
 eleven major operations into a JSON report — the tool to run before
 [filing an issue](https://github.com/mickeyzzc/onvif-go/issues) — and
 `server` stands up a virtual multi-lens camera for testing without
-hardware. Per-subcommand manuals with scenarios live in the
-documentation hub (below).
+hardware. Per-subcommand manuals with scenarios live in
+[docs](#documentation) (below).
 
 ## Documentation
 
-Topic guides now live in the MiBee documentation hub — the single
-source of truth for library manuals, bilingual:
-
-> **https://www.mlsbs.top/docs/mibeelibs**
-
-Manual changes go there by PR (review flow in the hub repo's GOVERNANCE).
-[`docs/README.md`](docs/README.md) keeps the redirect.
+Topic guides live **in this repository**, bilingual:
+[`docs/README.md`](docs/README.md) is the index (`docs/en-US/` and
+`docs/zh-CN/` hold the pages — quickstart, architecture, protocol
+concepts, CLI manuals, testing). Fixes and new pages land
+here by PR.
 ## Development
 
 ```bash
