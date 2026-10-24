@@ -1,5 +1,6 @@
-// Command discover performs ONVIF camera discovery on the local network.
 package main
+
+// discover subcommand: ONVIF camera discovery on the local network.
 
 import (
 	"context"
@@ -13,10 +14,11 @@ import (
 
 const defaultDiscoveryTimeout = 10 * time.Second
 
-func main() {
-	iface := flag.String("interface", "", "Network interface to use (e.g., en0, en11)")
-	timeout := flag.Duration("timeout", defaultDiscoveryTimeout, "Discovery timeout")
-	flag.Parse()
+func runDiscover(args []string) {
+	fs := flag.NewFlagSet("discover", flag.ExitOnError)
+	iface := fs.String("interface", "", "Network interface to use (e.g., en0, en11)")
+	timeout := fs.Duration("timeout", defaultDiscoveryTimeout, "Discovery timeout")
+	_ = fs.Parse(args)
 
 	opts := &discovery.DiscoverOptions{
 		NetworkInterface: *iface,

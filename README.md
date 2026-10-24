@@ -234,7 +234,7 @@ diag, _ := client.DiagnoseAuth(ctx)
 | `server/` | Virtual camera simulator + embeddable server: DeviceIO (relays / digital inputs, opt-in), Media2 minimal face (opt-in), media OSD loop + audio empty sets |
 | `docs/` | Redirect to the documentation hub |
 | `testdata/captures/` | Real-camera SOAP captures used as regression fixtures |
-| `cmd/` | Helper CLIs: `discover`, `onvif-quick`, `onvif-diagnostics`, `onvif-server` (+ `generate-tests`, the capture→fixture developer tool) |
+| `cmd/` | The unified `onvif` CLI (subcommands `discover`, `quick`, `diagnostics`, `server`) + `generate-tests`, the capture→fixture developer tool |
 | `examples/` | Runnable examples per feature area: discovery, device-info, imaging-settings, ptz-control, events (PullPoint subscription), media2 (H.265 options), analytics (Profile M, incl. rules create/modify/delete + options), metadata (stream parsing), simple-server, tls-server, onvif-server, complete-demo |
 
 ## Protocol alignment & roadmap
@@ -279,19 +279,22 @@ Deliberate scope boundaries (tracked for future capability packages):
 
 ## CLI tools
 
-The four helper CLIs ship as prebuilt, zero-dependency binaries for
-linux (amd64/arm64/arm), macOS (amd64/arm64), and Windows (amd64) on
-[every release](https://github.com/mickeyzzc/onvif-go/releases) since
-v2.0.0 — download, `chmod +x`, verify against `SHA256SUMS`. Or
-`go install github.com/mickeyzzc/onvif-go/v2/cmd/<tool>@v2.2.0`.
+One CLI, four subcommands — `onvif discover`, `onvif quick`,
+`onvif diagnostics`, `onvif server` — shipped as a single prebuilt,
+zero-dependency binary per platform (linux amd64/arm64/arm, macOS
+amd64/arm64, Windows amd64) on
+[every release](https://github.com/mickeyzzc/onvif-go/releases):
+download, `chmod +x`, verify against `SHA256SUMS`. Or
+`go install github.com/mickeyzzc/onvif-go/v2/cmd/onvif@v2.2.0`.
 
-Which tool for which job: `discover` scans the LAN (WS-Discovery),
-`onvif-quick` interactively sanity-checks one camera (connect, stream
-URLs, a guarded PTZ demo), `onvif-diagnostics` sweeps all eleven major
-operations into a JSON report — the tool to run before
-[filing an issue](https://github.com/mickeyzzc/onvif-go/issues) — and `onvif-server` stands up a
-virtual multi-lens camera for testing without hardware. Per-tool
-manuals with scenarios live in the documentation hub (below).
+Which subcommand for which job: `discover` scans the LAN
+(WS-Discovery), `quick` interactively sanity-checks one camera
+(connect, stream URLs, a guarded PTZ demo), `diagnostics` sweeps all
+eleven major operations into a JSON report — the tool to run before
+[filing an issue](https://github.com/mickeyzzc/onvif-go/issues) — and
+`server` stands up a virtual multi-lens camera for testing without
+hardware. Per-subcommand manuals with scenarios live in the
+documentation hub (below).
 
 ## Documentation
 

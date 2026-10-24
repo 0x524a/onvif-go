@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	version           = "2.2.0"
+	diagVersion       = "2.2.0"
 	defaultTimeoutSec = 30
 	maxRetryAttempts  = 10
 	retryDelaySec     = 5
@@ -146,51 +146,62 @@ type ErrorLog struct {
 	Timestamp string `json:"timestamp"`
 }
 
+// Subcommand flags, populated by runDiagnostics' FlagSet. Package-level
+// because the 1700-line sweep below reads them directly.
 var (
-	endpoint   = flag.String("endpoint", "", "ONVIF device endpoint (e.g., http://192.168.1.201/onvif/device_service)")
-	username   = flag.String("username", "", "ONVIF username")
-	password   = flag.String("password", "", "ONVIF password")
-	outputDir  = flag.String("output", "./camera-logs", "Output directory for logs")
-	timeout    = flag.Int("timeout", 30, "Request timeout in seconds") //nolint:mnd // Default timeout value
-	verbose    = flag.Bool("verbose", false, "Verbose output")
-	captureXML = flag.Bool("capture-xml", false, "Capture raw SOAP XML traffic and create tar.gz archive")
-	captureAll = flag.Bool("capture-all", false, "Capture all READ operations (comprehensive mode, implies -capture-xml)")
+	endpoint   string
+	username   string
+	password   string
+	outputDir  string
+	timeout    int
+	verbose    bool
+	captureXML bool
+	captureAll bool
 )
 
 //nolint:funlen,gocognit,gocyclo // Main function has high complexity due to multiple diagnostic operations
-func main() {
-	flag.Parse()
+func runDiagnostics(args []string) {
+	fs := flag.NewFlagSet("diagnostics", flag.ExitOnError)
+	fs.StringVar(&endpoint, "endpoint", "", "ONVIF device endpoint (e.g., http://192.168.1.201/onvif/device_service)")
+	fs.StringVar(&username, "username", "", "ONVIF username")
+	fs.StringVar(&password, "password", "", "ONVIF password")
+	fs.StringVar(&outputDir, "output", "./camera-logs", "Output directory for logs")
+	fs.IntVar(&timeout, "timeout", 30, "Request timeout in seconds") //nolint:mnd // Default timeout value
+	fs.BoolVar(&verbose, "verbose", false, "Verbose output")
+	fs.BoolVar(&captureXML, "capture-xml", false, "Capture raw SOAP XML traffic and create tar.gz archive")
+	fs.BoolVar(&captureAll, "capture-all", false, "Capture all READ operations (comprehensive mode, implies -capture-xml)")
+	_ = fs.Parse(args)
 
-	fmt.Printf("ONVIF Camera Diagnostic Utility v%s\n", version)
+	fmt.Printf("ONVIF Camera Diagnostic Utility v%s\n", diagVersion)
 	fmt.Println("========================================")
 	fmt.Println()
 
 	// Validate inputs
-	if *endpoint == "" || *username == "" || *password == "" {
+	if endpoint == "" || username == "" || password == "" {
 		fmt.Println("Error: Missing required parameters")
 		fmt.Println()
 		fmt.Println("Usage:")
-		flag.PrintDefaults()
+		fs.PrintDefaults()
 		fmt.Println()
 		fmt.Println("Example:")
-		fmt.Println("  ./onvif-diagnostics -endpoint " +
+		fmt.Println("  onvif diagnostics -endpoint " +
 			"http://192.168.1.201/onvif/device_service " +
 			"-username service -password Service.1234")
 		os.Exit(1)
 	}
 
 	// Create output directory
-	if err := os.MkdirAll(*outputDir, 0o750); err != nil { //nolint:mnd // 0750 appropriate for diagnostic output
+	if err := os.MkdirAll(outputDir, 0o750); err != nil { //nolint:mnd // 0750 appropriate for diagnostic output
 		log.Fatalf("Failed to create output directory: %v", err)
 	}
 
 	// Initialize report
 	report := &CameraReport{
 		Timestamp:      time.Now().Format(time.RFC3339),
-		UtilityVersion: version,
+		UtilityVersion: diagVersion,
 		ConnectionInfo: ConnectionInfo{
-			Endpoint: *endpoint,
-			Username: *username,
+			Endpoint: endpoint,
+			Username: username,
 			TestDate: time.Now().Format("2006-01-02"),
 		},
 		Errors:       make([]ErrorLog, 0),
@@ -198,17 +209,17 @@ func main() {
 	}
 
 	// If capture-all is set, enable capture-xml automatically
-	if *captureAll {
-		*captureXML = true
+	if captureAll {
+		captureXML = true
 	}
 
 	// Setup XML capture if requested
 	var loggingTransport *LoggingTransport
 	var xmlCaptureDir string
 
-	if *captureXML {
+	if captureXML {
 		timestamp := time.Now().Format("20060102-150405")
-		xmlCaptureDir = filepath.Join(*outputDir, "temp_"+timestamp)
+		xmlCaptureDir = filepath.Join(outputDir, "temp_"+timestamp)
 		if err := os.MkdirAll(xmlCaptureDir, 0o750); err != nil { //nolint:mnd // 0750 appropriate for diagnostic output
 			log.Fatalf("Failed to create XML capture directory: %v", err)
 		}
@@ -223,7 +234,7 @@ func main() {
 			Counter: 0,
 		}
 
-		if *verbose {
+		if verbose {
 			fmt.Printf("📦 XML capture enabled, saving to: %s\n", xmlCaptureDir)
 		}
 	}
@@ -234,19 +245,19 @@ func main() {
 
 	if loggingTransport != nil {
 		httpClient := &http.Client{
-			Timeout:   time.Duration(*timeout) * time.Second,
+			Timeout:   time.Duration(timeout) * time.Second,
 			Transport: loggingTransport,
 		}
 		client, err = onvif.NewClient(
-			*endpoint,
-			onvif.WithCredentials(*username, *password),
+			endpoint,
+			onvif.WithCredentials(username, password),
 			onvif.WithHTTPClient(httpClient),
 		)
 	} else {
 		client, err = onvif.NewClient(
-			*endpoint,
-			onvif.WithCredentials(*username, *password),
-			onvif.WithTimeout(time.Duration(*timeout)*time.Second),
+			endpoint,
+			onvif.WithCredentials(username, password),
+			onvif.WithTimeout(time.Duration(timeout)*time.Second),
 		)
 	}
 
@@ -256,7 +267,7 @@ func main() {
 
 	ctx := context.Background()
 
-	if *captureAll {
+	if captureAll {
 		fmt.Println("Starting COMPREHENSIVE diagnostic collection...")
 		fmt.Println("This will capture all READ operations for testing.")
 		fmt.Println()
@@ -333,7 +344,7 @@ func main() {
 
 	// Generate output filename based on device info
 	filename := generateFilename(report)
-	outputPath := filepath.Join(*outputDir, filename)
+	outputPath := filepath.Join(outputDir, filename)
 
 	// Save report
 	logStepf("Saving diagnostic report...")
@@ -342,7 +353,7 @@ func main() {
 	}
 
 	// Create XML archive if capture was enabled
-	if *captureXML && loggingTransport != nil {
+	if captureXML && loggingTransport != nil {
 		fmt.Println()
 		logStepf("Creating V2 XML capture archive...")
 
@@ -366,7 +377,7 @@ func main() {
 			archiveName = fmt.Sprintf("unknown_device_xmlcapture_%s.tar.gz", timestamp)
 		}
 
-		archivePath := filepath.Join(*outputDir, archiveName)
+		archivePath := filepath.Join(outputDir, archiveName)
 
 		if err := createTarGzV2(xmlCaptureDir, archivePath); err != nil {
 			logErrorf("Failed to create XML archive: %v", err)
@@ -397,7 +408,7 @@ func main() {
 	}
 
 	fmt.Println()
-	if *captureXML {
+	if captureXML {
 		fmt.Println("Both JSON report and XML capture archive saved to camera-logs/")
 		fmt.Println("Share both files for comprehensive analysis.")
 	} else {
@@ -526,7 +537,7 @@ func testGetProfiles(ctx context.Context, client *onvif.Client, report *CameraRe
 		logSuccessf("Found %d profile(s)", len(profiles))
 
 		for i, profile := range profiles {
-			if *verbose {
+			if verbose {
 				fmt.Printf("   Profile %d: %s (Token: %s)\n", i+1, profile.Name, profile.Token)
 				if profile.VideoEncoderConfiguration != nil && profile.VideoEncoderConfiguration.Resolution != nil {
 					fmt.Printf("     Resolution: %dx%d, Encoding: %s\n",
@@ -557,7 +568,7 @@ func testGetStreamURIs(ctx context.Context, client *onvif.Client, profiles []*on
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			if *verbose {
+			if verbose {
 				logErrorf("  Profile %s: %v", profile.Name, err)
 			}
 			report.Errors = append(report.Errors, ErrorLog{
@@ -568,7 +579,7 @@ func testGetStreamURIs(ctx context.Context, client *onvif.Client, profiles []*on
 		} else {
 			result.Success = true
 			result.Data = streamURI
-			if *verbose {
+			if verbose {
 				logSuccessf("  Profile %s: %s", profile.Name, streamURI.URI)
 			}
 		}
@@ -603,7 +614,7 @@ func testGetSnapshotURIs(ctx context.Context, client *onvif.Client, profiles []*
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			if *verbose {
+			if verbose {
 				logErrorf("  Profile %s: %v", profile.Name, err)
 			}
 			report.Errors = append(report.Errors, ErrorLog{
@@ -614,7 +625,7 @@ func testGetSnapshotURIs(ctx context.Context, client *onvif.Client, profiles []*
 		} else {
 			result.Success = true
 			result.Data = snapshotURI
-			if *verbose {
+			if verbose {
 				logSuccessf("  Profile %s: %s", profile.Name, snapshotURI.URI)
 			}
 		}
@@ -658,7 +669,7 @@ func testGetVideoEncoders(
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			if *verbose {
+			if verbose {
 				logErrorf("  Profile %s: %v", profile.Name, err)
 			}
 			report.Errors = append(report.Errors, ErrorLog{
@@ -669,7 +680,7 @@ func testGetVideoEncoders(
 		} else {
 			result.Success = true
 			result.Data = config
-			if *verbose && config.Resolution != nil && config.RateControl != nil {
+			if verbose && config.Resolution != nil && config.RateControl != nil {
 				logSuccessf("  Profile %s: %s %dx%d @ %dfps",
 					profile.Name, config.Encoding,
 					config.Resolution.Width, config.Resolution.Height,
@@ -722,7 +733,7 @@ func testGetImagingSettings(
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			if *verbose {
+			if verbose {
 				logErrorf("  Video source %s: %v", token, err)
 			}
 			report.Errors = append(report.Errors, ErrorLog{
@@ -733,7 +744,7 @@ func testGetImagingSettings(
 		} else {
 			result.Success = true
 			result.Data = settings
-			if *verbose {
+			if verbose {
 				fmt.Printf("   ✓ Video source %s: Retrieved\n", token)
 			}
 		}
@@ -777,7 +788,7 @@ func testGetPTZStatus(
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			if *verbose {
+			if verbose {
 				logErrorf("  Profile %s: %v", profile.Name, err)
 			}
 			report.Errors = append(report.Errors, ErrorLog{
@@ -788,7 +799,7 @@ func testGetPTZStatus(
 		} else {
 			result.Success = true
 			result.Data = status
-			if *verbose {
+			if verbose {
 				logSuccessf("  Profile %s: Retrieved", profile.Name)
 			}
 		}
@@ -836,7 +847,7 @@ func testGetPTZPresets(
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			if *verbose {
+			if verbose {
 				logErrorf("  Profile %s: %v", profile.Name, err)
 			}
 			report.Errors = append(report.Errors, ErrorLog{
@@ -848,7 +859,7 @@ func testGetPTZPresets(
 			result.Success = true
 			result.Data = presets
 			result.Count = len(presets)
-			if *verbose {
+			if verbose {
 				logSuccessf("  Profile %s: %d preset(s)", profile.Name, len(presets))
 			}
 		}
@@ -1039,12 +1050,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 	for _, op := range deviceOps {
 		if err := op.fn(); err != nil {
-			if *verbose {
+			if verbose {
 				logErrorf("%s: %v", op.name, err)
 			}
 			failCount++
 		} else {
-			if *verbose {
+			if verbose {
 				logSuccessf("%s", op.name)
 			}
 			successCount++
@@ -1067,12 +1078,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 	videoSources, err := client.Media().GetVideoSources(ctx)
 	totalOps++
 	if err != nil {
-		if *verbose {
+		if verbose {
 			logErrorf("GetVideoSources: %v", err)
 		}
 		failCount++
 	} else {
-		if *verbose {
+		if verbose {
 			logSuccessf("GetVideoSources: %d sources", len(videoSources))
 		}
 		successCount++
@@ -1082,12 +1093,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 	audioSources, err := client.Media().GetAudioSources(ctx)
 	totalOps++
 	if err != nil {
-		if *verbose {
+		if verbose {
 			logErrorf("GetAudioSources: %v", err)
 		}
 		failCount++
 	} else {
-		if *verbose {
+		if verbose {
 			logSuccessf("GetAudioSources: %d sources", len(audioSources))
 		}
 		successCount++
@@ -1097,12 +1108,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 	_, err = client.Media().GetAudioOutputs(ctx)
 	totalOps++
 	if err != nil {
-		if *verbose {
+		if verbose {
 			logErrorf("GetAudioOutputs: %v", err)
 		}
 		failCount++
 	} else {
-		if *verbose {
+		if verbose {
 			logSuccessf("GetAudioOutputs")
 		}
 		successCount++
@@ -1244,12 +1255,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 	for _, op := range configOps {
 		if err := op.fn(); err != nil {
-			if *verbose {
+			if verbose {
 				logErrorf("%s: %v", op.name, err)
 			}
 			failCount++
 		} else {
-			if *verbose {
+			if verbose {
 				logSuccessf("%s", op.name)
 			}
 			successCount++
@@ -1270,12 +1281,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 	for _, op := range eventOps {
 		if err := op.fn(); err != nil {
-			if *verbose {
+			if verbose {
 				logErrorf("%s: %v", op.name, err)
 			}
 			failCount++
 		} else {
-			if *verbose {
+			if verbose {
 				logSuccessf("%s", op.name)
 			}
 			successCount++
@@ -1298,12 +1309,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 	for _, op := range certOps {
 		if err := op.fn(); err != nil {
-			if *verbose {
+			if verbose {
 				logErrorf("%s: %v", op.name, err)
 			}
 			failCount++
 		} else {
-			if *verbose {
+			if verbose {
 				logSuccessf("%s", op.name)
 			}
 			successCount++
@@ -1324,12 +1335,12 @@ func runComprehensiveCapture(ctx context.Context, client *onvif.Client, report *
 
 	for _, op := range wifiOps {
 		if err := op.fn(); err != nil {
-			if *verbose {
+			if verbose {
 				logErrorf("%s: %v", op.name, err)
 			}
 			failCount++
 		} else {
-			if *verbose {
+			if verbose {
 				logSuccessf("%s", op.name)
 			}
 			successCount++

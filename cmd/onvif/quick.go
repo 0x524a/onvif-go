@@ -13,16 +13,16 @@ import (
 )
 
 const (
-	defaultUsername   = "admin"
-	defaultTimeout    = 10
-	defaultRetryDelay = 5
-	ptzTimeout        = 30
-	ptzStepSize       = 2
-	ptzSpeed          = 0.5
-	maxBodyPreview    = 200
+	defaultUsername     = "admin"
+	quickDefaultTimeout = 10
+	defaultRetryDelay   = 5
+	ptzTimeout          = 30
+	quickPtzStepSize    = 2
+	quickPtzSpeed       = 0.5
+	maxBodyPreview      = 200
 )
 
-func main() {
+func runQuick(_ []string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("🎥 Quick ONVIF Camera Tool")
@@ -106,7 +106,7 @@ func discoverCameras() {
 		opts = &discovery.DiscoverOptions{}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), quickDefaultTimeout*time.Second)
 	defer cancel()
 
 	devices, err := discovery.DiscoverWithOptions(ctx, defaultRetryDelay*time.Second, opts)
@@ -308,13 +308,13 @@ func ptzDemo() { //nolint:funlen,gocyclo // Many statements and high complexity 
 
 	switch choice {
 	case "1":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: ptzSpeed, Y: 0.0}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: quickPtzSpeed, Y: 0.0}}
 	case "2":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: -ptzSpeed, Y: 0.0}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: -quickPtzSpeed, Y: 0.0}}
 	case "3":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: ptzSpeed}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: quickPtzSpeed}}
 	case "4":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: -ptzSpeed}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: -quickPtzSpeed}}
 	case "5":
 		position = &onvif.PTZVector{PanTilt: &onvif.Vector2D{X: 0.0, Y: 0.0}}
 	default:
@@ -324,7 +324,7 @@ func ptzDemo() { //nolint:funlen,gocyclo // Many statements and high complexity 
 	}
 
 	if velocity != nil {
-		timeout := fmt.Sprintf("PT%dS", ptzStepSize)
+		timeout := fmt.Sprintf("PT%dS", quickPtzStepSize)
 		err = client.PTZ().ContinuousMove(ctx, profileToken, velocity, &timeout)
 		if err != nil {
 			fmt.Printf("❌ Error: %v\n", err)
@@ -332,7 +332,7 @@ func ptzDemo() { //nolint:funlen,gocyclo // Many statements and high complexity 
 			return
 		}
 		fmt.Println("✅ Moving for 2 seconds...")
-		time.Sleep(ptzStepSize * time.Second)
+		time.Sleep(quickPtzStepSize * time.Second)
 
 		_ = client.PTZ().Stop(ctx, profileToken, true, false)
 	} else if position != nil {

@@ -59,7 +59,7 @@ matter most for this library:
 
 - **Camera model and firmware version** — ONVIF quirks are almost always
   firmware-specific.
-- **Raw SOAP exchange** when possible — run `cmd/onvif-diagnostics` with
+- **Raw SOAP exchange** when possible — run `onvif diagnostics` (cmd/onvif) with
   `-capture-xml` (see the CLI guide in the [documentation hub](https://www.mlsbs.top/docs/mibeelibs)) and attach the
   output **after redacting credentials**. Captured responses can become
   `testdata/captures/` fixtures so the regression outlives the camera.

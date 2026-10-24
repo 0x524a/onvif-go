@@ -61,10 +61,10 @@ git clone https://github.com/mickeyzzc/onvif-go
 cd onvif-go
 
 # Build the server CLI
-go build -o onvif-server ./cmd/onvif-server
+go build -o onvif ./cmd/onvif   # the simulator is the "server" subcommand
 
 # Or install globally
-go install ./cmd/onvif-server
+go install ./cmd/onvif
 ```
 
 ## Quick Start

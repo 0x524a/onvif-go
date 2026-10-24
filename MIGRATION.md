@@ -87,7 +87,7 @@ The SOAP transport was rebuilt (M2–M3). If you embed `server/`:
 | `Server.Handle*(body)` | `Server.Handle*(rc *soap.RequestContext, body []byte)` |
 
 `server.New(Config)` with no options is still the full simulator — the
-CLI (`cmd/onvif-server`) and the examples are unchanged.
+CLI and the examples are unchanged (the v2.x CLI layout was later unified — see CHANGELOG at v2.6.0).
 
 ## 4. Discovery
 

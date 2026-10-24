@@ -25,46 +25,46 @@ const (
 	ptzSpeed       = 0.5
 )
 
-func main() {
-	// Define command-line flags
-	host := flag.String("host", "0.0.0.0", "Server host address")
-	port := flag.Int("port", defaultPort, "Server port")
-	username := flag.String("username", "admin", "Authentication username")
-	password := flag.String("password", "", "Authentication password (required — no default; falls back to ONVIF_SERVER_PASSWORD)")
-	manufacturer := flag.String("manufacturer", "onvif-go", "Device manufacturer")
-	model := flag.String("model", "Virtual Multi-Lens Camera", "Device model")
-	firmware := flag.String("firmware", "1.0.0", "Firmware version")
-	serial := flag.String("serial", "SN-12345678", "Serial number")
-	profiles := flag.Int(
+func runServer(args []string) {
+	fs := flag.NewFlagSet("server", flag.ExitOnError)
+	host := fs.String("host", "0.0.0.0", "Server host address")
+	port := fs.Int("port", defaultPort, "Server port")
+	username := fs.String("username", "admin", "Authentication username")
+	password := fs.String("password", "", "Authentication password (required — no default; falls back to ONVIF_SERVER_PASSWORD)")
+	manufacturer := fs.String("manufacturer", "onvif-go", "Device manufacturer")
+	model := fs.String("model", "Virtual Multi-Lens Camera", "Device model")
+	firmware := fs.String("firmware", "1.0.0", "Firmware version")
+	serial := fs.String("serial", "SN-12345678", "Serial number")
+	profiles := fs.Int(
 		"profiles", maxWorkers, "Number of camera profiles (1-10)",
 	)
-	ptz := flag.Bool("ptz", true, "Enable PTZ support")
-	imaging := flag.Bool("imaging", true, "Enable Imaging support")
-	events := flag.Bool("events", false, "Enable Events support")
-	info := flag.Bool("info", false, "Show server info and exit")
-	showVersion := flag.Bool("version", false, "Show version and exit")
+	ptz := fs.Bool("ptz", true, "Enable PTZ support")
+	imaging := fs.Bool("imaging", true, "Enable Imaging support")
+	events := fs.Bool("events", false, "Enable Events support")
+	info := fs.Bool("info", false, "Show server info and exit")
+	showVersion := fs.Bool("version", false, "Show version and exit")
 
-	flag.Usage = func() {
+	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "ONVIF Server - Virtual IP Camera Simulator\n\n")
-		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\n", "onvif server")
 		fmt.Fprintf(os.Stderr, "Options:\n")
-		flag.PrintDefaults()
+		fs.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\nExamples:\n")
 		fmt.Fprintf(os.Stderr, "  # Start with default settings (3 profiles, PTZ enabled)\n")
-		fmt.Fprintf(os.Stderr, "  %s\n\n", os.Args[0])
+		fmt.Fprint(os.Stderr, "  onvif server\n\n")
 		fmt.Fprintf(os.Stderr, "  # Start with custom credentials and 5 profiles\n")
-		fmt.Fprintf(os.Stderr, "  %s -username myuser -password mypass -profiles 5\n\n", os.Args[0])
+		fmt.Fprint(os.Stderr, "  onvif server -username myuser -password mypass -profiles 5\n\n")
 		fmt.Fprintf(os.Stderr, "  # Start on specific port without PTZ\n")
-		fmt.Fprintf(os.Stderr, "  %s -port 9000 -ptz=false\n\n", os.Args[0])
+		fmt.Fprint(os.Stderr, "  onvif server -port 9000 -ptz=false\n\n")
 		fmt.Fprintf(os.Stderr, "  # Show server information\n")
-		fmt.Fprintf(os.Stderr, "  %s -info\n\n", os.Args[0])
+		fmt.Fprint(os.Stderr, "  onvif server -info\n\n")
 	}
 
-	flag.Parse()
+	_ = fs.Parse(args)
 
 	// Handle version flag
 	if *showVersion {
-		fmt.Printf("onvif-server version %s\n", version)
+		fmt.Printf("onvif server %s\n", version)
 		os.Exit(0)
 	}
 

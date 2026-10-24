@@ -23,7 +23,7 @@ jobs:
         run: go test -race ./...
 
   tools:
-    name: Build CLIs (${{ matrix.goos }}/${{ matrix.goarch }})
+    name: Build CLI (${{ matrix.goos }}/${{ matrix.goarch }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -54,9 +54,9 @@ jobs:
           mkdir -p dist
           ext=""
           if [ "${GOOS}" = "windows" ]; then ext=".exe"; fi
-          for cmd in discover onvif-diagnostics onvif-quick onvif-server; do
-            go build -trimpath -o "dist/${cmd}_${GOOS}_${GOARCH}${ext}" "./cmd/${cmd}"
-          done
+          # One binary, four subcommands: discover / quick / diagnostics
+          # / server (the unified CLI — see cmd/onvif).
+          go build -trimpath -o "dist/onvif_${GOOS}_${GOARCH}${ext}" ./cmd/onvif
       - uses: actions/upload-artifact@v4
         with:
           name: tools-${{ matrix.goos }}-${{ matrix.goarch }}

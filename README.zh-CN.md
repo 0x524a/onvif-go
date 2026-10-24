@@ -228,15 +228,17 @@ diag, _ := client.DiagnoseAuth(ctx)
 
 ## CLI 工具
 
-四个辅助 CLI 自 v2.0.0 起随[每个 release](https://github.com/mickeyzzc/onvif-go/releases)
-发布预编译零依赖单文件：linux（amd64/arm64/arm）、macOS（amd64/arm64）、
-Windows（amd64）——下载、`chmod +x`、对照 `SHA256SUMS` 校验即可；或
-`go install github.com/mickeyzzc/onvif-go/v2/cmd/<工具>@v2.2.0`。
+一个 CLI、四个子命令——`onvif discover` / `onvif quick` /
+`onvif diagnostics` / `onvif server`——随[每个 release](https://github.com/mickeyzzc/onvif-go/releases)
+以**每平台一个**预编译零依赖二进制发布：linux（amd64/arm64/arm）、
+macOS（amd64/arm64）、Windows（amd64）——下载、`chmod +x`、对照
+`SHA256SUMS` 校验即可；或
+`go install github.com/mickeyzzc/onvif-go/v2/cmd/onvif@v2.2.0`。
 
-哪个工具干什么：`discover` 扫描局域网（WS-Discovery）；`onvif-quick`
-交互式体检单台相机（连接、流地址、带防护的 PTZ 演示）；`onvif-diagnostics`
+哪个子命令干什么：`discover` 扫描局域网（WS-Discovery）；`quick`
+交互式体检单台相机（连接、流地址、带防护的 PTZ 演示）；`diagnostics`
 对十一个主要操作做全量体检并出 JSON 报告——[提 issue](https://github.com/mickeyzzc/onvif-go/issues)
-前先跑它；`onvif-server` 起一台虚拟多镜头相机，无硬件测试。各工具的
+前先跑它；`server` 起一台虚拟多镜头相机，无硬件测试。各子命令的
 分场景手册见下方文档中心。
 
 ## 文档
@@ -259,7 +261,7 @@ Windows（amd64）——下载、`chmod +x`、对照 `SHA256SUMS` 校验即可�
 | `internal/onviftesting/` | 测试助手：mock server、抓包回放、golden 文件（内部包，不进消费方二进制） |
 | `testdata/captures/` | 真机 SOAP 抓包回归 fixture |
 | `docs/` | 引导至文档中心 |
-| `cmd/` | 辅助 CLI：`discover`、`onvif-quick`、`onvif-diagnostics`、`onvif-server`（另有 `generate-tests`，抓包→fixture 的开发者工具） |
+| `cmd/` | 统一 `onvif` CLI（子命令 `discover`、`quick`、`diagnostics`、`server`）+ `generate-tests`（抓包→fixture 的开发者工具） |
 | `examples/` | 按功能划分的可运行示例：discovery、device-info、imaging-settings、ptz-control、events（PullPoint 订阅）、media2（H.265 选项）、analytics（Profile M，含规则增删改+选项探测）、metadata（流解析）、simple-server、tls-server、onvif-server、complete-demo |
 
 ## 开发

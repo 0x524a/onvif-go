@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.6.0] — 2026-10-24
+
+The unified-CLI package: the four tools become one binary
+(`cmd/onvif`), plus the auth-ladder fix (#140).
+
+### Changed
+
+- **BREAKING-packaging: the four CLIs are one binary now.** `discover`,
+  `onvif-quick`, `onvif-diagnostics`, and `onvif-server` collapse into
+  `cmd/onvif` with the subcommands `discover` / `quick` / `diagnostics`
+  / `server` — `onvif --help` lists everything instead of users having
+  to know four binary names, and a release attaches one prebuilt file
+  per platform instead of four. The old `go install
+  …/cmd/onvif-quick@…` package paths are gone (use
+  `…/cmd/onvif@…`); the `generate-tests` developer tool is unchanged.
+  Library API untouched.
+
+### Fixed
+
+- **Auth fallback ladder advances past empty 200 bodies (#140).** Old
+  firmwares answer a rejected WS-Security digest with HTTP 200 and an
+  empty body — no 401, no fault — which stranded the ladder on the
+  first rung and hung `Initialize`. Empty bodies now advance the
+  ladder like auth failures do; classification keeps them non-auth, so
+  an exhausted ladder surfaces `ErrEmptyResponseBody` (the root-package
+  sentinels are now aliases of the soap package's instances —
+  `errors.Is` previously never matched them) instead of a misleading
+  `ErrUnauthorized`.
+
 ## [v2.5.0] — 2026-10-14
 
 The server basic-notification interface — wsnt:Subscribe plus pushed
