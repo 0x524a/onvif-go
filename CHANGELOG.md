@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+
+- `RelativeMove`, `AbsoluteMove` and `ContinuousMove` wrote the `PanTilt` and `Zoom` children of the
+  vector and speed without the `tt` (ONVIF schema) namespace. Strict gSOAP cameras (seen on a Reolink
+  TrackMix) rejected every move with `Validation constraint violation: tag name namespace mismatch in
+  element 'PanTilt'`. The children are now written as `tt:PanTilt` and `tt:Zoom` with the namespace
+  declared. Verified against that camera.
 - `onvif-server` and `onvif-diagnostics` reported version 1.0.0 whatever the release: the version was a lowercase variable (or a constant) that the release build's `-X main.Version=` could not set. It is now an exported `Version` that the build sets, and `dev` for plain `go build`.
 
 ### Added
