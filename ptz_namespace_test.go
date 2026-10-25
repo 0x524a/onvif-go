@@ -8,7 +8,7 @@ import (
 
 // Strict (gSOAP) cameras reject PanTilt and Zoom written without the tt
 // namespace: "tag name namespace mismatch in element 'PanTilt'". This parses
-// the marshalled request namespace-aware, like such a camera does.
+// the marshaled request namespace-aware, like such a camera does.
 func TestPTZRequestChildrenAreInTheSchemaNamespace(t *testing.T) {
 	type req struct {
 		XMLName     xml.Name         `xml:"tptz:RelativeMove"`
