@@ -65,5 +65,5 @@ echo "✅ Virtual camera server, HTTP or TLS, with PTZ presets and 10 lens templ
 echo "✅ Namespace-strict contract suite + client↔simulator conformance loopback + fuzz"
 echo "✅ Runnable examples per feature area under examples/"
 echo
-echo "📚 Manuals: https://www.mlsbs.top/docs/mibeelibs"
+echo "📚 Manuals: https://github.com/mickeyzzc/onvif-go/tree/main/docs (bilingual: en-US / zh-CN)"
 echo "   Releases carry prebuilt CLIs for 6 platforms: https://github.com/mickeyzzc/onvif-go/releases"

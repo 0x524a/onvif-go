@@ -3,6 +3,7 @@ package hygiene_test
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -114,9 +115,10 @@ func relativeLinkTargets(text string) []string {
 }
 
 // TestDocsAreInRepo pins the self-contained-docs contract (2026-10-24
-// policy): docs/ holds the bilingual manual set plus its index — the
-// old external-hub redirect is gone for good, and the dead docs-site
-// domain must never reappear anywhere under docs/.
+// policy): docs/ holds the bilingual manual set plus its index, and every
+// URL in docs/ must point at an allowlisted host — the project's own
+// hosting and the standards bodies it cites. Any other host (an external
+// docs-site pointer) fails the build, whatever domain it uses.
 func TestDocsAreInRepo(t *testing.T) {
 	entries, err := os.ReadDir("docs")
 	if err != nil {
@@ -153,8 +155,10 @@ func TestDocsAreInRepo(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			if strings.Contains(string(raw), "mlsbs.top") {
-				t.Fatalf("%s references the dead docs-site domain", p)
+			for _, host := range docsLinkHosts(string(raw)) {
+				if !docsHostAllowed(host) {
+					t.Fatalf("%s links to non-allowlisted host %q — docs must be self-contained", p, host)
+				}
 			}
 		}
 		return nil
@@ -162,4 +166,39 @@ func TestDocsAreInRepo(t *testing.T) {
 	if err := walk("docs"); err != nil {
 		t.Fatalf("walk docs/: %v", err)
 	}
+}
+
+// docsLinkHostRe captures the host of every http(s) URL.
+var docsLinkHostRe = regexp.MustCompile(`https?://([a-zA-Z0-9.-]+)`)
+
+func docsLinkHosts(text string) []string {
+	var out []string
+	for _, m := range docsLinkHostRe.FindAllStringSubmatch(text, -1) {
+		out = append(out, m[1])
+	}
+	return out
+}
+
+// docsAllowedHosts: the only real hosts documentation may point at.
+var docsAllowedHosts = map[string]bool{
+	"github.com":    true,
+	"onvif.org":     true,
+	"www.onvif.org": true,
+	"w3.org":        true,
+	"www.w3.org":    true,
+	"pkg.go.dev":    true,
+}
+
+// docsHostAllowed also admits the example endpoint placeholders that
+// appear in CLI usage snippets (LAN IPs, literal "host").
+func docsHostAllowed(host string) bool {
+	h := strings.ToLower(host)
+	if docsAllowedHosts[h] {
+		return true
+	}
+	switch h {
+	case "host", "localhost":
+		return true
+	}
+	return strings.HasPrefix(h, "192.168.")
 }
