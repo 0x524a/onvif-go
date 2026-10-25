@@ -63,33 +63,66 @@ type ptzSpeedXML struct {
 	Zoom    *ptzZoomXML    `xml:"Zoom,omitempty"`
 }
 
+// schemaNamespace is the ONVIF common schema (prefix tt), which owns the
+// PanTilt and Zoom children of every PTZ vector and speed.
+const schemaNamespace = "http://www.onvif.org/ver10/schema" // NOSONAR // XML namespace identifier fixed by ONVIF spec; never dialed
+
+// Request-side vector and speed types. The children PanTilt and Zoom belong to
+// the tt namespace, not to tptz, so they are written with an explicit tt
+// prefix and the namespace declared on the vector element. Strict (gSOAP)
+// cameras reject unqualified children with "tag name namespace mismatch". The
+// unprefixed ptz*XML types above stay for decoding replies, where encoding/xml
+// matches on local names.
+type ptzPanTiltReqXML struct {
+	X     float64 `xml:"x,attr"`
+	Y     float64 `xml:"y,attr"`
+	Space string  `xml:"space,attr,omitempty"`
+}
+
+type ptzZoomReqXML struct {
+	X     float64 `xml:"x,attr"`
+	Space string  `xml:"space,attr,omitempty"`
+}
+
+type ptzVectorReqXML struct {
+	Xmlns   string            `xml:"xmlns:tt,attr"`
+	PanTilt *ptzPanTiltReqXML `xml:"tt:PanTilt,omitempty"`
+	Zoom    *ptzZoomReqXML    `xml:"tt:Zoom,omitempty"`
+}
+
+type ptzSpeedReqXML struct {
+	Xmlns   string            `xml:"xmlns:tt,attr"`
+	PanTilt *ptzPanTiltReqXML `xml:"tt:PanTilt,omitempty"`
+	Zoom    *ptzZoomReqXML    `xml:"tt:Zoom,omitempty"`
+}
+
 // convertToPTZVectorXML converts PTZVector to XML struct.
-func convertToPTZVectorXML(v *PTZVector) *ptzVectorXML {
+func convertToPTZVectorXML(v *PTZVector) *ptzVectorReqXML {
 	if v == nil {
 		return nil
 	}
-	result := &ptzVectorXML{}
+	result := &ptzVectorReqXML{Xmlns: schemaNamespace}
 	if v.PanTilt != nil {
-		result.PanTilt = &ptzPanTiltXML{X: v.PanTilt.X, Y: v.PanTilt.Y, Space: v.PanTilt.Space}
+		result.PanTilt = &ptzPanTiltReqXML{X: v.PanTilt.X, Y: v.PanTilt.Y, Space: v.PanTilt.Space}
 	}
 	if v.Zoom != nil {
-		result.Zoom = &ptzZoomXML{X: v.Zoom.X, Space: v.Zoom.Space}
+		result.Zoom = &ptzZoomReqXML{X: v.Zoom.X, Space: v.Zoom.Space}
 	}
 
 	return result
 }
 
 // convertToPTZSpeedXML converts PTZSpeed to XML struct.
-func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedXML {
+func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedReqXML {
 	if s == nil {
 		return nil
 	}
-	result := &ptzSpeedXML{}
+	result := &ptzSpeedReqXML{Xmlns: schemaNamespace}
 	if s.PanTilt != nil {
-		result.PanTilt = &ptzPanTiltXML{X: s.PanTilt.X, Y: s.PanTilt.Y, Space: s.PanTilt.Space}
+		result.PanTilt = &ptzPanTiltReqXML{X: s.PanTilt.X, Y: s.PanTilt.Y, Space: s.PanTilt.Space}
 	}
 	if s.Zoom != nil {
-		result.Zoom = &ptzZoomXML{X: s.Zoom.X, Space: s.Zoom.Space}
+		result.Zoom = &ptzZoomReqXML{X: s.Zoom.X, Space: s.Zoom.Space}
 	}
 
 	return result
@@ -215,11 +248,11 @@ func (c *Client) ContinuousMove(ctx context.Context, profileToken string, veloci
 	}
 
 	type ContinuousMove struct {
-		XMLName      xml.Name     `xml:"tptz:ContinuousMove"`
-		Xmlns        string       `xml:"xmlns:tptz,attr"`
-		ProfileToken string       `xml:"tptz:ProfileToken"`
-		Velocity     *ptzSpeedXML `xml:"tptz:Velocity"`
-		Timeout      *string      `xml:"tptz:Timeout,omitempty"`
+		XMLName      xml.Name        `xml:"tptz:ContinuousMove"`
+		Xmlns        string          `xml:"xmlns:tptz,attr"`
+		ProfileToken string          `xml:"tptz:ProfileToken"`
+		Velocity     *ptzSpeedReqXML `xml:"tptz:Velocity"`
+		Timeout      *string         `xml:"tptz:Timeout,omitempty"`
 	}
 
 	req := ContinuousMove{
@@ -247,11 +280,11 @@ func (c *Client) AbsoluteMove(ctx context.Context, profileToken string, position
 	}
 
 	type AbsoluteMove struct {
-		XMLName      xml.Name      `xml:"tptz:AbsoluteMove"`
-		Xmlns        string        `xml:"xmlns:tptz,attr"`
-		ProfileToken string        `xml:"tptz:ProfileToken"`
-		Position     *ptzVectorXML `xml:"tptz:Position"`
-		Speed        *ptzSpeedXML  `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name         `xml:"tptz:AbsoluteMove"`
+		Xmlns        string           `xml:"xmlns:tptz,attr"`
+		ProfileToken string           `xml:"tptz:ProfileToken"`
+		Position     *ptzVectorReqXML `xml:"tptz:Position"`
+		Speed        *ptzSpeedReqXML  `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := AbsoluteMove{
@@ -279,11 +312,11 @@ func (c *Client) RelativeMove(ctx context.Context, profileToken string, translat
 	}
 
 	type RelativeMove struct {
-		XMLName      xml.Name      `xml:"tptz:RelativeMove"`
-		Xmlns        string        `xml:"xmlns:tptz,attr"`
-		ProfileToken string        `xml:"tptz:ProfileToken"`
-		Translation  *ptzVectorXML `xml:"tptz:Translation"`
-		Speed        *ptzSpeedXML  `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name         `xml:"tptz:RelativeMove"`
+		Xmlns        string           `xml:"xmlns:tptz,attr"`
+		ProfileToken string           `xml:"tptz:ProfileToken"`
+		Translation  *ptzVectorReqXML `xml:"tptz:Translation"`
+		Speed        *ptzSpeedReqXML  `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := RelativeMove{
@@ -512,11 +545,11 @@ func (c *Client) GotoPreset(ctx context.Context, profileToken, presetToken strin
 	}
 
 	type GotoPreset struct {
-		XMLName      xml.Name     `xml:"tptz:GotoPreset"`
-		Xmlns        string       `xml:"xmlns:tptz,attr"`
-		ProfileToken string       `xml:"tptz:ProfileToken"`
-		PresetToken  string       `xml:"tptz:PresetToken"`
-		Speed        *ptzSpeedXML `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name        `xml:"tptz:GotoPreset"`
+		Xmlns        string          `xml:"xmlns:tptz,attr"`
+		ProfileToken string          `xml:"tptz:ProfileToken"`
+		PresetToken  string          `xml:"tptz:PresetToken"`
+		Speed        *ptzSpeedReqXML `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := GotoPreset{
@@ -618,10 +651,10 @@ func (c *Client) GotoHomePosition(ctx context.Context, profileToken string, spee
 	}
 
 	type GotoHomePosition struct {
-		XMLName      xml.Name     `xml:"tptz:GotoHomePosition"`
-		Xmlns        string       `xml:"xmlns:tptz,attr"`
-		ProfileToken string       `xml:"tptz:ProfileToken"`
-		Speed        *ptzSpeedXML `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name        `xml:"tptz:GotoHomePosition"`
+		Xmlns        string          `xml:"xmlns:tptz,attr"`
+		ProfileToken string          `xml:"tptz:ProfileToken"`
+		Speed        *ptzSpeedReqXML `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := GotoHomePosition{
