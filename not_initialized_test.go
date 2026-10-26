@@ -21,7 +21,7 @@ type serviceOp struct {
 	call func(context.Context, *Client) error
 }
 
-// ptzOps is every exported PTZ operation. All 13 must agree on the contract -
+// ptzOps is every exported PTZ operation. All 16 must agree on the contract -
 // a single one still returning the old error would leave callers unable to
 // trust errors.Is on any of them.
 func ptzOps() []serviceOp {
@@ -72,6 +72,21 @@ func ptzOps() []serviceOp {
 		}},
 		{"GetConfigurations", func(ctx context.Context, c *Client) error {
 			_, err := c.GetConfigurations(ctx)
+
+			return err
+		}},
+		{"GetNodes", func(ctx context.Context, c *Client) error {
+			_, err := c.GetNodes(ctx)
+
+			return err
+		}},
+		{"GetNode", func(ctx context.Context, c *Client) error {
+			_, err := c.GetNode(ctx, "node1")
+
+			return err
+		}},
+		{"GetConfigurationOptions", func(ctx context.Context, c *Client) error {
+			_, err := c.GetConfigurationOptions(ctx, "ptzconfig1")
 
 			return err
 		}},

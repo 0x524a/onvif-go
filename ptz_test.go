@@ -316,13 +316,28 @@ func ptzFaultOps() []serviceOp {
 
 			return err
 		}),
+		newFaultOp("GetNodes", func(ctx context.Context, c *Client) error {
+			_, err := c.GetNodes(ctx)
+
+			return err
+		}),
+		newFaultOp("GetNode", func(ctx context.Context, c *Client) error {
+			_, err := c.GetNode(ctx, "node1")
+
+			return err
+		}),
+		newFaultOp("GetConfigurationOptions", func(ctx context.Context, c *Client) error {
+			_, err := c.GetConfigurationOptions(ctx, "ptzconfig1")
+
+			return err
+		}),
 	}
 }
 
 // TestPTZOperationsReturnSOAPFaultError asserts that when the SOAP transport
 // itself fails, every PTZ method returns a non-nil error that names the
 // failing operation - the "<Name> failed: %w" wrap at the end of each method.
-// Before this test, that final error branch of all 13 methods was never
+// Before this test, that final error branch of every method was never
 // exercised: every existing test drove only the success path, so a method
 // that swallowed the Call error, or wrapped it under the wrong operation
 // name, would have passed unnoticed.
