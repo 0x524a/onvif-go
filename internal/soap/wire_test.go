@@ -120,12 +120,12 @@ func TestRenderSecurityHeaderShape(t *testing.T) {
 	got := string(out)
 	for _, want := range []string{
 		`<s:Header>`,
-		`<wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" s:mustUnderstand="1">`,
+		`<wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" s:mustUnderstand="1">`,
 		`<wsse:UsernameToken>`,
 		`<wsse:Username>admin</wsse:Username>`,
 		`Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">digest==<`,
 		`<wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">nonce==</wsse:Nonce>`,
-		`<wsu:Created xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">2026-10-27T00:00:00Z</wsu:Created>`,
+		`<wsu:Created>2026-10-27T00:00:00Z</wsu:Created>`,
 		`</wsse:UsernameToken></wsse:Security></s:Header>`,
 	} {
 		if !strings.Contains(got, want) {

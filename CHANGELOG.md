@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **SOAP requests now use the canonical compact wire format.** Envelope/
+  Header/Body carry the `s:` prefix, output is compact (no inter-element
+  whitespace), operation namespaces are declared on `s:Body` instead of the
+  operation element, and the WS-Security UsernameToken uses the conventional
+  `wsse:`/`wsu:` prefixes. The previous encoding/xml output (default
+  namespaces, indented) is semantically equivalent but is rejected by strict
+  parsers in old camera firmware, which answer HTTP 200 with an empty body
+  (MiBeeNvr#1074). Response parsing was already prefix-agnostic.
+
+- **`Initialize` resolves every service endpoint from `GetServices` first**
+  (media, media2, PTZ, imaging, events, analytics), falling back to
+  `GetCapabilities` XAddrs and then the device endpoint. Stale or loopback
+  advertised hosts are rewritten to the endpoint the client actually reached
+  — now also for GetServices entries. Single-entry firmwares that route every
+  namespace to the device_service path no longer 404 on conventional
+  `/onvif/<x>_service` paths (MiBeeNvr#1075); strict routers advertising
+  dedicated XAddrs keep working (MiBeeNvr#723).
+
 ## [v2.6.0] — 2026-10-24
 
 The unified-CLI package: the four tools become one binary

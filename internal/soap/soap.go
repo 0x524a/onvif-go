@@ -467,7 +467,7 @@ const (
 	wsuNamespace       = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" //nolint:lll // Long XML namespace
 	soapEnvelopeOpen   = `<s:Envelope xmlns:s="` + soapEnvNamespace + `">`
 	soapEnvelopeClose  = "</s:Envelope>"
-	securityOpenPrefix = `<s:Header><wsse:Security xmlns:wsse="` + wsseNamespace + `"`
+	securityOpenPrefix = `<s:Header><wsse:Security xmlns:wsse="` + wsseNamespace + `" xmlns:wsu="` + wsuNamespace + `"`
 )
 
 // renderEnvelope serializes the envelope into the canonical request wire
@@ -584,7 +584,7 @@ func renderSecurityHeader(b *strings.Builder, sec *Security) {
 			b.WriteString("</wsse:Nonce>")
 		}
 		if created := ut.CreatedValue(); created != "" {
-			b.WriteString(`<wsu:Created xmlns:wsu="` + wsuNamespace + `">`)
+			b.WriteString("<wsu:Created>")
 			writeXMLText(b, created)
 			b.WriteString("</wsu:Created>")
 		}
