@@ -347,6 +347,11 @@ func (s *Server) registerPTZService(mux *http.ServeMux) {
 	handler.RegisterHandler("GetStatus", s.HandleGetStatus)
 	handler.RegisterHandler("GetPresets", s.HandleGetPresets)
 	handler.RegisterHandler("GotoPreset", s.HandleGotoPreset)
+	handler.RegisterHandler("GetNodes", s.HandleGetNodes)
+	handler.RegisterHandler("GetNode", s.HandleGetNode)
+	handler.RegisterHandler("GetConfigurationOptions", s.HandleGetConfigurationOptions)
+	handler.RegisterHandler("GetConfiguration", s.HandleGetConfiguration)
+	handler.RegisterHandler("GetConfigurations", s.HandleGetConfigurations)
 
 	mux.Handle(s.config.BasePath+"/ptz_service", handler)
 }
