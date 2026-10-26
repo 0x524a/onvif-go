@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A PTZ range (`XRange`/`YRange` of `PanTiltLimits`, `ZoomLimits` and every PTZ space) whose `Min` or
+  `Max` is absent, empty or blank is now reported as no range (`nil`) instead of one whose missing
+  bound is 0: `<Max>0.9</Max>` alone used to decode as 0..0.9, wider than the camera meant whenever its
+  real minimum is above 0. A bound that is present but not a number fails the call, as before.
+
 - `RelativeMove`, `AbsoluteMove` and `ContinuousMove` wrote the `PanTilt` and `Zoom` children of the
   vector and speed without the `tt` (ONVIF schema) namespace. Strict gSOAP cameras (seen on a Reolink
   TrackMix) rejected every move with `Validation constraint violation: tag name namespace mismatch in

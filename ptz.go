@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/0x524a/onvif-go/internal/soap"
@@ -129,10 +131,34 @@ func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedReqXML {
 }
 
 // ptzFloatRangeXML is the wire form of a float range, used for the pan/tilt
-// and zoom limit descriptions.
+// and zoom limit descriptions and the PTZ space ranges. Each bound remembers
+// whether the camera sent a value, so a range missing one is reported as no
+// range rather than as one whose missing bound is 0.
 type ptzFloatRangeXML struct {
-	Min float64 `xml:"Min"`
-	Max float64 `xml:"Max"`
+	Min ptzBoundXML `xml:"Min"`
+	Max ptzBoundXML `xml:"Max"`
+}
+
+// ptzBoundXML is one xs:float bound. An absent, empty or blank element leaves
+// set false; anything else must parse as a number (INF, -INF and NaN included).
+type ptzBoundXML struct {
+	v   float64
+	set bool
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *ptzBoundXML) UnmarshalText(text []byte) error {
+	s := strings.TrimSpace(string(text))
+	if s == "" {
+		return nil
+	}
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return fmt.Errorf("PTZ range bound %q: %w", s, err)
+	}
+	b.v, b.set = v, true
+
+	return nil
 }
 
 // ptzConfigurationXML is the wire form of a PTZConfiguration.
@@ -231,13 +257,14 @@ func (x *ptzConfigurationXML) toPTZConfiguration() *PTZConfiguration {
 	return config
 }
 
-// toFloatRange converts a wire float range, preserving nil.
+// toFloatRange converts a wire float range, preserving nil. A range missing
+// either bound is nil too: half a range bounds nothing a caller can trust.
 func toFloatRange(r *ptzFloatRangeXML) *FloatRange {
-	if r == nil {
+	if r == nil || !r.Min.set || !r.Max.set {
 		return nil
 	}
 
-	return &FloatRange{Min: r.Min, Max: r.Max}
+	return &FloatRange{Min: r.Min.v, Max: r.Max.v}
 }
 
 // ContinuousMove starts continuous PTZ movement.

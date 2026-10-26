@@ -347,3 +347,58 @@ func assertPTZNamespaced(t *testing.T, body, op, child, token string) {
 		t.Errorf("request lacks <%s>%s</%s>:\n%s", child, token, child, body)
 	}
 }
+
+// A range with a missing or empty bound is not a range: decoding the absent
+// bound as 0 would turn <Max>0.9</Max> alone into 0..0.9, wider than a camera
+// whose real minimum is above 0 meant. Such a range must come back nil, for the
+// node and options reads and for GetConfiguration's limits alike.
+func TestPTZRangeWithAMissingBoundIsAbsent(t *testing.T) {
+	cases := map[string]string{
+		"no min":    `<tt:XRange><tt:Max>0.9</tt:Max></tt:XRange>`,
+		"no max":    `<tt:XRange><tt:Min>0.3</tt:Min></tt:XRange>`,
+		"empty min": `<tt:XRange><tt:Min/><tt:Max>0.9</tt:Max></tt:XRange>`,
+		"blank max": `<tt:XRange><tt:Min>0.3</tt:Min><tt:Max>  </tt:Max></tt:XRange>`,
+	}
+	for name, xr := range cases {
+		t.Run(name, func(t *testing.T) {
+			body := `<tptz:GetConfigurationOptionsResponse ` + ptzReplyNS + `><tptz:PTZConfigurationOptions><tt:Spaces>
+                <tt:AbsoluteZoomPositionSpace><tt:URI>urn:z</tt:URI>` + xr + `</tt:AbsoluteZoomPositionSpace>
+            </tt:Spaces></tptz:PTZConfigurationOptions></tptz:GetConfigurationOptionsResponse>`
+			opts, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetConfigurationOptions(context.Background(), "c")
+			if err != nil {
+				t.Fatalf("GetConfigurationOptions() error = %v", err)
+			}
+			if r := opts.Spaces.AbsoluteZoomPositionSpace[0].XRange; r != nil {
+				t.Errorf("options XRange = %+v, want nil", r)
+			}
+
+			body = `<GetConfigurationResponse><PTZConfiguration token="c"><ZoomLimits><Range><URI>urn:z</URI>` +
+				strings.ReplaceAll(xr, "tt:", "") + `</Range></ZoomLimits></PTZConfiguration></GetConfigurationResponse>`
+			cfg, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetConfiguration(context.Background(), "c")
+			if err != nil {
+				t.Fatalf("GetConfiguration() error = %v", err)
+			}
+			if r := cfg.ZoomLimits.Range.XRange; r != nil {
+				t.Errorf("configuration XRange = %+v, want nil", r)
+			}
+		})
+	}
+}
+
+func TestPTZRangeBoundsArePaddedOrRefused(t *testing.T) {
+	body := `<tptz:GetNodeResponse ` + ptzReplyNS + `><tptz:PTZNode token="n"><tt:SupportedPTZSpaces>
+        <tt:AbsoluteZoomPositionSpace><tt:URI>urn:z</tt:URI>
+            <tt:XRange><tt:Min> -0.5 </tt:Min><tt:Max>
+                1</tt:Max></tt:XRange>
+        </tt:AbsoluteZoomPositionSpace></tt:SupportedPTZSpaces></tptz:PTZNode></tptz:GetNodeResponse>`
+	node, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetNode(context.Background(), "n")
+	if err != nil {
+		t.Fatalf("GetNode() error = %v", err)
+	}
+	assertRange(t, "padded XRange", node.SupportedPTZSpaces.AbsoluteZoomPositionSpace[0].XRange, -0.5, 1)
+
+	bad := strings.Replace(body, " -0.5 ", "minus one", 1)
+	if _, err := newPTZTestClient(t, newSOAPTestServer(t, bad)).GetNode(context.Background(), "n"); err == nil {
+		t.Error("GetNode() with a bound that is not a number = nil error, want a decode error")
+	}
+}
