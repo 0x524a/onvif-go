@@ -12,6 +12,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -230,8 +231,9 @@ func (c *Client) Call(ctx context.Context, endpoint, action string, request, res
 		}
 	}
 
-	// Marshal envelope to XML
-	body, err := xml.MarshalIndent(envelope, "", "  ")
+	// Marshal envelope to XML in the canonical compact wire form (see
+	// renderEnvelope for why encoding/xml's default output is not used).
+	body, err := renderEnvelope(envelope)
 	if err != nil {
 		return fmt.Errorf("failed to marshal SOAP envelope: %w", err)
 	}
@@ -454,4 +456,147 @@ func BuildEnvelope(body interface{}, username, password string) (*Envelope, erro
 	}
 
 	return envelope, nil
+}
+
+// Wire prefixes for the canonical request form. s:/wsse:/wsu: mirror the
+// gSOAP output most device firmware is tested against (ONVIF Device Manager
+// and friends); mustUnderstand is namespace-qualified per SOAP 1.2.
+const (
+	soapEnvNamespace   = "http://www.w3.org/2003/05/soap-envelope"
+	wsseNamespace      = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"  //nolint:lll // Long XML namespace
+	wsuNamespace       = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" //nolint:lll // Long XML namespace
+	soapEnvelopeOpen   = `<s:Envelope xmlns:s="` + soapEnvNamespace + `">`
+	soapEnvelopeClose  = "</s:Envelope>"
+	securityOpenPrefix = `<s:Header><wsse:Security xmlns:wsse="` + wsseNamespace + `"`
+)
+
+// renderEnvelope serializes the envelope into the canonical request wire
+// format: s:-prefixed Envelope/Body/Header, compact (no inter-element
+// whitespace), and operation namespaces declared on s:Body instead of the
+// operation element.
+//
+// encoding/xml's own output — default-namespace Envelope/Body, indented,
+// namespaces on the operation element — is semantically equivalent but is
+// rejected by strict XML parsers in old camera firmware, which answer
+// HTTP 200 with an empty body ("received empty response body" downstream;
+// MiBeeNvr#1074 has the packet captures and the per-characteristic matrix).
+// The compact prefixed form is what mainstream gSOAP clients emit and every
+// conformant parser accepts, so it is the only shape this client produces.
+func renderEnvelope(envelope *Envelope) ([]byte, error) {
+	var b strings.Builder
+
+	b.WriteString(soapEnvelopeOpen)
+	if envelope.Header != nil && envelope.Header.Security != nil {
+		renderSecurityHeader(&b, envelope.Header.Security)
+	}
+	if envelope.Body.Content != nil {
+		fragment, err := xml.Marshal(envelope.Body.Content)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal SOAP body: %w", err)
+		}
+		inner, decls := hoistNamespaceDecls(fragment)
+		b.WriteString("<s:Body")
+		for _, d := range decls {
+			b.WriteByte(' ')
+			b.WriteString(d)
+		}
+		b.WriteByte('>')
+		b.WriteString(inner)
+		b.WriteString("</s:Body>")
+	} else {
+		b.WriteString("<s:Body/>")
+	}
+	b.WriteString(soapEnvelopeClose)
+
+	return []byte(b.String()), nil
+}
+
+// hoistNamespaceDecls strips the xmlns:* declarations from the fragment's
+// root element and returns them as complete attribute strings (e.g.
+// `xmlns:tds="http://..."`) for re-declaration on an ancestor. Descendant
+// elements using those prefixes stay in scope when the caller re-declares
+// them on the ancestor. The fragment is encoding/xml output whose root
+// attribute values are namespace URLs, which never contain double quotes,
+// so scanning to the next double quote is unambiguous.
+func hoistNamespaceDecls(fragment []byte) (string, []string) {
+	s := string(fragment)
+	end := strings.IndexByte(s, '>')
+	if end < 0 {
+		return s, nil // malformed fragment; marshal output always has one
+	}
+	tag := s[:end]
+	var decls []string
+	for {
+		i := strings.Index(tag, " xmlns:")
+		if i < 0 {
+			break
+		}
+		start := i + 1
+		open := strings.IndexByte(tag[start:], '"')
+		if open < 0 {
+			break
+		}
+		open += start
+		closeq := strings.IndexByte(tag[open+1:], '"')
+		if closeq < 0 {
+			break
+		}
+		closeq += open + 1
+		decls = append(decls, tag[start:closeq+1])
+		tag = tag[:i] + tag[closeq+1:]
+	}
+	return tag + s[end:], decls
+}
+
+// renderSecurityHeader writes the WS-Security UsernameToken header with the
+// conventional wsse:/wsu: prefixes. Attribute values written here (Type,
+// EncodingType) are the fixed profile URIs from this file's constants, which
+// contain no characters needing attribute escaping; element text goes through
+// xml.EscapeText.
+func renderSecurityHeader(b *strings.Builder, sec *Security) {
+	b.WriteString(securityOpenPrefix)
+	if sec.MustUnderstand != "" {
+		b.WriteString(` s:mustUnderstand="`)
+		writeXMLText(b, sec.MustUnderstand)
+		b.WriteString(`"`)
+	}
+	b.WriteString(">")
+
+	if ut := sec.UsernameToken; ut != nil {
+		b.WriteString("<wsse:UsernameToken>")
+		b.WriteString("<wsse:Username>")
+		writeXMLText(b, ut.Username)
+		b.WriteString("</wsse:Username>")
+		b.WriteString(`<wsse:Password Type="`)
+		writeXMLText(b, ut.Password.Type)
+		b.WriteString(`">`)
+		writeXMLText(b, ut.Password.Password)
+		b.WriteString("</wsse:Password>")
+		if ut.Nonce.Nonce != "" || ut.Nonce.Type != "" {
+			b.WriteString(`<wsse:Nonce`)
+			if ut.Nonce.Type != "" {
+				b.WriteString(` EncodingType="`)
+				writeXMLText(b, ut.Nonce.Type)
+				b.WriteString(`"`)
+			}
+			b.WriteString(">")
+			writeXMLText(b, ut.Nonce.Nonce)
+			b.WriteString("</wsse:Nonce>")
+		}
+		if created := ut.CreatedValue(); created != "" {
+			b.WriteString(`<wsu:Created xmlns:wsu="` + wsuNamespace + `">`)
+			writeXMLText(b, created)
+			b.WriteString("</wsu:Created>")
+		}
+		b.WriteString("</wsse:UsernameToken>")
+	}
+
+	b.WriteString("</wsse:Security></s:Header>")
+}
+
+// writeXMLText appends s to b with XML text escaping.
+func writeXMLText(b *strings.Builder, s string) {
+	// Error is impossible for strings.Builder writes; EscapeText's only
+	// failure mode is the underlying writer failing.
+	_ = xml.EscapeText(b, []byte(s)) //nolint:errcheck // strings.Builder writes cannot fail
 }

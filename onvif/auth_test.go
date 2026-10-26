@@ -469,10 +469,13 @@ type skewDevice struct {
 }
 
 var (
-	reUsername = regexp.MustCompile(`<Username>([^<]*)</Username>`)
-	rePassword = regexp.MustCompile(`<Password[^>]*>([^<]*)</Password>`)
-	reNonce    = regexp.MustCompile(`<Nonce[^>]*>([^<]*)</Nonce>`)
-	reCreated  = regexp.MustCompile(`<Created[^>]*>([^<]*)</Created>`)
+	// Prefixes are optional: the client emits wsse:/wsu:-prefixed elements
+	// while older captures and hand-built bodies may be unprefixed; a real
+	// device parses by namespace, which both spellings satisfy.
+	reUsername = regexp.MustCompile(`<(?:[A-Za-z0-9_.-]+:)?Username>([^<]*)</(?:[A-Za-z0-9_.-]+:)?Username>`)
+	rePassword = regexp.MustCompile(`<(?:[A-Za-z0-9_.-]+:)?Password[^>]*>([^<]*)</(?:[A-Za-z0-9_.-]+:)?Password>`)
+	reNonce    = regexp.MustCompile(`<(?:[A-Za-z0-9_.-]+:)?Nonce[^>]*>([^<]*)</(?:[A-Za-z0-9_.-]+:)?Nonce>`)
+	reCreated  = regexp.MustCompile(`<(?:[A-Za-z0-9_.-]+:)?Created[^>]*>([^<]*)</(?:[A-Za-z0-9_.-]+:)?Created>`)
 )
 
 func (d *skewDevice) handler(w http.ResponseWriter, r *http.Request) {
