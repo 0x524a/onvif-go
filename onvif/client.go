@@ -402,6 +402,15 @@ func isLoopbackHost(host string) bool {
 // unauthenticated GetSystemDateAndTime) and applied BEFORE the capabilities
 // call, so the very first authenticated request already carries
 // device-correct digest timestamps; measurement failure is silently skipped.
+//
+// Endpoint precedence per service: the GetServices XAddr (the authoritative
+// namespace → address enumeration — single-entry firmwares route every
+// namespace to the device_service path and have no /onvif/<x>_service to
+// hit, MiBeeNvr#1075), then the GetCapabilities XAddr (devices that omit
+// GetServices entries), then the device endpoint (applied at call time by
+// EndpointFor). Advertised hosts that disagree with the endpoint the client
+// actually reached are rewritten to it (fixServiceURL); ports stay as
+// advertised.
 func (c *Client) Initialize(ctx context.Context) error {
 	c.mu.RLock()
 	autoSkew := c.autoClockSkew
@@ -419,59 +428,87 @@ func (c *Client) Initialize(ctx context.Context) error {
 		return fmt.Errorf("failed to get capabilities: %w", err)
 	}
 
-	// Probe GetServices for the ver20/media endpoint before taking the
-	// write lock (the call itself needs the read lock). Media2-only
-	// (Profile T) devices have no ver10 Media XAddr in GetCapabilities,
-	// and dual-face devices advertise a DEDICATED ver20/media address —
-	// both need the GetServices entry, which is authoritative for Media2
-	// (the Media1 endpoint dispatches by action local name, so a tr2
-	// request posted there gets the Media1-shaped answer). A probe
-	// failure is non-fatal: Initialize tolerates partial endpoint
-	// knowledge, matching the capabilities handling above.
-	var media2FromServices string
-	c.mu.RLock()
-	media2Pinned := c.media2Endpoint != ""
-	c.mu.RUnlock()
-	if !media2Pinned {
-		if services, serr := c.Device().GetServices(ctx, false); serr == nil {
-			for _, svc := range services {
-				if svc.Namespace == media2.Namespace && svc.XAddr != "" {
-					media2FromServices = svc.XAddr
-					break
-				}
+	// Probe GetServices before taking the write lock (the call itself needs
+	// the read lock). A probe failure is non-fatal: Initialize tolerates
+	// partial endpoint knowledge, matching the capabilities fallback.
+	var servicesXAddr map[string]string
+	if services, serr := c.Device().GetServices(ctx, false); serr == nil {
+		servicesXAddr = make(map[string]string, len(services))
+		for _, svc := range services {
+			if svc.Namespace != "" && svc.XAddr != "" {
+				servicesXAddr[svc.Namespace] = svc.XAddr
 			}
 		}
 	}
 
-	// Extract service endpoints and fix incorrect addresses (localhost or stale
-	// advertised IPs after the camera roamed to a new address). The writes are
-	// lock-guarded so Initialize is safe to run while other goroutines call
-	// through the same client (issue #12).
+	c.mu.RLock()
+	media2Pinned := c.media2Endpoint != ""
+	c.mu.RUnlock()
+
+	// Publish the resolved endpoints. The writes are lock-guarded so
+	// Initialize is safe to run while other goroutines call through the same
+	// client (issue #12).
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if capabilities.Media != nil && capabilities.Media.XAddr != "" {
-		c.mediaEndpoint = c.fixServiceURL(capabilities.Media.XAddr)
+	// resolve picks one service's endpoint: GetServices XAddr first, then
+	// the GetCapabilities XAddr. Both pass through fixServiceURL.
+	resolve := func(namespace, capsXAddr string) string {
+		if xaddr := servicesXAddr[namespace]; xaddr != "" {
+			return c.fixServiceURL(xaddr)
+		}
+		if capsXAddr != "" {
+			return c.fixServiceURL(capsXAddr)
+		}
+		return ""
 	}
-	if capabilities.PTZ != nil && capabilities.PTZ.XAddr != "" {
-		c.ptzEndpoint = c.fixServiceURL(capabilities.PTZ.XAddr)
+
+	var mediaCaps, ptzCaps, imagingCaps, eventsCaps, analyticsCaps string
+	if capabilities.Media != nil {
+		mediaCaps = capabilities.Media.XAddr
 	}
-	if capabilities.Imaging != nil && capabilities.Imaging.XAddr != "" {
-		c.imagingEndpoint = c.fixServiceURL(capabilities.Imaging.XAddr)
+	if capabilities.PTZ != nil {
+		ptzCaps = capabilities.PTZ.XAddr
 	}
-	if capabilities.Events != nil && capabilities.Events.XAddr != "" {
-		c.eventEndpoint = c.fixServiceURL(capabilities.Events.XAddr)
+	if capabilities.Imaging != nil {
+		imagingCaps = capabilities.Imaging.XAddr
 	}
-	if capabilities.Analytics != nil && capabilities.Analytics.XAddr != "" {
-		c.analyticsEndpoint = c.fixServiceURL(capabilities.Analytics.XAddr)
+	if capabilities.Events != nil {
+		eventsCaps = capabilities.Events.XAddr
 	}
-	if media2FromServices != "" {
-		// GetServices carried the ver20/media XAddr — authoritative for
-		// dual-face and Media2-only devices alike.
-		c.media2Endpoint = c.fixServiceURL(media2FromServices)
-	} else if c.media2Endpoint == "" && c.mediaEndpoint != "" {
-		// Legacy single-face device: Media2 rides the media endpoint.
-		c.media2Endpoint = c.mediaEndpoint
+	if capabilities.Analytics != nil {
+		analyticsCaps = capabilities.Analytics.XAddr
+	}
+
+	if mediaEndpoint := resolve(media.Namespace, mediaCaps); mediaEndpoint != "" {
+		c.mediaEndpoint = mediaEndpoint
+	} else if media2Endpoint := resolve(media2.Namespace, ""); media2Endpoint != "" {
+		// No ver10/media advertisement but a ver20/media one exists: dual-face
+		// devices dispatch Media1-shaped actions by local name on the Media2
+		// endpoint, so it is a better route than the device endpoint.
+		c.mediaEndpoint = media2Endpoint
+	}
+	if ptzEndpoint := resolve(ptz.Namespace, ptzCaps); ptzEndpoint != "" {
+		c.ptzEndpoint = ptzEndpoint
+	}
+	if imagingEndpoint := resolve(imaging.Namespace, imagingCaps); imagingEndpoint != "" {
+		c.imagingEndpoint = imagingEndpoint
+	}
+	if eventsEndpoint := resolve(events.Namespace, eventsCaps); eventsEndpoint != "" {
+		c.eventEndpoint = eventsEndpoint
+	}
+	if analyticsEndpoint := resolve(analytics.Namespace, analyticsCaps); analyticsEndpoint != "" {
+		c.analyticsEndpoint = analyticsEndpoint
+	}
+	if !media2Pinned {
+		if media2Endpoint := resolve(media2.Namespace, ""); media2Endpoint != "" {
+			// GetServices carried the ver20/media XAddr — authoritative for
+			// dual-face and Media2-only devices alike.
+			c.media2Endpoint = media2Endpoint
+		} else if c.media2Endpoint == "" && c.mediaEndpoint != "" {
+			// Legacy single-face device: Media2 rides the media endpoint.
+			c.media2Endpoint = c.mediaEndpoint
+		}
 	}
 
 	return nil

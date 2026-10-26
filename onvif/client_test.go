@@ -250,6 +250,8 @@ func (m *MockONVIFServer) handleRequest(w http.ResponseWriter, r *http.Request) 
 		action = "GetDeviceInformation"
 	} else if strings.Contains(requestBody, "GetCapabilities") {
 		action = "GetCapabilities"
+	} else if strings.Contains(requestBody, "GetServices") {
+		action = "GetServices"
 	} else if strings.Contains(requestBody, "GetProfiles") {
 		action = "GetProfiles"
 	} else if strings.Contains(requestBody, "GetStreamURI") {
