@@ -317,7 +317,10 @@ type Space1DDescription struct {
 	XRange *FloatRange
 }
 
-// FloatRange represents a float range.
+// FloatRange represents a float range as the camera reported it. The bounds are
+// passed through unjudged: a camera can report INF, -INF, NaN, an inverted range
+// (Min > Max) or a zero-width one, and a caller that clamps to a range must check
+// for those first.
 type FloatRange struct {
 	Min float64
 	Max float64

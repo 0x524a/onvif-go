@@ -386,16 +386,17 @@ type FocusMove struct {
 // imagingRangeXML is the wire form of an ONVIF FloatRange. It is used behind a
 // pointer so an element the camera omitted stays nil instead of becoming {0,0}.
 type imagingRangeXML struct {
-	Min float64 `xml:"Min"`
-	Max float64 `xml:"Max"`
+	Min ptzBoundXML `xml:"Min"`
+	Max ptzBoundXML `xml:"Max"`
 }
 
 func (r *imagingRangeXML) toFloatRange() *FloatRange {
-	if r == nil {
+	// A range missing a bound is absent, not one whose missing bound is 0.
+	if r == nil || !r.Min.set || !r.Max.set {
 		return nil
 	}
 
-	return &FloatRange{Min: r.Min, Max: r.Max}
+	return &FloatRange{Min: r.Min.v, Max: r.Max.v}
 }
 
 // imagingOptionsXML is the wire form of ImagingOptions in a GetOptions response.

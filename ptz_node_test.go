@@ -398,9 +398,55 @@ func TestPTZRangeBoundsArePaddedOrRefused(t *testing.T) {
 	}
 	assertRange(t, "padded XRange", node.SupportedPTZSpaces.AbsoluteZoomPositionSpace[0].XRange, -0.5, 1)
 
-	bad := strings.Replace(body, " -0.5 ", "minus one", 1)
-	if _, err := newPTZTestClient(t, newSOAPTestServer(t, bad)).GetNode(context.Background(), "n"); err == nil {
-		t.Error("GetNode() with a bound that is not a number = nil error, want a decode error")
+}
+
+// A bound that is not an xs:float makes only its own range absent. The call
+// still succeeds, so one bad range cannot hide the rest of the node.
+func TestPTZRangeWithAnUnusableBoundIsAbsentButTheCallSucceeds(t *testing.T) {
+	for name, min := range map[string]string{
+		"words":               "minus one",
+		"hexadecimal":         "0x1p0",
+		"Inf spelling":        "Infinity",
+		"beyond float":        "1e39",
+		"beyond float64":      "1e400",
+		"underscore":          "1_0",
+		"plus INF is not xsd": "+INF",
+	} {
+		t.Run(name, func(t *testing.T) {
+			body := `<tptz:GetNodeResponse ` + ptzReplyNS + `><tptz:PTZNode token="n"><tt:SupportedPTZSpaces>
+        <tt:AbsoluteZoomPositionSpace><tt:URI>urn:z</tt:URI>
+            <tt:XRange><tt:Min>` + min + `</tt:Min><tt:Max>1</tt:Max></tt:XRange>
+        </tt:AbsoluteZoomPositionSpace>
+        <tt:RelativeZoomTranslationSpace><tt:URI>urn:ok</tt:URI>
+            <tt:XRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:XRange>
+        </tt:RelativeZoomTranslationSpace></tt:SupportedPTZSpaces></tptz:PTZNode></tptz:GetNodeResponse>`
+			node, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetNode(context.Background(), "n")
+			if err != nil {
+				t.Fatalf("GetNode() error = %v, want the call to succeed", err)
+			}
+			if r := node.SupportedPTZSpaces.AbsoluteZoomPositionSpace[0].XRange; r != nil {
+				t.Errorf("XRange = %+v, want nil", r)
+			}
+			assertRange(t, "unaffected range", node.SupportedPTZSpaces.RelativeZoomTranslationSpace[0].XRange, -1, 1)
+		})
+	}
+}
+
+// Blank or malformed counts and flags do not fail the call that carries the
+// node's spaces.
+func TestGetNodeToleratesBlankCountAndFlag(t *testing.T) {
+	body := `<tptz:GetNodeResponse ` + ptzReplyNS + `><tptz:PTZNode token="n">
+        <tt:MaximumNumberOfPresets> </tt:MaximumNumberOfPresets><tt:HomeSupported></tt:HomeSupported>
+        <tt:SupportedPTZSpaces><tt:ContinuousPanTiltVelocitySpace><tt:URI>urn:v</tt:URI>
+            <tt:XRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:XRange>
+            <tt:YRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:YRange>
+        </tt:ContinuousPanTiltVelocitySpace></tt:SupportedPTZSpaces></tptz:PTZNode></tptz:GetNodeResponse>`
+	node, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetNode(context.Background(), "n")
+	if err != nil {
+		t.Fatalf("GetNode() error = %v", err)
+	}
+	if node.MaximumNumberOfPresets != 0 || node.HomeSupported || node.SupportedPTZSpaces == nil {
+		t.Errorf("node = %+v, want zero count, no home and the spaces kept", node)
 	}
 }
 

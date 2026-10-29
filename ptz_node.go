@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/0x524a/onvif-go/internal/soap"
 )
@@ -40,8 +42,8 @@ type ptzNodeXML struct {
 	GeoMove                bool          `xml:"GeoMove,attr"`
 	Name                   string        `xml:"Name"`
 	SupportedPTZSpaces     *ptzSpacesXML `xml:"SupportedPTZSpaces"`
-	MaximumNumberOfPresets int           `xml:"MaximumNumberOfPresets"`
-	HomeSupported          bool          `xml:"HomeSupported"`
+	MaximumNumberOfPresets string        `xml:"MaximumNumberOfPresets"`
+	HomeSupported          string        `xml:"HomeSupported"`
 	AuxiliaryCommands      []string      `xml:"AuxiliaryCommands"`
 }
 
@@ -94,8 +96,8 @@ func (x *ptzNodeXML) toPTZNode() *PTZNode {
 		FixedHomePosition:      x.FixedHomePosition,
 		GeoMove:                x.GeoMove,
 		SupportedPTZSpaces:     x.SupportedPTZSpaces.toPTZSpaces(),
-		MaximumNumberOfPresets: x.MaximumNumberOfPresets,
-		HomeSupported:          x.HomeSupported,
+		MaximumNumberOfPresets: lenientInt(x.MaximumNumberOfPresets),
+		HomeSupported:          lenientBool(x.HomeSupported),
 		AuxiliaryCommands:      x.AuxiliaryCommands,
 	}
 }
@@ -224,4 +226,27 @@ func (c *Client) GetConfigurationOptions(ctx context.Context, configurationToken
 	}
 
 	return opts, nil
+}
+
+// lenientInt reads an xs:int the camera may have left blank or malformed. A
+// bad count must not fail a call that carries the node's spaces; the zero value
+// means "not reported" for a preset count.
+func lenientInt(s string) int {
+	n, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil || n < 0 {
+		return 0
+	}
+
+	return n
+}
+
+// lenientBool reads an xs:boolean ("true", "1") that may be blank or malformed
+// as false.
+func lenientBool(s string) bool {
+	switch strings.TrimSpace(s) {
+	case "true", "1":
+		return true
+	}
+
+	return false
 }

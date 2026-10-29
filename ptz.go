@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"math"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -139,22 +141,45 @@ type ptzFloatRangeXML struct {
 	Max ptzBoundXML `xml:"Max"`
 }
 
-// ptzBoundXML is one xs:float bound. An absent, empty or blank element leaves
-// set false; anything else must parse as a number (INF, -INF and NaN included).
+// ptzBoundXML is one xs:float bound. An absent, empty or blank element, and
+// text that is not an xs:float or does not fit one, leaves set false, so the
+// range it belongs to is reported as absent. A bad bound in one range must not
+// fail the whole call and hide every other node and space the camera reported.
+// INF, -INF and NaN are valid xs:float and are passed through for the caller to
+// judge.
 type ptzBoundXML struct {
 	v   float64
 	set bool
 }
 
+// xsFloatPattern is the lexical form of xs:float: a decimal with an optional
+// exponent, or INF, -INF or NaN. It rules out what strconv also accepts
+// (hexadecimal floats, underscores, "Inf" spellings, "infinity").
+var xsFloatPattern = regexp.MustCompile(`^(?:[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?|[+-]?INF|NaN)$`)
+
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *ptzBoundXML) UnmarshalText(text []byte) error {
 	s := strings.TrimSpace(string(text))
-	if s == "" {
+	if !xsFloatPattern.MatchString(s) || s == "+INF" {
+		return nil
+	}
+	switch s {
+	case "INF":
+		b.v, b.set = math.Inf(1), true
+
+		return nil
+	case "-INF":
+		b.v, b.set = math.Inf(-1), true
+
+		return nil
+	case "NaN":
+		b.v, b.set = math.NaN(), true
+
 		return nil
 	}
 	v, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return fmt.Errorf("PTZ range bound %q: %w", s, err)
+	if err != nil || math.Abs(v) > math.MaxFloat32 {
+		return nil // out of xs:float range: not a usable bound
 	}
 	b.v, b.set = v, true
 
