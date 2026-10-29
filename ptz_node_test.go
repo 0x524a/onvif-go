@@ -3,6 +3,7 @@ package onvif
 import (
 	"context"
 	"encoding/xml"
+	"errors"
 	"math"
 	"strings"
 	"testing"
@@ -400,5 +401,63 @@ func TestPTZRangeBoundsArePaddedOrRefused(t *testing.T) {
 	bad := strings.Replace(body, " -0.5 ", "minus one", 1)
 	if _, err := newPTZTestClient(t, newSOAPTestServer(t, bad)).GetNode(context.Background(), "n"); err == nil {
 		t.Error("GetNode() with a bound that is not a number = nil error, want a decode error")
+	}
+}
+
+// A reply with no PTZNode is not a node with no capabilities: the schema
+// requires the element, so GetNode reports an error instead of a zero node.
+func TestGetNodeWithoutAPTZNodeIsAnError(t *testing.T) {
+	body := `<tptz:GetNodeResponse ` + ptzReplyNS + `/>`
+	client := newPTZTestClient(t, newSOAPTestServer(t, body))
+
+	node, err := client.GetNode(context.Background(), "n")
+	if err == nil || node != nil {
+		t.Fatalf("GetNode() = %+v, %v; want nil node and an error", node, err)
+	}
+	if !errors.Is(err, ErrInvalidResponse) {
+		t.Errorf("error = %v, want ErrInvalidResponse", err)
+	}
+}
+
+// PTZTimeout keeps the "absent is never zero" rule: it is set only when both
+// bounds parse, are not negative and are ordered.
+func TestGetConfigurationOptionsPTZTimeoutIsNilUnlessBothBoundsAreSound(t *testing.T) {
+	cases := map[string]string{
+		"empty element":       `<tt:PTZTimeout/>`,
+		"max only":            `<tt:PTZTimeout><tt:Max>PT10S</tt:Max></tt:PTZTimeout>`,
+		"min only":            `<tt:PTZTimeout><tt:Min>PT1S</tt:Min></tt:PTZTimeout>`,
+		"garbage":             `<tt:PTZTimeout><tt:Min>soon</tt:Min><tt:Max>later</tt:Max></tt:PTZTimeout>`,
+		"inverted":            `<tt:PTZTimeout><tt:Min>PT10S</tt:Min><tt:Max>PT1S</tt:Max></tt:PTZTimeout>`,
+		"negative min":        `<tt:PTZTimeout><tt:Min>-PT1S</tt:Min><tt:Max>PT10S</tt:Max></tt:PTZTimeout>`,
+		"overflowing seconds": `<tt:PTZTimeout><tt:Min>PT1S</tt:Min><tt:Max>PT99999999999999S</tt:Max></tt:PTZTimeout>`,
+		"overflowing hours":   `<tt:PTZTimeout><tt:Min>PT1S</tt:Min><tt:Max>PT99999999999H</tt:Max></tt:PTZTimeout>`,
+	}
+	for name, timeout := range cases {
+		t.Run(name, func(t *testing.T) {
+			body := `<tptz:GetConfigurationOptionsResponse ` + ptzReplyNS + `>
+        <tptz:PTZConfigurationOptions>` + timeout + `</tptz:PTZConfigurationOptions>
+    </tptz:GetConfigurationOptionsResponse>`
+			client := newPTZTestClient(t, newSOAPTestServer(t, body))
+
+			opts, err := client.GetConfigurationOptions(context.Background(), "cfg1")
+			if err != nil {
+				t.Fatalf("GetConfigurationOptions() error = %v", err)
+			}
+			if opts.PTZTimeout != nil {
+				t.Errorf("PTZTimeout = %+v, want nil", opts.PTZTimeout)
+			}
+		})
+	}
+}
+
+// A duration that does not fit in an int64 is refused, never wrapped negative.
+func TestParseXSDurationRefusesOverflow(t *testing.T) {
+	for _, s := range []string{"PT99999999999999S", "PT99999999999H", "P999999999999D", "PT9223372036854775807S", "PT2562047H47M17S"} {
+		if d, err := parseXSDuration(s); err == nil {
+			t.Errorf("parseXSDuration(%q) = %v, want an error", s, d)
+		}
+	}
+	if d, err := parseXSDuration("PT2562047H47M16S"); err != nil || d <= 0 {
+		t.Errorf("largest representable duration = %v, %v; want it accepted", d, err)
 	}
 }

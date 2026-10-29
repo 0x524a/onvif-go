@@ -150,8 +150,8 @@ func (c *Client) GetNode(ctx context.Context, nodeToken string) (*PTZNode, error
 	}
 
 	type GetNodeResponse struct {
-		XMLName xml.Name   `xml:"GetNodeResponse"`
-		PTZNode ptzNodeXML `xml:"PTZNode"`
+		XMLName xml.Name    `xml:"GetNodeResponse"`
+		PTZNode *ptzNodeXML `xml:"PTZNode"`
 	}
 
 	var resp GetNodeResponse
@@ -161,6 +161,13 @@ func (c *Client) GetNode(ctx context.Context, nodeToken string) (*PTZNode, error
 
 	if err := soapClient.Call(ctx, endpoint, "", GetNode{Xmlns: ptzNamespace, NodeToken: nodeToken}, &resp); err != nil {
 		return nil, fmt.Errorf("GetNode failed: %w", err)
+	}
+
+	// The schema requires the element. A reply without it is not a node with
+	// no capabilities, and returning a zero-value node would let a caller read
+	// it as one.
+	if resp.PTZNode == nil {
+		return nil, fmt.Errorf("GetNode failed: %w: reply carries no PTZNode", ErrInvalidResponse)
 	}
 
 	return resp.PTZNode.toPTZNode(), nil
@@ -205,8 +212,15 @@ func (c *Client) GetConfigurationOptions(ctx context.Context, configurationToken
 	}
 
 	opts := &PTZConfigurationOptions{Spaces: resp.PTZConfigurationOptions.Spaces.toPTZSpaces()}
+	// PTZTimeout is set only when both bounds parse, are not negative and are
+	// ordered. A missing, malformed, overflowing or inverted bound leaves it nil
+	// ("not reported") instead of a zero a caller would clamp to.
 	if t := resp.PTZConfigurationOptions.PTZTimeout; t != nil {
-		opts.PTZTimeout = &DurationRange{Min: parseXSDurationOrZero(t.Min), Max: parseXSDurationOrZero(t.Max)}
+		lo, errLo := parseXSDuration(t.Min)
+		hi, errHi := parseXSDuration(t.Max)
+		if errLo == nil && errHi == nil && lo >= 0 && hi >= lo {
+			opts.PTZTimeout = &DurationRange{Min: lo, Max: hi}
+		}
 	}
 
 	return opts, nil
