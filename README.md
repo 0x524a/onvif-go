@@ -47,7 +47,7 @@ onvif-go is a Go library for IP cameras, NVRs and other devices that speak [ONVI
 go get github.com/0x524a/onvif-go
 ```
 
-Requires Go 1.25 or newer. Prebuilt command-line tools are attached to every [release](https://github.com/0x524a/onvif-go/releases/latest).
+Requires Go 1.26 or newer. Prebuilt command-line tools are attached to every [release](https://github.com/0x524a/onvif-go/releases/latest).
 
 ## Quick start
 
@@ -177,7 +177,7 @@ On a machine with several network interfaces, pick the one to probe from with `-
 
 ## Compatibility
 
-- **Go:** 1.25 or newer; CI also runs the latest release.
+- **Go:** 1.26 or newer; CI also runs the latest release.
 - **ONVIF:** Profile S, T and G operations.
 - **Cameras:** verified with multiple ONVIF-compliant cameras, including Hikvision, Dahua, Axis, Bosch, Reolink and others. Responses captured from Axis, Bosch and Reolink devices are also replayed in the automated test suite. If yours misbehaves, please open an issue; a capture from it (see the [camera testing guide](docs/testing/CAMERA_TESTING_FLOW.md)) is the most useful thing you can attach.
 

@@ -321,4 +321,4 @@ Minimal dependencies (see `go.mod`):
 - `github.com/0x524A/rtspeek`: RTSP stream validation (`cmd/onvif-cli` only; pulls in gortsplib and Pion)
 - Standard library for everything else
 
-Go version: 1.25+ (CI builds on 1.26.x)
+Go version: 1.26+ (CI builds on 1.26.x)
