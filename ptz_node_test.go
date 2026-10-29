@@ -78,8 +78,8 @@ func assertRange(t *testing.T, what string, r *FloatRange, wantMin, wantMax floa
 func assert2D(t *testing.T, what string, got []*Space2DDescription, uri string, x, y [2]float64) {
 	t.Helper()
 
-	if len(got) == 0 || got[0] == nil {
-		t.Fatalf("%s = %+v, want one entry", what, got)
+	if len(got) != 1 || got[0] == nil {
+		t.Fatalf("%s = %+v, want exactly one entry", what, got)
 	}
 	if got[0].URI != uri {
 		t.Errorf("%s URI = %q, want %q", what, got[0].URI, uri)
@@ -110,8 +110,8 @@ func assertFullSpaces(t *testing.T, s *PTZSpaces) {
 	if len(s.AbsolutePanTiltPositionSpace) != 2 {
 		t.Fatalf("AbsolutePanTiltPositionSpace has %d entries, want 2", len(s.AbsolutePanTiltPositionSpace))
 	}
-	assert2D(t, "AbsolutePanTiltPositionSpace[0]", s.AbsolutePanTiltPositionSpace, "urn:abs-pt", [2]float64{-1, 1}, [2]float64{-0.5, 0.75})
-	assert2D(t, "AbsolutePanTiltPositionSpace[1]", s.AbsolutePanTiltPositionSpace[1:], "urn:abs-pt-degrees",
+	assert2D(t, "AbsolutePanTiltPositionSpace[0]", s.AbsolutePanTiltPositionSpace[:1], "urn:abs-pt", [2]float64{-1, 1}, [2]float64{-0.5, 0.75})
+	assert2D(t, "AbsolutePanTiltPositionSpace[1]", s.AbsolutePanTiltPositionSpace[1:2], "urn:abs-pt-degrees",
 		[2]float64{-180, 180}, [2]float64{-90, 0})
 	assert1D(t, "AbsoluteZoomPositionSpace", s.AbsoluteZoomPositionSpace, "urn:abs-z", [2]float64{0, 0.9})
 	assert2D(t, "RelativePanTiltTranslationSpace", s.RelativePanTiltTranslationSpace, "urn:rel-pt", [2]float64{-2, 2}, [2]float64{-3, 3})
@@ -397,7 +397,6 @@ func TestPTZRangeBoundsArePaddedOrRefused(t *testing.T) {
 		t.Fatalf("GetNode() error = %v", err)
 	}
 	assertRange(t, "padded XRange", node.SupportedPTZSpaces.AbsoluteZoomPositionSpace[0].XRange, -0.5, 1)
-
 }
 
 // A bound that is not an xs:float makes only its own range absent. The call

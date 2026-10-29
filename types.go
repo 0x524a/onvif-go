@@ -350,12 +350,17 @@ type PTZNode struct {
 	Token string
 	Name  string
 	// FixedHomePosition is nil when the device did not report it.
-	FixedHomePosition      *bool
-	GeoMove                bool
-	SupportedPTZSpaces     *PTZSpaces
+	FixedHomePosition *bool
+	// GeoMove reports whether the node supports GeoMove.
+	GeoMove bool
+	// SupportedPTZSpaces is nil when the device reported no spaces.
+	SupportedPTZSpaces *PTZSpaces
+	// MaximumNumberOfPresets is the preset capacity; 0 when not reported.
 	MaximumNumberOfPresets int
-	HomeSupported          bool
-	AuxiliaryCommands      []string
+	// HomeSupported reports whether the node supports a home position.
+	HomeSupported bool
+	// AuxiliaryCommands lists vendor auxiliary command names.
+	AuxiliaryCommands []string
 }
 
 // DurationRange represents a range of durations.
