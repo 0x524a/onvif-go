@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The minimum Go version is now 1.26, which the `rtspeek` 1.0.0 dependency of `onvif-cli` requires.
+  Users on Go 1.25 need to upgrade.
+
 ### Fixed
 
 - `RelativeMove`, `AbsoluteMove` and `ContinuousMove` wrote the `PanTilt` and `Zoom` children of the
