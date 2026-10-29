@@ -323,6 +323,53 @@ type FloatRange struct {
 	Max float64
 }
 
+// PTZSpaces lists the coordinate spaces a PTZ node (or a PTZ configuration)
+// supports, each with the range the device reports for it. A device may
+// report several spaces of one kind, for example the generic space and a
+// vendor space in degrees, so every kind is a list. A kind the device did not
+// report is nil, and a range it did not report is a nil XRange or YRange:
+// absent is never turned into zero.
+type PTZSpaces struct {
+	AbsolutePanTiltPositionSpace    []*Space2DDescription
+	AbsoluteZoomPositionSpace       []*Space1DDescription
+	RelativePanTiltTranslationSpace []*Space2DDescription
+	RelativeZoomTranslationSpace    []*Space1DDescription
+	ContinuousPanTiltVelocitySpace  []*Space2DDescription
+	ContinuousZoomVelocitySpace     []*Space1DDescription
+	PanTiltSpeedSpace               []*Space1DDescription
+	ZoomSpeedSpace                  []*Space1DDescription
+}
+
+// PTZNode describes one PTZ node, the physical or logical unit that moves:
+// the coordinate spaces it supports, its preset capacity and its home
+// position support (ONVIF tt:PTZNode).
+type PTZNode struct {
+	Token string
+	Name  string
+	// FixedHomePosition is nil when the device did not report it.
+	FixedHomePosition      *bool
+	GeoMove                bool
+	SupportedPTZSpaces     *PTZSpaces
+	MaximumNumberOfPresets int
+	HomeSupported          bool
+	AuxiliaryCommands      []string
+}
+
+// DurationRange represents a range of durations.
+type DurationRange struct {
+	Min time.Duration
+	Max time.Duration
+}
+
+// PTZConfigurationOptions describes what a PTZ configuration accepts: the
+// coordinate spaces valid for it, with their ranges, and the range of the
+// timeout a continuous move may carry (ONVIF tt:PTZConfigurationOptions).
+// Spaces and PTZTimeout are nil when the device did not report them.
+type PTZConfigurationOptions struct {
+	Spaces     *PTZSpaces
+	PTZTimeout *DurationRange
+}
+
 // PTZFilter represents PTZ filter.
 type PTZFilter struct {
 	Status   bool

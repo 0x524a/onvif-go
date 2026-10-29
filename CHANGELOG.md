@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A PTZ range (`XRange`/`YRange` of `PanTiltLimits`, `ZoomLimits` and every PTZ space) whose `Min` or
+  `Max` is absent, empty or blank is now reported as no range (`nil`) instead of one whose missing
+  bound is 0: `<Max>0.9</Max>` alone used to decode as 0..0.9, wider than the camera meant whenever its
+  real minimum is above 0. A bound that is present but not a number fails the call, as before.
+
 - `RelativeMove`, `AbsoluteMove` and `ContinuousMove` wrote the `PanTilt` and `Zoom` children of the
   vector and speed without the `tt` (ONVIF schema) namespace. Strict gSOAP cameras (seen on a Reolink
   TrackMix) rejected every move with `Validation constraint violation: tag name namespace mismatch in
@@ -22,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `onvif-server` and `onvif-diagnostics` reported version 1.0.0 whatever the release: the version was a lowercase variable (or a constant) that the release build's `-X main.Version=` could not set. It is now an exported `Version` that the build sets, and `dev` for plain `go build`.
 
 ### Added
+- PTZ `GetNodes`, `GetNode` and `GetConfigurationOptions`, with typed results: `PTZNode` (supported spaces, `MaximumNumberOfPresets`, `HomeSupported`, `FixedHomePosition`, auxiliary commands), `PTZSpaces` (every absolute, relative, continuous and speed space with its `XRange`/`YRange`) and `PTZConfigurationOptions` (spaces and the `PTZTimeout` range). Absent elements stay nil rather than becoming zero, so a caller can refuse a move when a camera reports no limits. Requests are written in the `tptz` namespace and checked namespace-aware, as strict gSOAP cameras parse them.
+- Virtual server: `GetNodes`, `GetNode`, `GetConfigurationOptions`, `GetConfiguration` and `GetConfigurations` handlers. Nodes report the ONVIF generic spaces (positions -1 to 1, zoom position and speeds 0 to 1) for the move kinds the profile supports, no home position, no configured limits and no `PTZTimeout` range (the virtual camera ignores a continuous move's timeout).
 - `-version` on all four tools (`onvif-cli`, `onvif-quick`, `onvif-server`, `onvif-diagnostics`), printing the version and short commit, e.g. `onvif-cli v1.2.1 (abc1234)`. Release builds set them with `-ldflags`; `go install ...@v1.2.1` and plain builds fall back to the version and revision Go embeds in the binary.
 
 ## [1.2.0] - 2026-10-10

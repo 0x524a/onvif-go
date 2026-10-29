@@ -150,7 +150,7 @@ Captured responses from real cameras are replayed in the test suite through a mo
 |---|---|---|
 | Device | 97 | Information, capabilities, network, users, certificates, Wi-Fi and 802.1X, storage, logs, firmware |
 | Media | 82 | Profiles, RTSP and HTTP stream URIs, snapshots, video, audio and metadata configuration |
-| PTZ | 13 | Continuous, absolute and relative moves, presets, home position, status |
+| PTZ | 16 | Continuous, absolute and relative moves, presets, home position, status, nodes and configuration options (supported spaces and their ranges) |
 | Imaging | 7 | Brightness, contrast, exposure, focus, white balance, wide dynamic range |
 | Events | 12 | Subscriptions and pull points |
 | Device I/O | 14 | Relays, digital inputs, video outputs |
