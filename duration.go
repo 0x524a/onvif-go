@@ -3,6 +3,7 @@ package onvif
 import (
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -113,10 +114,19 @@ func sumDurationParts(m []string) (total time.Duration, ok bool) {
 			continue
 		}
 		n, err := strconv.Atoi(part.text)
-		if err != nil {
+		if err != nil || n < 0 {
 			return 0, false
 		}
-		total += time.Duration(n) * part.unit
+		// Reject a component or a running total that would overflow int64
+		// rather than wrapping to a negative duration.
+		if time.Duration(n) > math.MaxInt64/part.unit {
+			return 0, false
+		}
+		d := time.Duration(n) * part.unit
+		if total > math.MaxInt64-d {
+			return 0, false
+		}
+		total += d
 	}
 
 	// Seconds may carry a fractional part, so they go through ParseFloat.
@@ -125,7 +135,11 @@ func sumDurationParts(m []string) (total time.Duration, ok bool) {
 		if err != nil {
 			return 0, false
 		}
-		total += time.Duration(secs * float64(time.Second))
+		ns := secs * float64(time.Second)
+		if ns >= float64(math.MaxInt64-int64(total)) {
+			return 0, false
+		}
+		total += time.Duration(ns)
 	}
 
 	return total, true

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/0x524a/onvif-go/internal/soap"
 )
@@ -40,8 +42,8 @@ type ptzNodeXML struct {
 	GeoMove                bool          `xml:"GeoMove,attr"`
 	Name                   string        `xml:"Name"`
 	SupportedPTZSpaces     *ptzSpacesXML `xml:"SupportedPTZSpaces"`
-	MaximumNumberOfPresets int           `xml:"MaximumNumberOfPresets"`
-	HomeSupported          bool          `xml:"HomeSupported"`
+	MaximumNumberOfPresets string        `xml:"MaximumNumberOfPresets"`
+	HomeSupported          string        `xml:"HomeSupported"`
 	AuxiliaryCommands      []string      `xml:"AuxiliaryCommands"`
 }
 
@@ -94,8 +96,8 @@ func (x *ptzNodeXML) toPTZNode() *PTZNode {
 		FixedHomePosition:      x.FixedHomePosition,
 		GeoMove:                x.GeoMove,
 		SupportedPTZSpaces:     x.SupportedPTZSpaces.toPTZSpaces(),
-		MaximumNumberOfPresets: x.MaximumNumberOfPresets,
-		HomeSupported:          x.HomeSupported,
+		MaximumNumberOfPresets: lenientInt(x.MaximumNumberOfPresets),
+		HomeSupported:          lenientBool(x.HomeSupported),
 		AuxiliaryCommands:      x.AuxiliaryCommands,
 	}
 }
@@ -150,8 +152,8 @@ func (c *Client) GetNode(ctx context.Context, nodeToken string) (*PTZNode, error
 	}
 
 	type GetNodeResponse struct {
-		XMLName xml.Name   `xml:"GetNodeResponse"`
-		PTZNode ptzNodeXML `xml:"PTZNode"`
+		XMLName xml.Name    `xml:"GetNodeResponse"`
+		PTZNode *ptzNodeXML `xml:"PTZNode"`
 	}
 
 	var resp GetNodeResponse
@@ -161,6 +163,13 @@ func (c *Client) GetNode(ctx context.Context, nodeToken string) (*PTZNode, error
 
 	if err := soapClient.Call(ctx, endpoint, "", GetNode{Xmlns: ptzNamespace, NodeToken: nodeToken}, &resp); err != nil {
 		return nil, fmt.Errorf("GetNode failed: %w", err)
+	}
+
+	// The schema requires the element. A reply without it is not a node with
+	// no capabilities, and returning a zero-value node would let a caller read
+	// it as one.
+	if resp.PTZNode == nil {
+		return nil, fmt.Errorf("GetNode failed: %w: reply carries no PTZNode", ErrInvalidResponse)
 	}
 
 	return resp.PTZNode.toPTZNode(), nil
@@ -205,9 +214,39 @@ func (c *Client) GetConfigurationOptions(ctx context.Context, configurationToken
 	}
 
 	opts := &PTZConfigurationOptions{Spaces: resp.PTZConfigurationOptions.Spaces.toPTZSpaces()}
+	// PTZTimeout is set only when both bounds parse, are not negative and are
+	// ordered. A missing, malformed, overflowing or inverted bound leaves it nil
+	// ("not reported") instead of a zero a caller would clamp to.
 	if t := resp.PTZConfigurationOptions.PTZTimeout; t != nil {
-		opts.PTZTimeout = &DurationRange{Min: parseXSDurationOrZero(t.Min), Max: parseXSDurationOrZero(t.Max)}
+		lo, errLo := parseXSDuration(t.Min)
+		hi, errHi := parseXSDuration(t.Max)
+		if errLo == nil && errHi == nil && lo >= 0 && hi >= lo {
+			opts.PTZTimeout = &DurationRange{Min: lo, Max: hi}
+		}
 	}
 
 	return opts, nil
+}
+
+// lenientInt reads an xs:int the camera may have left blank or malformed. A
+// bad count must not fail a call that carries the node's spaces; the zero value
+// means "not reported" for a preset count.
+func lenientInt(s string) int {
+	n, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil || n < 0 {
+		return 0
+	}
+
+	return n
+}
+
+// lenientBool reads an xs:boolean ("true", "1") that may be blank or malformed
+// as false.
+func lenientBool(s string) bool {
+	switch strings.TrimSpace(s) {
+	case "true", "1":
+		return true
+	}
+
+	return false
 }

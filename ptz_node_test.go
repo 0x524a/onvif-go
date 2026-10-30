@@ -3,6 +3,7 @@ package onvif
 import (
 	"context"
 	"encoding/xml"
+	"errors"
 	"math"
 	"strings"
 	"testing"
@@ -77,8 +78,8 @@ func assertRange(t *testing.T, what string, r *FloatRange, wantMin, wantMax floa
 func assert2D(t *testing.T, what string, got []*Space2DDescription, uri string, x, y [2]float64) {
 	t.Helper()
 
-	if len(got) == 0 || got[0] == nil {
-		t.Fatalf("%s = %+v, want one entry", what, got)
+	if len(got) != 1 || got[0] == nil {
+		t.Fatalf("%s = %+v, want exactly one entry", what, got)
 	}
 	if got[0].URI != uri {
 		t.Errorf("%s URI = %q, want %q", what, got[0].URI, uri)
@@ -109,8 +110,8 @@ func assertFullSpaces(t *testing.T, s *PTZSpaces) {
 	if len(s.AbsolutePanTiltPositionSpace) != 2 {
 		t.Fatalf("AbsolutePanTiltPositionSpace has %d entries, want 2", len(s.AbsolutePanTiltPositionSpace))
 	}
-	assert2D(t, "AbsolutePanTiltPositionSpace[0]", s.AbsolutePanTiltPositionSpace, "urn:abs-pt", [2]float64{-1, 1}, [2]float64{-0.5, 0.75})
-	assert2D(t, "AbsolutePanTiltPositionSpace[1]", s.AbsolutePanTiltPositionSpace[1:], "urn:abs-pt-degrees",
+	assert2D(t, "AbsolutePanTiltPositionSpace[0]", s.AbsolutePanTiltPositionSpace[:1], "urn:abs-pt", [2]float64{-1, 1}, [2]float64{-0.5, 0.75})
+	assert2D(t, "AbsolutePanTiltPositionSpace[1]", s.AbsolutePanTiltPositionSpace[1:2], "urn:abs-pt-degrees",
 		[2]float64{-180, 180}, [2]float64{-90, 0})
 	assert1D(t, "AbsoluteZoomPositionSpace", s.AbsoluteZoomPositionSpace, "urn:abs-z", [2]float64{0, 0.9})
 	assert2D(t, "RelativePanTiltTranslationSpace", s.RelativePanTiltTranslationSpace, "urn:rel-pt", [2]float64{-2, 2}, [2]float64{-3, 3})
@@ -396,9 +397,112 @@ func TestPTZRangeBoundsArePaddedOrRefused(t *testing.T) {
 		t.Fatalf("GetNode() error = %v", err)
 	}
 	assertRange(t, "padded XRange", node.SupportedPTZSpaces.AbsoluteZoomPositionSpace[0].XRange, -0.5, 1)
+}
 
-	bad := strings.Replace(body, " -0.5 ", "minus one", 1)
-	if _, err := newPTZTestClient(t, newSOAPTestServer(t, bad)).GetNode(context.Background(), "n"); err == nil {
-		t.Error("GetNode() with a bound that is not a number = nil error, want a decode error")
+// A bound that is not an xs:float makes only its own range absent. The call
+// still succeeds, so one bad range cannot hide the rest of the node.
+func TestPTZRangeWithAnUnusableBoundIsAbsentButTheCallSucceeds(t *testing.T) {
+	for name, min := range map[string]string{
+		"words":               "minus one",
+		"hexadecimal":         "0x1p0",
+		"Inf spelling":        "Infinity",
+		"beyond float":        "1e39",
+		"beyond float64":      "1e400",
+		"underscore":          "1_0",
+		"plus INF is not xsd": "+INF",
+	} {
+		t.Run(name, func(t *testing.T) {
+			body := `<tptz:GetNodeResponse ` + ptzReplyNS + `><tptz:PTZNode token="n"><tt:SupportedPTZSpaces>
+        <tt:AbsoluteZoomPositionSpace><tt:URI>urn:z</tt:URI>
+            <tt:XRange><tt:Min>` + min + `</tt:Min><tt:Max>1</tt:Max></tt:XRange>
+        </tt:AbsoluteZoomPositionSpace>
+        <tt:RelativeZoomTranslationSpace><tt:URI>urn:ok</tt:URI>
+            <tt:XRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:XRange>
+        </tt:RelativeZoomTranslationSpace></tt:SupportedPTZSpaces></tptz:PTZNode></tptz:GetNodeResponse>`
+			node, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetNode(context.Background(), "n")
+			if err != nil {
+				t.Fatalf("GetNode() error = %v, want the call to succeed", err)
+			}
+			if r := node.SupportedPTZSpaces.AbsoluteZoomPositionSpace[0].XRange; r != nil {
+				t.Errorf("XRange = %+v, want nil", r)
+			}
+			assertRange(t, "unaffected range", node.SupportedPTZSpaces.RelativeZoomTranslationSpace[0].XRange, -1, 1)
+		})
+	}
+}
+
+// Blank or malformed counts and flags do not fail the call that carries the
+// node's spaces.
+func TestGetNodeToleratesBlankCountAndFlag(t *testing.T) {
+	body := `<tptz:GetNodeResponse ` + ptzReplyNS + `><tptz:PTZNode token="n">
+        <tt:MaximumNumberOfPresets> </tt:MaximumNumberOfPresets><tt:HomeSupported></tt:HomeSupported>
+        <tt:SupportedPTZSpaces><tt:ContinuousPanTiltVelocitySpace><tt:URI>urn:v</tt:URI>
+            <tt:XRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:XRange>
+            <tt:YRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:YRange>
+        </tt:ContinuousPanTiltVelocitySpace></tt:SupportedPTZSpaces></tptz:PTZNode></tptz:GetNodeResponse>`
+	node, err := newPTZTestClient(t, newSOAPTestServer(t, body)).GetNode(context.Background(), "n")
+	if err != nil {
+		t.Fatalf("GetNode() error = %v", err)
+	}
+	if node.MaximumNumberOfPresets != 0 || node.HomeSupported || node.SupportedPTZSpaces == nil {
+		t.Errorf("node = %+v, want zero count, no home and the spaces kept", node)
+	}
+}
+
+// A reply with no PTZNode is not a node with no capabilities: the schema
+// requires the element, so GetNode reports an error instead of a zero node.
+func TestGetNodeWithoutAPTZNodeIsAnError(t *testing.T) {
+	body := `<tptz:GetNodeResponse ` + ptzReplyNS + `/>`
+	client := newPTZTestClient(t, newSOAPTestServer(t, body))
+
+	node, err := client.GetNode(context.Background(), "n")
+	if err == nil || node != nil {
+		t.Fatalf("GetNode() = %+v, %v; want nil node and an error", node, err)
+	}
+	if !errors.Is(err, ErrInvalidResponse) {
+		t.Errorf("error = %v, want ErrInvalidResponse", err)
+	}
+}
+
+// PTZTimeout keeps the "absent is never zero" rule: it is set only when both
+// bounds parse, are not negative and are ordered.
+func TestGetConfigurationOptionsPTZTimeoutIsNilUnlessBothBoundsAreSound(t *testing.T) {
+	cases := map[string]string{
+		"empty element":       `<tt:PTZTimeout/>`,
+		"max only":            `<tt:PTZTimeout><tt:Max>PT10S</tt:Max></tt:PTZTimeout>`,
+		"min only":            `<tt:PTZTimeout><tt:Min>PT1S</tt:Min></tt:PTZTimeout>`,
+		"garbage":             `<tt:PTZTimeout><tt:Min>soon</tt:Min><tt:Max>later</tt:Max></tt:PTZTimeout>`,
+		"inverted":            `<tt:PTZTimeout><tt:Min>PT10S</tt:Min><tt:Max>PT1S</tt:Max></tt:PTZTimeout>`,
+		"negative min":        `<tt:PTZTimeout><tt:Min>-PT1S</tt:Min><tt:Max>PT10S</tt:Max></tt:PTZTimeout>`,
+		"overflowing seconds": `<tt:PTZTimeout><tt:Min>PT1S</tt:Min><tt:Max>PT99999999999999S</tt:Max></tt:PTZTimeout>`,
+		"overflowing hours":   `<tt:PTZTimeout><tt:Min>PT1S</tt:Min><tt:Max>PT99999999999H</tt:Max></tt:PTZTimeout>`,
+	}
+	for name, timeout := range cases {
+		t.Run(name, func(t *testing.T) {
+			body := `<tptz:GetConfigurationOptionsResponse ` + ptzReplyNS + `>
+        <tptz:PTZConfigurationOptions>` + timeout + `</tptz:PTZConfigurationOptions>
+    </tptz:GetConfigurationOptionsResponse>`
+			client := newPTZTestClient(t, newSOAPTestServer(t, body))
+
+			opts, err := client.GetConfigurationOptions(context.Background(), "cfg1")
+			if err != nil {
+				t.Fatalf("GetConfigurationOptions() error = %v", err)
+			}
+			if opts.PTZTimeout != nil {
+				t.Errorf("PTZTimeout = %+v, want nil", opts.PTZTimeout)
+			}
+		})
+	}
+}
+
+// A duration that does not fit in an int64 is refused, never wrapped negative.
+func TestParseXSDurationRefusesOverflow(t *testing.T) {
+	for _, s := range []string{"PT99999999999999S", "PT99999999999H", "P999999999999D", "PT9223372036854775807S", "PT2562047H47M17S"} {
+		if d, err := parseXSDuration(s); err == nil {
+			t.Errorf("parseXSDuration(%q) = %v, want an error", s, d)
+		}
+	}
+	if d, err := parseXSDuration("PT2562047H47M16S"); err != nil || d <= 0 {
+		t.Errorf("largest representable duration = %v, %v; want it accepted", d, err)
 	}
 }

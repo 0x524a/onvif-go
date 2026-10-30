@@ -317,7 +317,10 @@ type Space1DDescription struct {
 	XRange *FloatRange
 }
 
-// FloatRange represents a float range.
+// FloatRange represents a float range as the camera reported it. The bounds are
+// passed through unjudged: a camera can report INF, -INF, NaN, an inverted range
+// (Min > Max) or a zero-width one, and a caller that clamps to a range must check
+// for those first.
 type FloatRange struct {
 	Min float64
 	Max float64
@@ -347,12 +350,17 @@ type PTZNode struct {
 	Token string
 	Name  string
 	// FixedHomePosition is nil when the device did not report it.
-	FixedHomePosition      *bool
-	GeoMove                bool
-	SupportedPTZSpaces     *PTZSpaces
+	FixedHomePosition *bool
+	// GeoMove reports whether the node supports GeoMove.
+	GeoMove bool
+	// SupportedPTZSpaces is nil when the device reported no spaces.
+	SupportedPTZSpaces *PTZSpaces
+	// MaximumNumberOfPresets is the preset capacity; 0 when not reported.
 	MaximumNumberOfPresets int
-	HomeSupported          bool
-	AuxiliaryCommands      []string
+	// HomeSupported reports whether the node supports a home position.
+	HomeSupported bool
+	// AuxiliaryCommands lists vendor auxiliary command names.
+	AuxiliaryCommands []string
 }
 
 // DurationRange represents a range of durations.

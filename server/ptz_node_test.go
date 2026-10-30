@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"testing"
+	"time"
 
 	onvif "github.com/0x524a/onvif-go"
 )
@@ -162,8 +163,8 @@ func TestClientPTZConfigurationReadsAgainstServer(t *testing.T) {
 		t.Fatalf("GetConfigurationOptions() error = %v", err)
 	}
 	assertGenericSpaces(t, opts.Spaces)
-	if opts.PTZTimeout != nil {
-		t.Errorf("PTZTimeout = %+v, want none: the virtual camera ignores the continuous move Timeout", opts.PTZTimeout)
+	if opts.PTZTimeout == nil {
+		t.Error("PTZTimeout = nil, want the nominal range the schema requires")
 	}
 
 	cfg, err := client.GetConfiguration(ctx, cfgToken)
@@ -202,5 +203,110 @@ func TestServerNodeOmitsUnsupportedMoveSpaces(t *testing.T) {
 	}
 	if len(s.RelativePanTiltTranslationSpace) != 1 || len(s.PanTiltSpeedSpace) != 1 {
 		t.Errorf("spaces = %+v, want the relative and speed spaces kept", s)
+	}
+}
+
+// Profiles that share a node token yield one node and one configuration, not one
+// per profile.
+func TestServerSharedNodeTokenIsListedOnce(t *testing.T) {
+	config := DefaultConfig()
+	dup := config.Profiles[0]
+	dup.Token, dup.Name = "profile_dup", "Duplicate"
+	ptz := *config.Profiles[0].PTZ
+	dup.PTZ = &ptz
+	config.Profiles = append(config.Profiles, dup)
+	want := map[string]bool{}
+	for _, p := range config.Profiles {
+		if p.PTZ != nil {
+			want[p.PTZ.NodeToken] = true
+		}
+	}
+	client := ptzNodeClient(t, config)
+
+	nodes, err := client.GetNodes(context.Background())
+	if err != nil {
+		t.Fatalf("GetNodes() error = %v", err)
+	}
+	seen := map[string]int{}
+	for _, n := range nodes {
+		seen[n.Token]++
+	}
+	if len(nodes) != len(want) {
+		t.Errorf("GetNodes() returned %d nodes, want %d distinct", len(nodes), len(want))
+	}
+	for tok, n := range seen {
+		if n != 1 {
+			t.Errorf("node %q listed %d times", tok, n)
+		}
+	}
+	cfgs, err := client.GetConfigurations(context.Background())
+	if err != nil {
+		t.Fatalf("GetConfigurations() error = %v", err)
+	}
+	if len(cfgs) != len(want) {
+		t.Errorf("GetConfigurations() returned %d, want %d distinct", len(cfgs), len(want))
+	}
+}
+
+// Each Supports* flag removes exactly its own kind of spaces and nothing else.
+func TestServerEachSupportFlagRemovesOnlyItsOwnSpaces(t *testing.T) {
+	const (
+		absolute   = "absolute"
+		relative   = "relative"
+		continuous = "continuous"
+	)
+	for _, kind := range []string{absolute, relative, continuous} {
+		t.Run(kind, func(t *testing.T) {
+			config := DefaultConfig()
+			ptz := config.Profiles[0].PTZ
+			ptz.SupportsAbsolute, ptz.SupportsRelative, ptz.SupportsContinuous = true, true, true
+			switch kind {
+			case absolute:
+				ptz.SupportsAbsolute = false
+			case relative:
+				ptz.SupportsRelative = false
+			case continuous:
+				ptz.SupportsContinuous = false
+			}
+			node, err := ptzNodeClient(t, config).GetNode(context.Background(), ptz.NodeToken)
+			if err != nil {
+				t.Fatalf("GetNode() error = %v", err)
+			}
+			s := node.SupportedPTZSpaces
+			have := map[string]bool{
+				absolute:   len(s.AbsolutePanTiltPositionSpace) > 0 && len(s.AbsoluteZoomPositionSpace) > 0,
+				relative:   len(s.RelativePanTiltTranslationSpace) > 0 && len(s.RelativeZoomTranslationSpace) > 0,
+				continuous: len(s.ContinuousPanTiltVelocitySpace) > 0 && len(s.ContinuousZoomVelocitySpace) > 0,
+			}
+			none := map[string]bool{
+				absolute:   len(s.AbsolutePanTiltPositionSpace) == 0 && len(s.AbsoluteZoomPositionSpace) == 0,
+				relative:   len(s.RelativePanTiltTranslationSpace) == 0 && len(s.RelativeZoomTranslationSpace) == 0,
+				continuous: len(s.ContinuousPanTiltVelocitySpace) == 0 && len(s.ContinuousZoomVelocitySpace) == 0,
+			}
+			for k := range have {
+				if k == kind && !none[k] {
+					t.Errorf("%s spaces present, want none", k)
+				}
+				if k != kind && !have[k] {
+					t.Errorf("%s spaces missing, want kept", k)
+				}
+			}
+			if len(s.PanTiltSpeedSpace) != 1 || len(s.ZoomSpeedSpace) != 1 {
+				t.Errorf("speed spaces = %+v, want both kept", s)
+			}
+		})
+	}
+}
+
+// The schema requires PTZTimeout; the virtual camera reports a nominal range.
+func TestServerConfigurationOptionsReportATimeoutRange(t *testing.T) {
+	config := DefaultConfig()
+	client := ptzNodeClient(t, config)
+	opts, err := client.GetConfigurationOptions(context.Background(), config.Profiles[0].PTZ.NodeToken)
+	if err != nil {
+		t.Fatalf("GetConfigurationOptions() error = %v", err)
+	}
+	if opts.PTZTimeout == nil || opts.PTZTimeout.Min != time.Second || opts.PTZTimeout.Max != time.Minute {
+		t.Errorf("PTZTimeout = %+v, want {1s 1m0s}", opts.PTZTimeout)
 	}
 }

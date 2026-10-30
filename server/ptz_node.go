@@ -78,6 +78,15 @@ type PTZNode struct {
 // PTZConfigurationOptions represents the options of a PTZ configuration.
 type PTZConfigurationOptions struct {
 	Spaces PTZSpaces `xml:"Spaces"`
+	// PTZTimeout is required by the schema. The virtual camera reports a
+	// nominal range and ignores a continuous move's Timeout.
+	PTZTimeout PTZTimeoutRange `xml:"PTZTimeout"`
+}
+
+// PTZTimeoutRange is the xs:duration range of a continuous move's Timeout.
+type PTZTimeoutRange struct {
+	Min string `xml:"Min"`
+	Max string `xml:"Max"`
 }
 
 // PTZSpaces lists supported coordinate spaces with their ranges.
@@ -125,7 +134,9 @@ func genericSpaces(ptz *PTZConfig) PTZSpaces {
 }
 
 // ptzProfileByNode returns the first profile whose PTZ node (which is also its
-// PTZ configuration token, see HandleGetProfiles) is token.
+// PTZ configuration token, see HandleGetProfiles) is token. Profiles that share
+// a node token should share their Supports* flags: the first one wins, so a
+// later profile's differing flags are not reported.
 func (s *Server) ptzProfileByNode(token string) *ProfileConfig {
 	for i := range s.config.Profiles {
 		if p := &s.config.Profiles[i]; p.PTZ != nil && p.PTZ.NodeToken == token {
@@ -193,8 +204,8 @@ func (s *Server) HandleGetNode(body interface{}) (interface{}, error) {
 }
 
 // HandleGetConfigurationOptions handles GetConfigurationOptions request. It
-// reports no PTZTimeout range: the virtual camera ignores a continuous move's
-// Timeout.
+// reports a nominal PTZTimeout range (PT1S to PT60S) because the schema requires
+// one; the virtual camera ignores a continuous move's Timeout.
 func (s *Server) HandleGetConfigurationOptions(body interface{}) (interface{}, error) {
 	var req GetConfigurationOptionsRequest
 	if err := unmarshalBody(body, &req); err != nil {
@@ -207,7 +218,10 @@ func (s *Server) HandleGetConfigurationOptions(body interface{}) (interface{}, e
 	}
 
 	return &GetConfigurationOptionsResponse{
-		PTZConfigurationOptions: PTZConfigurationOptions{Spaces: genericSpaces(p.PTZ)},
+		PTZConfigurationOptions: PTZConfigurationOptions{
+			Spaces:     genericSpaces(p.PTZ),
+			PTZTimeout: PTZTimeoutRange{Min: "PT1S", Max: "PT60S"},
+		},
 	}, nil
 }
 

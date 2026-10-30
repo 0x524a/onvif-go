@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `PTZConfigurationOptions.PTZTimeout` is nil unless both bounds parse, are not negative and are ordered; a missing, garbage or inverted bound no longer becomes zero. `parseXSDuration` refuses a duration that overflows instead of wrapping negative.
+- `GetNode` returns an error (`ErrInvalidResponse`) when the reply has no `PTZNode`.
+- PTZ range bounds must be an `xs:float` (decimal, exponent, `INF`, `-INF`, `NaN`) that fits one; anything else makes only that range nil, and the call still succeeds. A blank `MaximumNumberOfPresets` or `HomeSupported` no longer fails the call. **Callers must nil-check `XRange` and `YRange` even when `Range` is non-nil**: a range with one bound missing is nil rather than `{0, x}`.
+- Imaging option ranges follow the same rule: `<Max>100</Max>` alone is a nil range, not 0..100.
+- Virtual camera: `GetConfigurationOptions` reports a nominal `PTZTimeout` (PT1S to PT60S), as the schema requires.
+- Site: the PTZ API count reads 16.
+
 ## [1.3.0] - 2026-10-29
 
 ### Changed
