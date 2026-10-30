@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-29
+
+Hardens the PTZ node and configuration option reads added in 1.3.0. A bad range bound no longer fails the whole call: it makes only its own range nil, so callers should nil-check `XRange` and `YRange`.
+
 ### Fixed
 
 - `PTZConfigurationOptions.PTZTimeout` is nil unless both bounds parse, are not negative and are ordered; a missing, garbage or inverted bound no longer becomes zero. `parseXSDuration` refuses a duration that overflows instead of wrapping negative.
@@ -229,7 +233,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 - README with usage guide
 
-[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/0x524a/onvif-go/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/0x524a/onvif-go/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/0x524a/onvif-go/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/0x524a/onvif-go/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/0x524a/onvif-go/compare/v1.1.8...v1.2.0
